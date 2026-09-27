@@ -53,6 +53,7 @@ use NeoPHP\Package\Debug\Provider\DebugProvider;
 use NeoPHP\Package\Dotenv\DotenvManager;
 use NeoPHP\Package\Dotenv\Provider\DotenvProvider;
 use NeoPHP\Package\Markdown\Provider\MarkdownProvider;
+use NeoPHP\Package\NeoAI\Provider\NeoAiProvider;
 use NeoPHP\Package\Orm\Provider\OrmProvider;
 use NeoPHP\Package\Security\Provider\SecurityProvider;
 use NeoPHP\Package\Tailwind\Provider\TailwindProvider;
@@ -383,6 +384,7 @@ abstract class AbstractKernel implements KernelInterface
             AssetProvider::class,
             TailwindProvider::class,
             MarkdownProvider::class,
+            NeoAiProvider::class,
             ViewProvider::class,
             ControllerProvider::class,
             InstallerProvider::class,
