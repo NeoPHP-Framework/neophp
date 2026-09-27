@@ -12,6 +12,7 @@ It is not an ORM: entities, repositories, migrations and the query builder belon
 - [Transactions](#transactions)
 - [Commands](#commands)
 - [Errors](#errors)
+- [Profiler](#profiler)
 - [Changelog](#changelog)
 
 ## Requirements
@@ -242,8 +243,29 @@ php bin/neo database:drop --force --if-exists
 
 They extend `FrameworkException` (see the Exception documentation).
 
+## Profiler
+
+Every connection accepts a query logger (`Contract\QueryLoggerInterface`). None is attached by default: without logger, queries run exactly as before.
+
+```php
+use NeoPHP\Component\Database\Logger\QueryLogger;
+
+$logger = new QueryLogger();
+$connection->setQueryLogger($logger);
+$database->setQueryLogger($logger);
+
+$logger->getQueries();
+```
+
+Each entry holds the SQL, the parameters, the duration in ms, the connection name, the affected rows (statements without result set), the caller (first file outside the framework) and the error message when the query failed. `BEGIN`, `COMMIT`, `ROLLBACK` and savepoints are logged with the `transaction` type. `QueryLogger` keeps at most 1000 queries and counts the others.
+
+`DatabaseProvider` registers a `QueryLogger` singleton (`database.query_logger`) and attaches it to the connections only when the Web Profiler is enabled (`web_profiler.config` with `enabled: true`), checked when the first connection is created. When a `stopwatch` service exists, each query is also added to the timeline with the `database` category.
+
+The `Helper/Profiler/DatabaseProfiler` element adds a Database item to the toolbar (number of queries, warning on duplicated queries or more than 50 queries, danger on error) and a panel: queries, time, duplicated queries (same SQL several times: possible N+1), slow queries (more than 100 ms), per-connection statistics and errors.
+
 ## Changelog
 
+- v1.25.1 — profiler integration: `QueryLoggerInterface`, `QueryLogger`, `setQueryLogger()` on connections and on the manager, transaction logging, Stopwatch events, Database panel of the Web Profiler.
 - v1.17.0 — `database:query` asks for the query when it is missing.
 - v1.15.0 — commands rewritten for the new console (`db:*` aliases).
 - v1.11.0 — Database component: connections by URL or parameters, several connections, query and fetch methods, `insert()` / `update()` / `delete()`, expanded array parameters, nested transactions, `getConnection()` in controllers, `database:create`, `database:drop` and `database:query` commands.
