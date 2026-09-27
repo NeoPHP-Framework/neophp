@@ -6,6 +6,7 @@ namespace NeoPHP\Component\Kernel\Contract;
 
 use Composer\InstalledVersions;
 use ErrorException;
+use NeoPHP\Component\Api\Provider\ApiProvider;
 use NeoPHP\Component\Asset\Provider\AssetProvider;
 use NeoPHP\Component\Cache\Provider\CacheProvider;
 use NeoPHP\Component\Config\Provider\ConfigProvider;
@@ -295,7 +296,10 @@ abstract class AbstractKernel implements KernelInterface
                 $exception = $event->getThrowable();
 
                 if ($event->hasResponse()) {
-                    return $event->getResponse();
+                    $response = $event->getResponse();
+                    $this->logException($exception, $request, $response->getStatusCode());
+
+                    return $response;
                 }
             } catch (Throwable) {
             }
@@ -365,6 +369,7 @@ abstract class AbstractKernel implements KernelInterface
             ValidatorProvider::class,
             DatabaseProvider::class,
             SerializerProvider::class,
+            ApiProvider::class,
             OrmProvider::class,
             CacheProvider::class,
             CsrfProvider::class,

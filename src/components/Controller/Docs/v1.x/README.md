@@ -114,6 +114,7 @@ Any other value throws a `ControllerException`.
 
 | Trait | Methods |
 |---|---|
+| `Api/Helper/Controller/ApiController` | `paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()` |
 | `Container/Helper/Controller/ContainerController` | `setContainer()`, `get()`, `has()` |
 | `Cookie/Helper/Controller/CookieController` | `getCookies()` |
 | `Csrf/Helper/Controller/CsrfController` | `getCsrfToken()`, `isCsrfTokenValid()` |
@@ -213,6 +214,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v1.24.0 — `ApiController` trait: `paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()`; `PageRequest` / `#[MapPagination]` controller arguments (see the Api documentation).
 - v1.23.0 — Argument resolvers (`ArgumentResolverInterface`, `controller.argument_resolvers`) used by `#[MapRequestPayload]` / `#[MapQueryString]`; `serialize()` / `deserialize()` in controllers; `json()` accepts a serializer context.
 - v1.16.0 — `sendEmail()` in controllers.
 - v1.13.0 — Security shortcuts (`getUser()`, `isGranted()`, `denyAccessUnlessGranted()`, `loginUser()`, `logoutUser()`...).
