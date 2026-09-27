@@ -85,6 +85,7 @@ config/framework/csrf.yaml
 config/framework/database.yaml
 config/framework/event.yaml
 config/framework/form.yaml
+config/framework/http_client.yaml
 config/framework/logger.yaml
 config/framework/mailer.yaml
 config/framework/middleware.yaml
