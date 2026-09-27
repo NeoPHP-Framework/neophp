@@ -23,6 +23,7 @@ use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
 use NeoPHP\Package\Security\SecurityManager;
 use NeoPHP\Package\Security\Token\TokenStorage;
+use NeoPHP\Package\Security\Trace\SecurityTrace;
 use NeoPHP\Package\Security\Voter\AuthenticatedVoter;
 use NeoPHP\Package\Security\Voter\RoleVoter;
 
@@ -35,6 +36,8 @@ class SecurityProvider extends AbstractProvider
     public const SECRET_KEY = 'framework.app.secret';
 
     public const CACHE_DIRECTORY = 'security';
+
+    public const PROFILER_CONFIG_ID = 'web_profiler.config';
 
     public function register(ContainerInterface $container): void
     {
@@ -50,7 +53,7 @@ class SecurityProvider extends AbstractProvider
             $config = $container->get(self::CONFIG_ID);
             $decision = $config['access_decision_manager'];
 
-            return new AccessDecisionManager(
+            $manager = new AccessDecisionManager(
                 static function () use ($container, $config): array {
                     $voters = [new RoleVoter($container->get(RoleHierarchy::class)), new AuthenticatedVoter()];
 
@@ -70,6 +73,8 @@ class SecurityProvider extends AbstractProvider
                 (bool) $decision['allow_if_all_abstain'],
                 (bool) $decision['allow_if_equal_granted_denied'],
             );
+
+            return self::profilingEnabled($container) ? $manager->setTrace(new SecurityTrace()) : $manager;
         });
 
         $container->singleton(FirewallMap::class, static fn (ContainerInterface $container): FirewallMap => new FirewallMap($container->get(self::CONFIG_ID)['firewalls']));
@@ -129,6 +134,17 @@ class SecurityProvider extends AbstractProvider
             'throttling_path' => $cache . DIRECTORY_SEPARATOR . self::CACHE_DIRECTORY . DIRECTORY_SEPARATOR . 'throttling',
             'secret' => (string) $secret,
         ];
+    }
+
+    protected static function profilingEnabled(ContainerInterface $container): bool
+    {
+        if (!$container->bound(self::PROFILER_CONFIG_ID) && !$container->has(self::PROFILER_CONFIG_ID)) {
+            return false;
+        }
+
+        $config = $container->get(self::PROFILER_CONFIG_ID);
+
+        return is_array($config) && (bool) ($config['enabled'] ?? false);
     }
 
     protected static function discover(ContainerInterface $container): array
