@@ -7,6 +7,7 @@ namespace NeoPHP\Component\Controller;
 use Closure;
 use JsonSerializable;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Controller\Contract\ControllerInterface;
 use NeoPHP\Component\Controller\Contract\ControllerResolverInterface;
 use NeoPHP\Component\Controller\Exception\ControllerException;
@@ -23,8 +24,42 @@ use Stringable;
 
 class ControllerManager implements ControllerResolverInterface
 {
+    protected ?array $argumentResolvers = null;
+
     public function __construct(protected ContainerInterface $container, protected HttpInterface $http)
     {
+    }
+
+    public function addArgumentResolver(ArgumentResolverInterface $resolver): static
+    {
+        $this->argumentResolvers = [...$this->getArgumentResolvers(), $resolver];
+
+        return $this;
+    }
+
+    public function getArgumentResolvers(): array
+    {
+        if ($this->argumentResolvers !== null) {
+            return $this->argumentResolvers;
+        }
+
+        $resolvers = [];
+        $ids = $this->container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $this->container->get(ArgumentResolverInterface::SERVICES_ID) : [];
+
+        foreach ($ids as $id) {
+            $resolver = is_string($id) ? $this->container->get($id) : $id;
+
+            if (!$resolver instanceof ArgumentResolverInterface) {
+                throw new ControllerException('The argument resolver "{resolver}" must implement {interface}.', 0, null, [
+                    'resolver' => is_string($id) ? $id : get_debug_type($id),
+                    'interface' => ArgumentResolverInterface::class,
+                ]);
+            }
+
+            $resolvers[] = $resolver;
+        }
+
+        return $this->argumentResolvers = $resolvers;
     }
 
     public function resolve(mixed $controller): callable
@@ -103,6 +138,12 @@ class ControllerManager implements ControllerResolverInterface
 
         if ($type instanceof ReflectionNamedType && !$type->isBuiltin() && is_a($request, $type->getName())) {
             return $request;
+        }
+
+        foreach ($this->getArgumentResolvers() as $resolver) {
+            if ($resolver->supports($parameter, $request)) {
+                return $resolver->resolve($parameter, $request);
+            }
         }
 
         if (array_key_exists($name, $routeParameters)) {
