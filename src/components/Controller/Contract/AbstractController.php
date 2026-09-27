@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Controller\Contract;
 
+use NeoPHP\Component\Cache\Helper\Controller\CacheController;
 use NeoPHP\Component\Container\Helper\Controller\ContainerController;
 use NeoPHP\Component\Cookie\Helper\Controller\CookieController;
 use NeoPHP\Component\Csrf\Helper\Controller\CsrfController;
@@ -23,6 +24,7 @@ use NeoPHP\Package\Security\Helper\Controller\SecurityController;
 
 abstract class AbstractController implements ControllerInterface
 {
+    use CacheController;
     use ContainerController;
     use CookieController;
     use CsrfController;

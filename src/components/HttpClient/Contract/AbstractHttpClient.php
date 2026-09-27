@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\HttpClient\Contract;
 
+use Closure;
 use JsonException;
+use NeoPHP\Component\Cache\Contract\CacheInterface;
 use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
 use NeoPHP\Component\HttpClient\Event\ExceptionEvent;
 use NeoPHP\Component\HttpClient\Event\RequestEvent;
@@ -56,13 +58,20 @@ abstract class AbstractHttpClient implements HttpClientInterface
         'retry' => [],
         'sink' => null,
         'on_progress' => null,
+        'cache' => false,
     ];
+
+    public const CACHEABLE_METHODS = ['GET', 'HEAD'];
+
+    public const CACHE_REVALIDATION_TTL = 86400;
 
     protected TransportInterface $transport;
 
     protected ?EventDispatcherInterface $events = null;
 
     protected ?LoggerInterface $logger = null;
+
+    protected ?Closure $cache = null;
 
     protected array $config = self::DEFAULT_CONFIG;
 
@@ -120,8 +129,16 @@ abstract class AbstractHttpClient implements HttpClientInterface
             $states[$key] = $this->prepare($definition);
         }
 
-        $pending = array_keys($states);
+        $pending = [];
         $results = [];
+
+        foreach ($states as $key => $state) {
+            if (isset($state['cached'])) {
+                $results[$key] = $state['cached'];
+            } else {
+                $pending[] = $key;
+            }
+        }
 
         while ($pending !== []) {
             $batch = [];
@@ -233,6 +250,13 @@ abstract class AbstractHttpClient implements HttpClientInterface
         return $this->config;
     }
 
+    public function setCache(?Closure $cache): static
+    {
+        $this->cache = $cache;
+
+        return $this;
+    }
+
     protected function prepare(mixed $definition): array
     {
         if (!is_array($definition)) {
@@ -252,7 +276,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
 
         $request = $this->build($method, $url, $options);
 
-        return [
+        return $this->cacheLookup([
             'request' => $request,
             'options' => $options,
             'original_url' => $request->getUrl(),
@@ -260,7 +284,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
             'retries' => 0,
             'redirects' => 0,
             'start' => microtime(true),
-        ];
+        ]);
     }
 
     protected function build(string $method, string $url, array $options): Request
@@ -356,7 +380,10 @@ abstract class AbstractHttpClient implements HttpClientInterface
             return $outcome;
         }
 
+        $outcome = $this->cacheStore($state, $outcome);
+
         $response = $outcome->withInfo([
+            'from_cache' => (bool) $outcome->getInfo('from_cache'),
             'original_url' => $state['original_url'],
             'url' => $request->getUrl(),
             'http_method' => $request->getMethod(),
@@ -383,6 +410,195 @@ abstract class AbstractHttpClient implements HttpClientInterface
         }
 
         return $response;
+    }
+
+    protected function cacheLookup(array $state): array
+    {
+        $cache = $this->cacheOptions($state['options']['cache']);
+        $request = $state['request'];
+
+        if ($cache === null || !in_array($request->getMethod(), self::CACHEABLE_METHODS, true) || $request->getBody() !== '' || $state['options']['sink'] !== null) {
+            return $state;
+        }
+
+        $pool = $this->cachePool($cache['pool']);
+        $key = $this->cacheKey($request);
+        $entry = $pool->get($key);
+        $entry = is_array($entry) && isset($entry['status'], $entry['headers'], $entry['fresh_until']) ? $entry : null;
+        $state['cache'] = ['pool' => $pool, 'key' => $key, 'ttl' => $cache['ttl'], 'entry' => $entry];
+
+        if ($entry === null) {
+            return $state;
+        }
+
+        if ((int) $entry['fresh_until'] > time()) {
+            $state['cached'] = new Response((int) $entry['status'], (array) $entry['headers'], (string) $entry['content'], ['from_cache' => true]);
+
+            return $state;
+        }
+
+        $headers = $request->getHeaders();
+
+        if (is_string($entry['etag'] ?? null)) {
+            $headers = $this->defaultHeader($headers, 'If-None-Match', $entry['etag']);
+        }
+
+        if (is_string($entry['last_modified'] ?? null)) {
+            $headers = $this->defaultHeader($headers, 'If-Modified-Since', $entry['last_modified']);
+        }
+
+        $state['request'] = $request->with($request->getMethod(), $request->getUrl(), $headers, '');
+
+        return $state;
+    }
+
+    protected function cacheStore(array $state, Response $response): Response
+    {
+        if (!isset($state['cache']) || isset($state['cached'])) {
+            return $response;
+        }
+
+        $cache = $state['cache'];
+        $entry = $cache['entry'];
+
+        if ($response->getStatusCode() === 304 && $entry !== null) {
+            $refreshed = array_intersect_key($response->getHeaders(), array_flip(['cache-control', 'expires', 'etag', 'last-modified', 'date', 'age']));
+            $entry['headers'] = array_replace((array) $entry['headers'], $refreshed);
+            $this->cacheSave($cache, $entry, $this->freshness($entry['headers'], $cache['ttl']) ?? 0);
+
+            return new Response((int) $entry['status'], (array) $entry['headers'], (string) $entry['content'], array_replace($response->getInfo(), ['from_cache' => true]));
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            return $response;
+        }
+
+        $freshness = $this->freshness($response->getHeaders(), $cache['ttl']);
+
+        if ($freshness !== null) {
+            $this->cacheSave($cache, [
+                'status' => $response->getStatusCode(),
+                'headers' => $response->getHeaders(),
+                'content' => $response->getContent(false),
+            ], $freshness);
+        }
+
+        return $response;
+    }
+
+    protected function cacheSave(array $cache, array $entry, int $freshness): void
+    {
+        $headers = (array) $entry['headers'];
+        $entry['etag'] = $headers['etag'][0] ?? null;
+        $entry['last_modified'] = $headers['last-modified'][0] ?? null;
+        $entry['fresh_until'] = time() + $freshness;
+        $validator = $entry['etag'] !== null || $entry['last_modified'] !== null;
+
+        if ($freshness <= 0 && !$validator) {
+            $cache['pool']->delete($cache['key']);
+
+            return;
+        }
+
+        $cache['pool']->set($cache['key'], $entry, $validator ? max($freshness, self::CACHE_REVALIDATION_TTL) : $freshness);
+    }
+
+    protected function freshness(array $headers, ?int $forced): ?int
+    {
+        $directives = [];
+
+        foreach ((array) ($headers['cache-control'] ?? []) as $line) {
+            foreach (explode(',', (string) $line) as $directive) {
+                $parts = explode('=', trim($directive), 2);
+                $directives[strtolower(trim($parts[0]))] = trim($parts[1] ?? '', " \t\"");
+            }
+        }
+
+        if (isset($directives['no-store'])) {
+            return null;
+        }
+
+        if ($forced !== null) {
+            return max(0, $forced);
+        }
+
+        if (isset($directives['no-cache'])) {
+            return 0;
+        }
+
+        $age = (int) ($headers['age'][0] ?? 0);
+
+        foreach (['max-age', 's-maxage'] as $name) {
+            if (isset($directives[$name]) && ctype_digit($directives[$name])) {
+                return max(0, (int) $directives[$name] - $age);
+            }
+        }
+
+        $expires = isset($headers['expires'][0]) ? strtotime((string) $headers['expires'][0]) : false;
+
+        if ($expires !== false) {
+            $date = isset($headers['date'][0]) ? strtotime((string) $headers['date'][0]) : false;
+
+            return max(0, $expires - ($date !== false ? $date : time()));
+        }
+
+        return 0;
+    }
+
+    protected function cacheOptions(mixed $cache): ?array
+    {
+        if ($cache === null || $cache === false) {
+            return null;
+        }
+
+        if ($cache === true) {
+            return ['pool' => null, 'ttl' => null];
+        }
+
+        if (is_int($cache)) {
+            return ['pool' => null, 'ttl' => $cache];
+        }
+
+        if (is_string($cache) && $cache !== '') {
+            return ['pool' => $cache, 'ttl' => null];
+        }
+
+        if (!is_array($cache)) {
+            throw new InvalidOptionException('The "cache" option must be a boolean, an integer (TTL), a pool name or an array, {type} given.', 0, null, ['type' => get_debug_type($cache)]);
+        }
+
+        $unknown = array_diff(array_keys($cache), ['pool', 'ttl']);
+
+        if ($unknown !== []) {
+            throw new InvalidOptionException('Unknown "cache" option(s): {options}. Allowed: pool, ttl.', 0, null, ['options' => implode(', ', $unknown)]);
+        }
+
+        return [
+            'pool' => isset($cache['pool']) && $cache['pool'] !== '' ? (string) $cache['pool'] : null,
+            'ttl' => isset($cache['ttl']) ? (int) $cache['ttl'] : null,
+        ];
+    }
+
+    protected function cachePool(?string $pool): CacheInterface
+    {
+        if ($this->cache === null) {
+            throw new InvalidOptionException('The "cache" option requires the Cache component (no cache pool resolver is configured on the HTTP client).');
+        }
+
+        return ($this->cache)($pool);
+    }
+
+    protected function cacheKey(Request $request): string
+    {
+        $headers = array_change_key_case($request->getHeaders(), CASE_LOWER);
+        $authorization = (string) ($headers['authorization'] ?? '');
+
+        return 'http_client.' . sha1(implode("\n", [
+                $request->getMethod(),
+                $request->getUrl(),
+                (string) ($headers['accept'] ?? ''),
+                $authorization === '' ? '' : sha1($authorization),
+            ]));
     }
 
     protected function retryOptions(mixed $retry): array

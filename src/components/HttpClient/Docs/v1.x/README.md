@@ -14,6 +14,7 @@ No external library is used: requests go through `ext-curl` when it is loaded (p
 - [Parallel requests](#parallel-requests)
 - [Downloads and progress](#downloads-and-progress)
 - [Retry](#retry)
+- [Caching](#caching)
 - [Events](#events)
 - [Logging](#logging)
 - [Controllers](#controllers)
@@ -112,6 +113,7 @@ $http->head($url, $options);
 | `retry` | `[]` | see [Retry](#retry) |
 | `sink` | `~` | file path: the body is written to this file instead of memory (see [Downloads](#downloads-and-progress)) |
 | `on_progress` | `~` | `callable(int $downloaded, ?int $total)` called while the body is received |
+| `cache` | `false` | cache GET / HEAD responses in a Cache pool: `true`, a TTL in seconds, a pool name or `['pool' => 'name', 'ttl' => 60]` (see [Caching](#caching)) |
 
 `json`, `body` and `multipart` are mutually exclusive: the last one set wins. An unknown option throws `InvalidOptionException`.
 
@@ -171,6 +173,7 @@ $response->getInfo('url');           // final URL after redirects
 | `http_method` | method of the last request (a `303` changes it) |
 | `redirect_count` | redirects followed |
 | `retry_count` | retries done |
+| `from_cache` | `true` when the response comes from the cache (see [Caching](#caching)) |
 | `total_time` | total duration in seconds, retries and redirects included |
 | `primary_ip` | IP of the server (curl transport only) |
 | `sink` | file of the body, when `sink` / `download()` is used |
@@ -284,6 +287,44 @@ retry:
 | `status_codes` | `[423, 425, 429, 500, 502, 503, 504, 507, 510]` | statuses that are retried |
 
 Network errors (`TransportException`) are retried too. A numeric `Retry-After` header replaces the computed delay. Every method is retried: do not enable retries for non-idempotent calls that must not be repeated.
+
+## Caching
+
+The `cache` option stores the responses of `GET` and `HEAD` requests (without body, without `sink`) in a pool of the [Cache component](../../../Cache/Docs/v1.x/README.md):
+
+```php
+$http->get('https://api.example.com/countries', ['cache' => true]);                   // default pool, TTL from the response headers
+$http->get('https://api.example.com/countries', ['cache' => 300]);                    // forced TTL (seconds)
+$http->get('https://api.example.com/countries', ['cache' => 'http']);                 // pool "http", TTL from the headers
+$http->get('https://api.example.com/countries', ['cache' => ['pool' => 'http', 'ttl' => 300]]);
+```
+
+| Value | Behaviour |
+|---|---|
+| `false` / `~` | disabled (default) |
+| `true` | default pool, freshness from `Cache-Control` / `Expires` |
+| `int` | default pool, the response is fresh for this number of seconds (the headers are ignored, except `no-store`) |
+| `string` | pool name |
+| `array` | `pool` (name, default pool when omitted) and `ttl` (forced TTL or `~`) |
+
+Rules:
+
+- only `200` responses are stored; the cache key is the method, the final URL (with `base_uri` and `query`), the `Accept` header and a hash of the `Authorization` header;
+- `Cache-Control: no-store` is never stored; `no-cache` is stored but revalidated on each request; `max-age` (then `s-maxage`, minus `Age`) or `Expires` give the freshness when the TTL is not forced; `private` is accepted (the cache belongs to the client);
+- a response without freshness information is only stored when it has an `ETag` or a `Last-Modified` header;
+- when a stored response is stale and has a validator, the request is sent with `If-None-Match` / `If-Modified-Since`; on `304 Not Modified`, the stored body is returned and its freshness refreshed;
+- responses served from the cache (fresh, or revalidated with a `304`) have the info `from_cache` set to `true` (`$response->getInfo('from_cache')`), other responses `false`.
+
+Named clients can enable it in YAML:
+
+```yaml
+clients:
+  github:
+    base_uri: 'https://api.github.com/'
+    cache: true
+```
+
+The option requires the Cache component: `HttpClientProvider` gives the client a pool resolver when `CacheManagerInterface` is in the container. A client created by hand receives it as last constructor argument (`new HttpClientManager($transport, null, null, [], fn (?string $pool) => $cache->pool($pool))`) or with `setCache()`. Without resolver, a request with the `cache` option throws `InvalidOptionException`.
 
 ## Events
 
@@ -428,4 +469,5 @@ $container->instance(TransportInterface::class, new MockTransport([...]));
 
 ## Changelog
 
+- v1.22.0 — `cache` option (responses cached in a Cache pool, Cache-Control, ETag / Last-Modified revalidation)
 - v1.21.0 — HttpClient component: `HttpClientInterface` (`request()`, `get()` / `post()` / `put()` / `patch()` / `delete()` / `head()`, `requestMany()`, `download()`, `withOptions()`), curl, stream and mock transports, options (`base_uri`, `query`, `headers`, `json`, `body`, `multipart`, `auth_basic`, `auth_bearer`, timeouts, redirects, `verify_peer`, `proxy`, `retry`, `sink`, `on_progress`), HTTP exceptions carrying the response, named clients `http_client.<name>`, `RequestEvent` / `ResponseEvent` / `ExceptionEvent`, request logging, `httpClient()` in controllers, `http:request` command, `config/framework/http_client.yaml`.
