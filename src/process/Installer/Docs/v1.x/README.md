@@ -93,6 +93,7 @@ config/framework/middleware.yaml
 config/framework/serializer.yaml
 config/framework/view.yaml
 config/packages/debug.yaml
+config/packages/neo_ai.yaml
 config/packages/orm.yaml
 config/packages/security.yaml
 config/packages/translation.yaml
@@ -121,7 +122,25 @@ APP_URL=http://127.0.0.1:8000
 DATABASE_URL="sqlite:///%kernel.root_path%/var/data.db"
 MAILER_DSN="null://null"
 MAILER_RECIPIENTS=
+
+###> neo_ai ###
+# NeoAI development assistant (active only when APP_DEBUG=1)
+# Provider of the "default" connection: ollama, openai, anthropic, gemini, mistral, groq, openrouter, lmstudio, vllm, openai_compatible
+NEO_AI_PROVIDER=ollama
+NEO_AI_MODEL=qwen2.5-coder:7b
+# Key and base URL of the "default" connection (empty = none / provider default), e.g. NEO_AI_API_KEY=${OPENAI_API_KEY}
+NEO_AI_API_KEY=
+NEO_AI_BASE_URL=
+# Real keys go in .env.local (never commit them)
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+GEMINI_API_KEY=
+MISTRAL_API_KEY=
+OLLAMA_URL=http://localhost:11434
+###< neo_ai ###
 ```
+
+The `neo_ai` block configures the NeoAI development assistant (see the NeoAI documentation). Every variable must exist, even empty, because `config/packages/neo_ai.yaml` references them with `%env(...)%`. Put the real API keys in `.env.local`, never in `.env`. By default the assistant uses a local Ollama server, so no data leaves the machine.
 
 When `.env` already exists, only the variables it does not define (even commented out) are appended, with their comments. See the Dotenv documentation for the file format.
 
@@ -167,6 +186,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v1.26.0 — `config/packages/neo_ai.yaml` is generated (NeoAI connections, context, scan and web options) and the `NEO_AI_*`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY` and `OLLAMA_URL` variables are added to `.env`.
 - v1.24.0 — `config/framework/api.yaml` is generated (CORS, rate limiter, pagination, problem details, OpenAPI).
 - v1.23.0 — `config/framework/serializer.yaml` is generated.
 - v1.20.0 — `config/packages/translation.yaml` and the `translations/` directory are generated.

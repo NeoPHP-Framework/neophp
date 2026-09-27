@@ -80,6 +80,7 @@ class ProfilerController
         return new Response($this->templates->render('toolbar', [
             'profile' => $profile,
             'items' => $this->profiler->getToolbarItems($profile),
+            'assets' => $this->profiler->getToolbarAssets($profile),
             'profilerPath' => $this->profiler->getPath(),
         ]), 200, self::HEADERS);
     }

@@ -36,3 +36,9 @@
 </div>
 </div>
 <button type="button" class="neo-wdt-mini" title="Show the NeoPHP toolbar" hidden><?= $this->icon('logo') ?></button>
+<?php foreach (($assets['css'] ?? []) as $name => $css): ?>
+    <style data-neo-wdt-asset="<?= $this->e($name) ?>"><?= str_ireplace('</style', '<\\/style', (string) $css) ?></style>
+<?php endforeach; ?>
+<?php foreach (($assets['js'] ?? []) as $name => $js): ?>
+    <script type="text/plain" data-neo-wdt-script="<?= $this->e($name) ?>"><?= str_ireplace('</script', '<\\/script', (string) $js) ?></script>
+<?php endforeach; ?>
