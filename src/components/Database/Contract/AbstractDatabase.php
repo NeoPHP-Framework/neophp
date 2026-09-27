@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Contract;
 
+use Closure;
 use NeoPHP\Component\Database\Connection\Connection;
 use NeoPHP\Component\Database\Connection\UrlParser;
 use NeoPHP\Component\Database\Driver\MysqlDriver;
@@ -32,6 +33,40 @@ abstract class AbstractDatabase implements DatabaseInterface
     protected array $drivers = [];
 
     protected ?UrlParser $urlParser = null;
+
+    protected ?QueryLoggerInterface $queryLogger = null;
+
+    protected ?Closure $queryLoggerResolver = null;
+
+    public function setQueryLogger(?QueryLoggerInterface $logger): static
+    {
+        $this->queryLogger = $logger;
+        $this->queryLoggerResolver = null;
+
+        foreach ($this->connections as $connection) {
+            $connection->setQueryLogger($logger);
+        }
+
+        return $this;
+    }
+
+    public function setQueryLoggerResolver(?Closure $resolver): static
+    {
+        $this->queryLoggerResolver = $resolver;
+
+        return $this;
+    }
+
+    public function getQueryLogger(): ?QueryLoggerInterface
+    {
+        if ($this->queryLoggerResolver !== null) {
+            $resolver = $this->queryLoggerResolver;
+            $this->queryLoggerResolver = null;
+            $this->queryLogger = $resolver();
+        }
+
+        return $this->queryLogger;
+    }
 
     public function connection(?string $name = null): ConnectionInterface
     {
@@ -133,7 +168,10 @@ abstract class AbstractDatabase implements DatabaseInterface
     {
         $params = $this->getParams($name);
 
-        return new Connection($name, $this->getDriver((string) $params['driver']), $params);
+        $connection = new Connection($name, $this->getDriver((string) $params['driver']), $params);
+        $logger = $this->getQueryLogger();
+
+        return $logger === null ? $connection : $connection->setQueryLogger($logger);
     }
 
     protected function resolveParams(array $config, string $name): array

@@ -19,6 +19,7 @@ It ships repositories, query builders, lifecycle events, code generators and mig
 - [Commands](#commands)
 - [Exceptions](#exceptions)
 - [Limits](#limits)
+- [Profiler](#Profiler)
 - [Changelog](#changelog)
 
 ## Configuration
@@ -524,8 +525,15 @@ All in `NeoPHP\Package\Orm\Exception\`, extending `OrmException` (itself a `Fram
 
 Composite identifiers, inheritance mapping, readonly properties and changes of the primary key are not supported. The ORM should be cleared (`clear()`) after a failed `flush()`.
 
+## Profiler
+
+The unit of work keeps cheap counters, read with `$orm->getUnitOfWork()->getStatistics()`: managed entities per class (identity map), pending inserts and removals, flushes (inserts, updates, deletes, collection updates and duration of the last 100 flushes) and initialized proxies.
+
+When the Web Profiler is enabled, the `Helper/Profiler/OrmProfiler` element adds an ORM item to the toolbar (number of managed entities, shown only when the ORM was used) and a panel with the managed entities per class, the flushes and the unit of work state. SQL queries are shown by the Database panel.
+
 ## Changelog
 
+- v1.25.1 — profiler integration: `UnitOfWork::getStatistics()` (managed entities, flushes, initialized proxies) and ORM panel of the Web Profiler.
 - v1.17.0 — `make:entity` wizard (fields asked one by one, guessed types, relations with their inverse side written in the target entity, completion of existing entities, checks before writing), sub-namespace repositories; `make:*` commands ask for their values. Bugfix: `make:migration` asks the optional description only when there are changes.
 - v1.15.0 — ORM commands rewritten as `AbstractConsole` commands.
 - v1.12.0 — `entity` form type.
