@@ -2,7 +2,7 @@
 
 NeoPHP is an ultra modular PHP framework with no dependency other than PHP 8.2.
 This guide creates a working application in a few minutes: installation, a first page, a database, a form, a login and the deployment.
-Each feature has its own documentation in `src/{components,packages,process}/Feature/docs/v1.x/README.md`.
+Each feature has its own documentation in `src/{components,packages,process}/Feature/Docs/v1.x/README.md`.
 
 ## Summary
 
@@ -12,6 +12,7 @@ Each feature has its own documentation in `src/{components,packages,process}/Fea
 - [First page](#first-page)
 - [Database and entities](#database-and-entities)
 - [Forms](#forms)
+- [APIs](#apis)
 - [Login](#login)
 - [Styles with Tailwind](#styles-with-tailwind)
 - [Translations](#translations)
@@ -24,7 +25,7 @@ Each feature has its own documentation in `src/{components,packages,process}/Fea
 
 - PHP 8.2 or higher
 - Composer
-- The PHP extensions of the features you use: `curl` (recommended for the HTTP client, parallel requests), `pdo_mysql`, `pdo_pgsql` or `pdo_sqlite` (database), `openssl` (SMTP over TLS, Tailwind download), `fileinfo` (uploads)
+- The PHP extensions of the features you use: `pdo_mysql`, `pdo_pgsql` or `pdo_sqlite` (database), `openssl` (SMTP over TLS, Tailwind download), `fileinfo` (uploads), `curl` (recommended for the HTTP client, parallel requests), `apcu` (optional, `apcu` cache adapter), `dom` (XML format of the Serializer)
 - Optional: `twig/twig` ^3.0 for Twig templates
 
 ## Create the project
@@ -81,7 +82,7 @@ composer require twig/twig
 assets/                 CSS, JS and images compiled into public/builds/
 bin/neo                 command line
 config/
-    framework/          configuration of the components (app.yaml, database.yaml, mailer.yaml, http_client.yaml, view.yaml...)
+    framework/          configuration of the components (app.yaml, cache.yaml, database.yaml, http_client.yaml, mailer.yaml, serializer.yaml, view.yaml...)
     packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, tailwind.yaml, translation.yaml)
     routes.yaml         routes
     services.yaml       services
@@ -212,6 +213,22 @@ public function new(Request $request): Response
 
 The CSRF token is added automatically. Set `theme: bootstrap5` in `config/framework/form.yaml` for Bootstrap 5. See the Form, Validator and Csrf documentation.
 
+## APIs
+
+```php
+#[Route('/api/posts', name: 'api_post_create', methods: ['POST'])]
+public function create(#[MapRequestPayload] PostInput $input): JsonResponse
+{
+    $post = (new Post())->setTitle($input->title)->setContent($input->content);
+    $this->getOrm()->persist($post);
+    $this->getOrm()->flush();
+
+    return $this->json($post, 201, [], ['groups' => ['read']]);
+}
+```
+
+The JSON (or XML, form) body is decoded, mapped to the `PostInput` DTO and validated: invalid data returns a 422 JSON response with the violations, a malformed body a 400 and an unsupported `Content-Type` a 415. `json()` normalizes objects with the Serializer (`#[Groups]`, `#[SerializedName]`, `#[Ignore]`...). See the Serializer documentation.
+
 ## Login
 
 ```bash
@@ -224,23 +241,23 @@ php bin/neo make:auth --twig
 
 ```yaml
 providers:
-    users:
-        entity:
-            class: App\Entity\User
-            property: email
+  users:
+    entity:
+      class: App\Entity\User
+      property: email
 
 firewalls:
-    main:
-        pattern: ^/
-        provider: users
-        form_login:
-            login_path: app_login
-            enable_csrf: true
-        logout:
-            path: app_logout
+  main:
+    pattern: ^/
+    provider: users
+    form_login:
+      login_path: app_login
+      enable_csrf: true
+    logout:
+      path: app_logout
 
 access_control:
-    - { path: ^/admin, roles: ROLE_ADMIN }
+  - { path: ^/admin, roles: ROLE_ADMIN }
 ```
 
 In controllers: `$this->getUser()`, `$this->denyAccessUnlessGranted('ROLE_ADMIN')`, `#[IsGranted('ROLE_ADMIN')]`. In templates: `app_user()`, `is_granted('ROLE_ADMIN')`, `logout_path()`. See the Security documentation.
@@ -264,8 +281,8 @@ Enable the locales in `config/packages/translation.yaml` (`locales: [en, fr]`) a
 
 ```yaml
 home:
-    title: Bienvenue
-    posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
+  title: Bienvenue
+  posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
 ```
 
 ```twig
@@ -285,6 +302,8 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 | `php bin/neo make:entity` (also `make:form`, `make:command`, `make:user`, `make:auth`, `make:voter`, `make:email`) | code generators (they ask the missing values) |
 | `php bin/neo make:migration` / `migration:migrate` | database migrations |
 | `php bin/neo cache:clear` | clears `var/cache/` |
+| `php bin/neo cache:pool:clear --all` | clears the cache pools (also `cache:pool:list`, `cache:pool:prune`) |
+| `php bin/neo serializer:debug "App\Entity\Post"` | serialization metadata of a class |
 | `php bin/neo asset:reload --minify` | compiles `assets/` into `public/builds/` |
 | `php bin/neo debug:container` | services of the container |
 | `php bin/neo translation:generate` / `translation:debug` / `translation:lint` | translation files |
@@ -304,14 +323,16 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 
 | Group | Features |
 |---|---|
-| components | Asset, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Service, Session, Validator, View |
+| components | Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Validator, View |
 | packages | Debug, Dotenv, Markdown, Orm, Security, Tailwind, Translation, Yaml |
 | process | Console, Installer |
 
-The documentation of a feature is in `src/<group>/<Feature>/docs/v1.x/README.md`, for example `src/components/Routing/docs/v1.x/README.md`.
+The documentation of a feature is in `src/<group>/<Feature>/Docs/v1.x/README.md`, for example `src/components/Routing/Docs/v1.x/README.md`.
 
 ## Changelog
 
+- v1.23.0 — Serializer component (JSON / XML / CSV / YAML, normalizers for objects, dates, enums and ORM entities, `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments, `json()` with a serializer context, `serialize()` in controllers, `serializer:debug`)
+- v1.22.0 — Cache component (pools with filesystem / APCu / database / array adapters, `get()` with callback and stampede protection, tags, `cache()` in controllers, `cache:pool:*` commands, HttpClient `cache` option)
 - v1.21.0 — HttpClient component (requests with JSON / form / multipart bodies, curl and stream transports, parallel requests, downloads, retries, named clients, `httpClient()`, `http:request`)
 - v1.20.0 — Translation package (YAML / XLIFF catalogues, ICU-lite plurals, locale detection, `translate()` / `trans`, translated validation and security messages, `translation:generate`, `translation:debug`, `translation:lint`)
 - v1.19.0 — Markdown package (parser, document API, HTML to Markdown, `markdown` filter, `markdown:convert`)

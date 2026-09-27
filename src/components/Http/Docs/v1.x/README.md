@@ -133,10 +133,15 @@ The trait `HttpController` of `AbstractController` provides:
 
 ```php
 return $this->json(['id' => $post->getId()], 201);
+return $this->json($post, 200, [], ['groups' => ['read']]);
 return $this->redirect('/posts');
 throw $this->createNotFoundException('Post {id} not found.', ['id' => $id]);
 throw $this->createAccessDeniedException();
 ```
+
+`json($data, $status = 200, $headers = [], $context = [])`: when `$data` contains objects, or when a `$context` is given, the data is normalized with the Serializer (`#[Groups]`, `#[SerializedName]`, `#[Ignore]`, dates, enums, entities...) before the `JsonResponse` is built. Arrays of scalars are encoded as before. See the Serializer documentation for the context options.
+
+The trait declares `abstract protected function get(string $id): mixed;` and `abstract protected function has(string $id): bool;` (both provided by `ContainerController`).
 
 To redirect to a route, use `redirectToRoute()` (see the Routing documentation).
 
@@ -159,5 +164,6 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v1.23.0 — `json()` accepts a serializer context and normalizes objects with the Serializer
 - v1.17.x (bugfix) — absolute URLs fall back on `getSchemeAndHttpHost()` of the request when `APP_URL` is not set.
 - v1.0.0 — `Request`, `Response`, `JsonResponse`, `RedirectResponse`, bags, uploaded files, HTTP exceptions and JSON errors.
