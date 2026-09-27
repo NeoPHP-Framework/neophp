@@ -1,0 +1,12 @@
+enabled: '%kernel.debug%'
+toolbar: true
+path: /_profiler
+toolbar_path: /_wdt
+storage: var/profiler
+max_profiles: 200
+lifetime: 86400
+ajax_limit: 50
+excluded_paths:
+    - '^/(favicon\.ico|robots\.txt|build|builds|assets)(/|$)'
+panels: []
+block_renderers: []
