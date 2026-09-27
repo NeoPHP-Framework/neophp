@@ -76,4 +76,8 @@ interface ConnectionInterface
     public function quote(mixed $value): string;
 
     public function quoteIdentifier(string $identifier): string;
+
+    public function setQueryLogger(?QueryLoggerInterface $logger): static;
+
+    public function getQueryLogger(): ?QueryLoggerInterface;
 }

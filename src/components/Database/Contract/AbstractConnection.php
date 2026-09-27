@@ -34,6 +34,20 @@ abstract class AbstractConnection implements ConnectionInterface
 
     protected int $transactionLevel = 0;
 
+    protected ?QueryLoggerInterface $queryLogger = null;
+
+    public function setQueryLogger(?QueryLoggerInterface $logger): static
+    {
+        $this->queryLogger = $logger;
+
+        return $this;
+    }
+
+    public function getQueryLogger(): ?QueryLoggerInterface
+    {
+        return $this->queryLogger;
+    }
+
     public function getName(): string
     {
         return $this->name;
@@ -85,11 +99,11 @@ abstract class AbstractConnection implements ConnectionInterface
     public function executeStatement(string $sql, array $params = []): int
     {
         if ($params === []) {
-            try {
-                return (int) $this->getPdo()->exec($sql);
-            } catch (PDOException $exception) {
-                throw QueryException::fromThrowable($exception, $sql, $params);
+            if ($this->queryLogger !== null) {
+                return $this->logged($sql, [], fn (): int => $this->exec($sql), 'query', true);
             }
+
+            return $this->exec($sql);
         }
 
         return $this->run($sql, $params)->rowCount();
@@ -196,9 +210,9 @@ abstract class AbstractConnection implements ConnectionInterface
         $pdo = $this->getPdo();
 
         if ($this->transactionLevel === 0) {
-            $pdo->beginTransaction();
+            $this->queryLogger === null ? $pdo->beginTransaction() : $this->logged('BEGIN', [], static fn (): bool => $pdo->beginTransaction(), 'transaction');
         } else {
-            $pdo->exec('SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
+            $this->execTransaction('SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
         }
 
         $this->transactionLevel++;
@@ -210,12 +224,13 @@ abstract class AbstractConnection implements ConnectionInterface
         $this->transactionLevel--;
 
         if ($this->transactionLevel === 0) {
-            $this->getPdo()->commit();
+            $pdo = $this->getPdo();
+            $this->queryLogger === null ? $pdo->commit() : $this->logged('COMMIT', [], static fn (): bool => $pdo->commit(), 'transaction');
 
             return;
         }
 
-        $this->getPdo()->exec('RELEASE SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
+        $this->execTransaction('RELEASE SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
     }
 
     public function rollBack(): void
@@ -224,12 +239,13 @@ abstract class AbstractConnection implements ConnectionInterface
         $this->transactionLevel--;
 
         if ($this->transactionLevel === 0) {
-            $this->getPdo()->rollBack();
+            $pdo = $this->getPdo();
+            $this->queryLogger === null ? $pdo->rollBack() : $this->logged('ROLLBACK', [], static fn (): bool => $pdo->rollBack(), 'transaction');
 
             return;
         }
 
-        $this->getPdo()->exec('ROLLBACK TO SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
+        $this->execTransaction('ROLLBACK TO SAVEPOINT ' . self::SAVEPOINT_PREFIX . $this->transactionLevel);
     }
 
     public function inTransaction(): bool
@@ -279,6 +295,15 @@ abstract class AbstractConnection implements ConnectionInterface
 
     protected function run(string $sql, array $params): PDOStatement
     {
+        if ($this->queryLogger !== null) {
+            return $this->logged($sql, $params, fn (): PDOStatement => $this->prepareAndExecute($sql, $params));
+        }
+
+        return $this->prepareAndExecute($sql, $params);
+    }
+
+    protected function prepareAndExecute(string $sql, array $params): PDOStatement
+    {
         [$query, $values] = $this->expand($sql, $params);
 
         try {
@@ -295,6 +320,52 @@ abstract class AbstractConnection implements ConnectionInterface
         }
 
         return $statement;
+    }
+
+    protected function exec(string $sql): int
+    {
+        try {
+            return (int) $this->getPdo()->exec($sql);
+        } catch (PDOException $exception) {
+            throw QueryException::fromThrowable($exception, $sql);
+        }
+    }
+
+    protected function execTransaction(string $sql): void
+    {
+        $pdo = $this->getPdo();
+
+        if ($this->queryLogger === null) {
+            $pdo->exec($sql);
+
+            return;
+        }
+
+        $this->logged($sql, [], static fn (): int|false => $pdo->exec($sql), 'transaction');
+    }
+
+    protected function logged(string $sql, array $params, callable $operation, string $type = 'query', bool $countRows = false): mixed
+    {
+        $start = microtime(true);
+
+        try {
+            $result = $operation();
+        } catch (Throwable $exception) {
+            $this->queryLogger?->log($this->name, $sql, $params, $start, (microtime(true) - $start) * 1000, null, ($exception->getPrevious() ?? $exception)->getMessage(), $type);
+
+            throw $exception;
+        }
+
+        $duration = (microtime(true) - $start) * 1000;
+        $rows = match (true) {
+            $result instanceof PDOStatement => $result->columnCount() === 0 ? $result->rowCount() : null,
+            $countRows && is_int($result) => $result,
+            default => null,
+        };
+
+        $this->queryLogger?->log($this->name, $sql, $params, $start, $duration, $rows, null, $type);
+
+        return $result;
     }
 
     protected function expand(string $sql, array $params): array

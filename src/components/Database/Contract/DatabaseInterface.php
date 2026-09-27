@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Contract;
 
+use Closure;
+
 interface DatabaseInterface
 {
     public function connection(?string $name = null): ConnectionInterface;
@@ -25,4 +27,10 @@ interface DatabaseInterface
     public function addDriver(string $name, DriverInterface|string $driver): static;
 
     public function close(?string $name = null): void;
+
+    public function setQueryLogger(?QueryLoggerInterface $logger): static;
+
+    public function setQueryLoggerResolver(?Closure $resolver): static;
+
+    public function getQueryLogger(): ?QueryLoggerInterface;
 }
