@@ -24,7 +24,7 @@ Each feature has its own documentation in `src/{components,packages,process}/Fea
 
 - PHP 8.2 or higher
 - Composer
-- The PHP extensions of the features you use: `pdo_mysql`, `pdo_pgsql` or `pdo_sqlite` (database), `openssl` (SMTP over TLS, Tailwind download), `fileinfo` (uploads)
+- The PHP extensions of the features you use: `curl` (recommended for the HTTP client, parallel requests), `pdo_mysql`, `pdo_pgsql` or `pdo_sqlite` (database), `openssl` (SMTP over TLS, Tailwind download), `fileinfo` (uploads)
 - Optional: `twig/twig` ^3.0 for Twig templates
 
 ## Create the project
@@ -81,7 +81,7 @@ composer require twig/twig
 assets/                 CSS, JS and images compiled into public/builds/
 bin/neo                 command line
 config/
-    framework/          configuration of the components (app.yaml, database.yaml, mailer.yaml, view.yaml...)
+    framework/          configuration of the components (app.yaml, database.yaml, mailer.yaml, http_client.yaml, view.yaml...)
     packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, tailwind.yaml, translation.yaml)
     routes.yaml         routes
     services.yaml       services
@@ -304,7 +304,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 
 | Group | Features |
 |---|---|
-| components | Asset, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, Kernel, Logger, Mailer, Middleware, Routing, Service, Session, Validator, View |
+| components | Asset, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Service, Session, Validator, View |
 | packages | Debug, Dotenv, Markdown, Orm, Security, Tailwind, Translation, Yaml |
 | process | Console, Installer |
 
@@ -312,6 +312,7 @@ The documentation of a feature is in `src/<group>/<Feature>/docs/v1.x/README.md`
 
 ## Changelog
 
+- v1.21.0 — HttpClient component (requests with JSON / form / multipart bodies, curl and stream transports, parallel requests, downloads, retries, named clients, `httpClient()`, `http:request`)
 - v1.20.0 — Translation package (YAML / XLIFF catalogues, ICU-lite plurals, locale detection, `translate()` / `trans`, translated validation and security messages, `translation:generate`, `translation:debug`, `translation:lint`)
 - v1.19.0 — Markdown package (parser, document API, HTML to Markdown, `markdown` filter, `markdown:convert`)
 - v1.18.0 — Tailwind package (`tailwind:install`, `tailwind:run`)
