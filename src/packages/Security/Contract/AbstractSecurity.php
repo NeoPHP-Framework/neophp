@@ -104,6 +104,11 @@ abstract class AbstractSecurity implements SecurityInterface
         return $this->decisions;
     }
 
+    public function getAccessMap(): AccessMap
+    {
+        return $this->accessMap;
+    }
+
     public function handleRequest(Request $request): ?Response
     {
         $this->tokens->reset();
@@ -273,11 +278,18 @@ abstract class AbstractSecurity implements SecurityInterface
     {
         $roles = $this->accessMap->match($request);
 
+        $trace = $this->decisions->getTrace();
+
         if ($roles === null || $roles === [] || $roles === [AuthenticatedVoter::PUBLIC_ACCESS]) {
+            $trace?->setAccessControl($roles, null);
+
             return;
         }
 
-        if (!$this->isGranted($roles)) {
+        $granted = $this->isGranted($roles);
+        $trace?->setAccessControl($roles, $granted);
+
+        if (!$granted) {
             throw new AccessDeniedException('Access Denied.', $roles);
         }
     }
@@ -391,6 +403,8 @@ abstract class AbstractSecurity implements SecurityInterface
 
     protected function dispatch(object $event): object
     {
+        $this->decisions->getTrace()?->addEvent($event);
+
         if ($this->container->has(EventDispatcherInterface::class)) {
             return $this->container->get(EventDispatcherInterface::class)->dispatch($event);
         }

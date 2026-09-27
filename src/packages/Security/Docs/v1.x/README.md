@@ -21,6 +21,7 @@ It is enabled when `config/packages/security.yaml` defines at least one firewall
 - [Events](#events)
 - [Exceptions](#exceptions)
 - [Commands](#commands)
+- [Profiler](#profiler)
 - [Changelog](#changelog)
 
 ## Quick start
@@ -583,8 +584,23 @@ In `NeoPHP\Package\Security\Exception`, all extending `SecurityException`:
 
 The `make:*` commands never overwrite a file without `--force`. See the Console documentation.
 
+## Profiler
+
+When the WebProfiler package is enabled (`web_profiler.config` → `enabled: true`), `SecurityProvider` attaches a `SecurityTrace` to the `AccessDecisionManager`; otherwise nothing is recorded and `decide()` costs a single null check. The `Helper/Profiler/SecurityProfiler.php` element (auto-discovered, priority 70) then shows:
+
+- **Toolbar** (`user` icon): user identifier or `n/a`; green when authenticated, orange when an access was denied during the request. Details: user, roles, firewall, token class, decisions count, logout path.
+- **Panel**: metrics (authenticated, reachable roles, decisions, denied), user & token, and tabs **Roles** (direct / inherited through `role_hierarchy`), **Firewall** (config summary: pattern, provider, stateless, authenticators, entry point, login / logout paths), **Access decisions** (every `isGranted()` / `denyAccessUnlessGranted()` / `#[IsGranted]` / `access_control` check with attributes, subject, result, strategy and each voter vote), **Access control** (rules and the one matching the request), **Events** (login success / failure, logout) and **Voters**.
+
+Passwords, secrets and tokens are masked (`******`). Subjects are stored as a short string (`Post #12`), never as objects.
+
+```php
+$trace = $security->getAccessDecisionManager()->getTrace();
+$trace?->getDecisions();
+```
+
 ## Changelog
 
+- v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).
 - bugfix — `UserClass::of()` resolves the real class of ORM proxies; `AuthenticationManager` and `Passport` moved to `NeoPHP\Package\Security\Authentication`.
 - bugfix (after v1.17.0) — `make:auth` creates the missing base layout.
