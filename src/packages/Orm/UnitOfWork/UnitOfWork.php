@@ -32,6 +32,8 @@ class UnitOfWork
     public const STATE_DETACHED = 3;
     public const STATE_REMOVED = 4;
 
+    public const MAX_FLUSH_STATISTICS = 100;
+
     protected array $identityMap = [];
 
     protected array $states = [];
@@ -49,6 +51,12 @@ class UnitOfWork
     protected array $collectionUpdates = [];
 
     protected Hydrator $hydrator;
+
+    protected array $flushes = [];
+
+    protected int $flushCount = 0;
+
+    protected int $initializedProxies = 0;
 
     public function __construct(protected OrmInterface $orm)
     {
@@ -85,6 +93,24 @@ class UnitOfWork
         $state = $this->states[spl_object_id($entity)] ?? null;
 
         return $state === self::STATE_MANAGED || ($state === self::STATE_NEW && $this->isScheduledForInsert($entity));
+    }
+
+    public function getStatistics(): array
+    {
+        $managed = [];
+
+        foreach ($this->identityMap as $class => $entities) {
+            $managed[$class] = count($entities);
+        }
+
+        return [
+            'managed' => $managed,
+            'scheduled_inserts' => count($this->scheduledInserts),
+            'scheduled_removals' => count($this->scheduledRemovals),
+            'flush_count' => $this->flushCount,
+            'flushes' => $this->flushes,
+            'initialized_proxies' => $this->initializedProxies,
+        ];
     }
 
     public function getIdentityMap(): array
@@ -292,6 +318,7 @@ class UnitOfWork
             }
 
             $this->hydrator->hydrate($metadata, $row, $proxy);
+            $this->initializedProxies++;
         });
 
         $this->registerManaged($proxy, $metadata, $id);
@@ -368,10 +395,14 @@ class UnitOfWork
 
     public function flush(): void
     {
+        $start = microtime(true);
+
         $this->dispatch(new PreFlushEvent($this->orm));
         $this->computeChangeSets();
 
         if ($this->scheduledInserts === [] && $this->scheduledRemovals === [] && $this->changeSets === [] && $this->collectionUpdates === []) {
+            $this->recordFlush($start, 0, 0, 0, 0);
+
             $this->dispatch(new PostFlushEvent($this->orm));
 
             return;
@@ -503,9 +534,26 @@ class UnitOfWork
             $this->invokeLifecycle($metadata, $entity, 'postRemove', new PostRemoveEvent($entity, $this->orm));
         }
 
+        $this->recordFlush($start, count($inserted), count($updated), count($removed), count($this->collectionUpdates));
         $this->changeSets = [];
         $this->collectionUpdates = [];
+
         $this->dispatch(new PostFlushEvent($this->orm));
+    }
+
+    protected function recordFlush(float $start, int $inserts, int $updates, int $deletes, int $collections): void
+    {
+        $this->flushCount++;
+
+        if (count($this->flushes) < self::MAX_FLUSH_STATISTICS) {
+            $this->flushes[] = [
+                'inserts' => $inserts,
+                'updates' => $updates,
+                'deletes' => $deletes,
+                'collections' => $collections,
+                'duration' => round((microtime(true) - $start) * 1000, 3),
+            ];
+        }
     }
 
     public function invokeLifecycle(ClassMetadata $metadata, object $entity, string $event, LifecycleEvent $object): void
