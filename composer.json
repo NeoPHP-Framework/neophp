@@ -16,7 +16,9 @@
         "security",
         "debug",
         "mailer",
-        "http-client"
+        "http-client",
+        "api",
+        "openapi"
     ],
     "require": {
         "php": ">=8.2"
