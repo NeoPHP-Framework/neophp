@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\HttpClient\Provider;
 
+use NeoPHP\Component\Cache\Contract\CacheInterface;
+use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
 use NeoPHP\Component\Config\Contract\ConfigInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
@@ -29,6 +31,7 @@ class HttpClientProvider extends AbstractProvider
             $container->has(EventDispatcherInterface::class) ? $container->get(EventDispatcherInterface::class) : null,
             $container->has(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null,
             self::config($container),
+            $container->has(CacheManagerInterface::class) ? static fn (?string $pool): CacheInterface => $container->get(CacheManagerInterface::class)->pool($pool) : null,
         ));
 
         $container->alias(HttpClientManager::class, HttpClientInterface::class);
