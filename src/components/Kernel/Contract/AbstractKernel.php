@@ -45,6 +45,7 @@ use NeoPHP\Component\Service\Provider\ServiceProvider;
 use NeoPHP\Component\Session\Provider\SessionProvider;
 use NeoPHP\Component\Validator\Provider\ValidatorProvider;
 use NeoPHP\Component\View\Provider\ViewProvider;
+use NeoPHP\Component\HttpClient\Provider\HttpClientProvider;
 use NeoPHP\Package\Debug\Provider\DebugProvider;
 use NeoPHP\Package\Dotenv\DotenvManager;
 use NeoPHP\Package\Dotenv\Provider\DotenvProvider;
@@ -365,6 +366,7 @@ abstract class AbstractKernel implements KernelInterface
             CsrfProvider::class,
             FormProvider::class,
             MailerProvider::class,
+            HttpClientProvider::class,
             SecurityProvider::class,
             DebugProvider::class,
             AssetProvider::class,

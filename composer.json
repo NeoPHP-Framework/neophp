@@ -15,7 +15,8 @@
         "form",
         "security",
         "debug",
-        "mailer"
+        "mailer",
+        "http-client"
     ],
     "require": {
         "php": ">=8.2"
@@ -24,7 +25,7 @@
         "twig/twig": "<3.0"
     },
     "suggest": {
-        "ext-dom": "Required to convert HTML to Markdown (Markdown package: parse() and convert()) and to read XLIFF translation files (Translation package)",
+        "ext-curl": "Recommended by the HttpClient component (faster transport, parallel requests with requestMany()); the stream transport is used without it",        "ext-dom": "Required to convert HTML to Markdown (Markdown package: parse() and convert()) and to read XLIFF translation files (Translation package)",
         "ext-fileinfo": "Required to detect the mime type of uploaded files (File and Image constraints) and of email attachments",
         "ext-mbstring": "Required by the Markdown package (heading anchors) and recommended for UTF-8 text",
         "ext-openssl": "Required to send emails over SSL/TLS (smtps:// or STARTTLS) and to download the Tailwind CLI (tailwind:install)",
