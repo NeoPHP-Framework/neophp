@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <style>
+        :root{--bg:#f6f7f9;--card:#fff;--text:#1d2433;--muted:#5b6475;--line:#e3e6eb;--accent:#3b1f6e;--code:#1d2433;--code-text:#e6e9ef}
+        @media (prefers-color-scheme:dark){:root{--bg:#12141a;--card:#1b1e26;--text:#e6e9ef;--muted:#9aa3b2;--line:#2a2e38;--accent:#b89cf0;--code:#0d0f14;--code-text:#e6e9ef}}
+        *{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+        header{background:#3b1f6e;color:#fff;padding:1.25rem 1.5rem}header h1{margin:0;font-size:1.4rem}header p{margin:.25rem 0 0;opacity:.85}
+        main{max-width:1100px;margin:0 auto;padding:1rem}
+        .bar{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin:.5rem 0 1rem}.bar a{color:var(--accent)}
+        input[type=search]{flex:1;min-width:200px;padding:.5rem .75rem;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)}
+        h2{font-size:1.1rem;margin:1.5rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.25rem}
+        details.op{background:var(--card);border:1px solid var(--line);border-radius:8px;margin:.5rem 0;overflow:hidden}
+        details.op>summary{cursor:pointer;display:flex;gap:.75rem;align-items:center;padding:.6rem .8rem;list-style:none;flex-wrap:wrap}
+        details.op>summary::-webkit-details-marker{display:none}
+        .m{font:600 .75rem monospace;padding:.2rem .5rem;border-radius:4px;color:#fff;min-width:4.5rem;text-align:center}
+        .get{background:#1f7a4d}.post{background:#1f5fa8}.put{background:#a86b1f}.patch{background:#7a3fd1}.delete{background:#b3261e}
+        .path{font-family:monospace;word-break:break-all}.sum{color:var(--muted)}.dep{text-decoration:line-through}
+        .body{padding:.5rem 1rem 1rem;border-top:1px solid var(--line)}
+        table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.5rem 0}th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+        pre{background:var(--code);color:var(--code-text);padding:.75rem;border-radius:6px;overflow-x:auto;font-size:.8rem;margin:.25rem 0}
+        h4{margin:.75rem 0 .25rem;font-size:.9rem}.muted{color:var(--muted)}
+    </style>
+</head>
+<body>
+<header><h1 id="title"></h1><p id="description"></p></header>
+<main>
+    <div class="bar"><input type="search" id="filter" placeholder="Filter endpoints" aria-label="Filter endpoints"><a href="{{ json_url }}">OpenAPI JSON</a></div>
+    <div id="operations"></div>
+</main>
+<script type="application/json" id="spec">{{ spec }}</script>
+<script>
+    (function () {
+        var spec = JSON.parse(document.getElementById('spec').textContent);
+        var schemas = (spec.components && spec.components.schemas) || {};
+        var root = document.getElementById('operations');
+        document.getElementById('title').textContent = spec.info.title + ' ' + spec.info.version;
+        document.getElementById('description').textContent = spec.info.description || '';
+
+        function el(tag, attrs, text) {
+            var node = document.createElement(tag);
+            Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+            if (text !== undefined) { node.textContent = text; }
+            return node;
+        }
+
+        function resolve(schema, depth, seen) {
+            if (!schema || typeof schema !== 'object' || depth > 6) { return schema; }
+            if (schema.$ref) {
+                var name = schema.$ref.split('/').pop();
+                if (seen.indexOf(name) !== -1) { return { $ref: name }; }
+                return resolve(schemas[name] || {}, depth + 1, seen.concat([name]));
+            }
+            var copy = Array.isArray(schema) ? [] : {};
+            Object.keys(schema).forEach(function (key) { copy[key] = resolve(schema[key], depth + 1, seen); });
+            return copy;
+        }
+
+        function block(parent, title, schema) {
+            parent.appendChild(el('h4', {}, title));
+            parent.appendChild(el('pre', {}, JSON.stringify(resolve(schema, 0, []), null, 2)));
+        }
+
+        var groups = {};
+        Object.keys(spec.paths || {}).forEach(function (path) {
+            Object.keys(spec.paths[path]).forEach(function (method) {
+                var op = spec.paths[path][method];
+                var tag = (op.tags && op.tags[0]) || 'default';
+                (groups[tag] = groups[tag] || []).push({ path: path, method: method, op: op });
+            });
+        });
+
+        Object.keys(groups).sort().forEach(function (tag) {
+            var section = el('section', { 'data-tag': tag });
+            section.appendChild(el('h2', {}, tag));
+            groups[tag].forEach(function (item) {
+                var op = item.op;
+                var details = el('details', { 'class': 'op', 'data-search': (item.method + ' ' + item.path + ' ' + (op.summary || '') + ' ' + tag).toLowerCase() });
+                var summary = el('summary');
+                summary.appendChild(el('span', { 'class': 'm ' + item.method }, item.method.toUpperCase()));
+                summary.appendChild(el('span', { 'class': 'path' + (op.deprecated ? ' dep' : '') }, item.path));
+                summary.appendChild(el('span', { 'class': 'sum' }, op.summary || op.operationId || ''));
+                details.appendChild(summary);
+                var body = el('div', { 'class': 'body' });
+                if (op.description) { body.appendChild(el('p', {}, op.description)); }
+                if (op.parameters && op.parameters.length) {
+                    body.appendChild(el('h4', {}, 'Parameters'));
+                    var table = el('table');
+                    var head = el('tr');
+                    ['Name', 'In', 'Required', 'Schema', 'Description'].forEach(function (label) { head.appendChild(el('th', {}, label)); });
+                    table.appendChild(head);
+                    op.parameters.forEach(function (parameter) {
+                        var row = el('tr');
+                        row.appendChild(el('td', { 'class': 'path' }, parameter.name));
+                        row.appendChild(el('td', {}, parameter['in']));
+                        row.appendChild(el('td', {}, parameter.required ? 'yes' : 'no'));
+                        row.appendChild(el('td', { 'class': 'path' }, JSON.stringify(parameter.schema || {})));
+                        row.appendChild(el('td', { 'class': 'muted' }, parameter.description || ''));
+                        table.appendChild(row);
+                    });
+                    body.appendChild(table);
+                }
+                if (op.requestBody) {
+                    Object.keys(op.requestBody.content || {}).forEach(function (type) {
+                        block(body, 'Request body (' + type + ')' + (op.requestBody.required ? ' required' : ''), op.requestBody.content[type].schema);
+                    });
+                }
+                Object.keys(op.responses || {}).forEach(function (status) {
+                    var response = op.responses[status];
+                    var content = response.content || {};
+                    var types = Object.keys(content);
+                    if (!types.length) { body.appendChild(el('h4', {}, status + ' ' + (response.description || ''))); }
+                    types.forEach(function (type) { block(body, status + ' ' + (response.description || '') + ' (' + type + ')', content[type].schema); });
+                    if (response.headers) { body.appendChild(el('p', { 'class': 'muted' }, 'Headers: ' + Object.keys(response.headers).join(', '))); }
+                });
+                details.appendChild(body);
+                section.appendChild(details);
+            });
+            root.appendChild(section);
+        });
+
+        if (!Object.keys(groups).length) { root.appendChild(el('p', { 'class': 'muted' }, 'No endpoint documented.')); }
+
+        document.getElementById('filter').addEventListener('input', function (event) {
+            var query = event.target.value.toLowerCase();
+            document.querySelectorAll('section[data-tag]').forEach(function (section) {
+                var visible = 0;
+                section.querySelectorAll('details.op').forEach(function (details) {
+                    var match = details.getAttribute('data-search').indexOf(query) !== -1;
+                    details.style.display = match ? '' : 'none';
+                    visible += match ? 1 : 0;
+                });
+                section.style.display = visible ? '' : 'none';
+            });
+        });
+    })();
+</script>
+</body>
+</html>

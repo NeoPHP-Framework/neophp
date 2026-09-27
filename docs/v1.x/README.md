@@ -82,7 +82,7 @@ composer require twig/twig
 assets/                 CSS, JS and images compiled into public/builds/
 bin/neo                 command line
 config/
-    framework/          configuration of the components (app.yaml, cache.yaml, database.yaml, http_client.yaml, mailer.yaml, serializer.yaml, view.yaml...)
+    framework/          configuration of the components (api.yaml, app.yaml, cache.yaml, database.yaml, http_client.yaml, mailer.yaml, serializer.yaml, view.yaml...)
     packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, tailwind.yaml, translation.yaml)
     routes.yaml         routes
     services.yaml       services
@@ -229,6 +229,28 @@ public function create(#[MapRequestPayload] PostInput $input): JsonResponse
 
 The JSON (or XML, form) body is decoded, mapped to the `PostInput` DTO and validated: invalid data returns a 422 JSON response with the violations, a malformed body a 400 and an unsupported `Content-Type` a 415. `json()` normalizes objects with the Serializer (`#[Groups]`, `#[SerializedName]`, `#[Ignore]`...). See the Serializer documentation.
 
+The Api component adds the rest of an API toolkit, configured in `config/framework/api.yaml`:
+
+```php
+#[Route('/api/posts', name: 'api_post_index', methods: ['GET'])]
+#[RateLimit('api')]
+#[OA\Response(200, type: Post::class, groups: ['read'], paginated: true)]
+public function index(PostRepository $posts, #[MapPagination] PageRequest $pageRequest): JsonResponse
+{
+    $page = $this->paginate($posts->createQueryBuilder('p')->orderBy('p.id', 'DESC'), $pageRequest);
+
+    return $this->jsonPage($page, ['groups' => ['read']]);
+}
+```
+
+- CORS: preflight `OPTIONS` requests answered before routing, headers added to every response of the configured paths (also errors), `#[Cors]` per controller;
+- rate limiting: named limiters (fixed window, sliding window, token bucket) stored in a cache pool, `#[RateLimit('api')]` or `$this->rateLimit('login', $email)`, 429 with `Retry-After` and `X-RateLimit-*` headers;
+- pagination: `?page=&limit=` for arrays, iterables and ORM query builders, `{"items", "pagination", "links"}` with `Link` and `X-Total-Count` headers;
+- RFC 7807 problem details: errors of `/api` routes rendered as `application/problem+json` (validation violations included);
+- OpenAPI 3.1: `php bin/neo openapi:dump` or `/api/doc` generated from the routes, DTOs, serializer groups and validation constraints.
+
+See the Api documentation.
+
 ## Login
 
 ```bash
@@ -305,6 +327,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 | `php bin/neo cache:pool:clear --all` | clears the cache pools (also `cache:pool:list`, `cache:pool:prune`) |
 | `php bin/neo serializer:debug "App\Entity\Post"` | serialization metadata of a class |
 | `php bin/neo asset:reload --minify` | compiles `assets/` into `public/builds/` |
+| `php bin/neo openapi:dump --format=yaml` | OpenAPI document of the API routes |
 | `php bin/neo debug:container` | services of the container |
 | `php bin/neo translation:generate` / `translation:debug` / `translation:lint` | translation files |
 
@@ -331,6 +354,7 @@ The documentation of a feature is in `src/<group>/<Feature>/Docs/v1.x/README.md`
 
 ## Changelog
 
+- v1.24.0 — Api component (CORS, rate limiter with fixed window / sliding window / token bucket policies, `#[RateLimit]`, pagination with `Link` / `X-Total-Count` headers and `#[MapPagination]`, RFC 7807 problem details, OpenAPI 3.1 generation with `#[OA\Operation]` / `#[OA\Response]` / `#[OA\Tag]`, `openapi:dump`, `/api/doc`), `TooManyRequestsHttpException`
 - v1.23.0 — Serializer component (JSON / XML / CSV / YAML, normalizers for objects, dates, enums and ORM entities, `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments, `json()` with a serializer context, `serialize()` in controllers, `serializer:debug`)
 - v1.22.0 — Cache component (pools with filesystem / APCu / database / array adapters, `get()` with callback and stampede protection, tags, `cache()` in controllers, `cache:pool:*` commands, HttpClient `cache` option)
 - v1.21.0 — HttpClient component (requests with JSON / form / multipart bodies, curl and stream transports, parallel requests, downloads, retries, named clients, `httpClient()`, `http:request`)

@@ -151,6 +151,7 @@ All extend `NeoPHP\Component\Exception\FrameworkException` (see the Exception do
 
 | Exception | Status | Constructor |
 |---|---|---|
+| `TooManyRequestsHttpException` | 429 | `($retryAfter = null, $message = 'Too Many Requests', $headers = [], $context = [], $previous = null)`: sets the `Retry-After` header, `getRetryAfter(): ?int` |
 | `HttpException` | any | `($statusCode = 500, $message = '', $headers = [], $context = [], $previous = null)` |
 | `BadRequestHttpException` | 400 | `($message = 'Bad Request', $context = [], $previous = null)` |
 | `AccessDeniedHttpException` | 403 | `($message = 'Forbidden', $context = [], $previous = null)` |
@@ -160,10 +161,11 @@ All extend `NeoPHP\Component\Exception\FrameworkException` (see the Exception do
 throw new HttpException(503, 'Maintenance in progress.', ['Retry-After' => '3600']);
 ```
 
-Errors are rendered as HTML, or as JSON when the request sends `Accept: application/json`.
+Errors are rendered as HTML, or as JSON when the request sends `Accept: application/json`. With the Api component, API errors can be rendered as RFC 7807 problem details (`application/problem+json`, see the Api documentation).
 
 ## Changelog
 
+- v1.24.0 — `TooManyRequestsHttpException` (429, `Retry-After`).
 - v1.23.0 — `json()` accepts a serializer context and normalizes objects with the Serializer
 - v1.17.x (bugfix) — absolute URLs fall back on `getSchemeAndHttpHost()` of the request when `APP_URL` is not set.
 - v1.0.0 — `Request`, `Response`, `JsonResponse`, `RedirectResponse`, bags, uploaded files, HTTP exceptions and JSON errors.
