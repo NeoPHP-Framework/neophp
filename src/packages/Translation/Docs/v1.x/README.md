@@ -16,6 +16,7 @@ It supports parameters, ICU-lite plurals and selects, fallback locales, locale d
 - [Commands](#commands)
 - [Cache](#cache)
 - [TranslatorInterface](#translatorinterface)
+- [Profiler](#profiler)
 - [Limitations](#limitations)
 - [Changelog](#changelog)
 
@@ -300,6 +301,20 @@ The catalogue of each locale is compiled into `var/cache/translation/{locale}.ph
 
 Other classes: `TranslationManager` (implementation), `LocaleDetector` (`detect()`, `fromHeader()`), `Loader\YamlLoader`, `Loader\XliffLoader`, `Dumper\YamlDumper`, `Dumper\XliffDumper`, `Extractor\TranslationExtractor`, `Formatter\MessageFormatter`, `Formatter\PluralRules`. Errors throw `NeoPHP\Package\Translation\Exception\TranslationException`.
 
+## Profiler
+
+When the WebProfiler package is enabled (`web_profiler.config` → `enabled: true`), `TranslationProvider` attaches a `TranslationTrace` to the translator; otherwise nothing is recorded and `translate()` costs a single null check. The `Helper/Profiler/TranslationProfiler.php` element (auto-discovered, priority 60) then shows:
+
+- **Toolbar** (`info` icon): current locale; blue when a message came from a fallback locale, orange when a message is missing. Details: locale, fallbacks, messages, defined / fallback / missing counts.
+- **Panel**: metrics (locale, defined, fallback, missing), a hint when keys are missing (`php bin/neo translation:generate` adds them), and tabs **Missing**, **Fallback** (requested and resolved locale), **Defined** (locale, domain, id, count, result, parameters), **Locale** (current, default, fallbacks, enabled, detection source: route, query, session, cookie, header or default, detection order) and **Catalogues** (loaded locale / domain, message count, source files).
+
+Each (id, domain, locale) is stored once with an occurrence count, up to 1000 unique messages. Results and parameter values are truncated to 120 characters; objects are stored as their type.
+
+```php
+$trace = $translator->getTrace();
+$trace?->getMessages(TranslationTrace::STATE_MISSING);
+```
+
 ## Limitations
 
 - ICU-lite: `plural` (with `offset`), `select` and `number` (no number or date styles, no `selectordinal`, no apostrophe quoting)
@@ -308,4 +323,5 @@ Other classes: `TranslationManager` (implementation), `LocaleDetector` (`detect(
 
 ## Changelog
 
+- v1.25.3 — profiler integration: `TranslationProfiler` toolbar item and panel, opt-in `TranslationTrace` on the translator (defined / fallback / missing messages with counts, parameters and results), locale detection source, loaded catalogues, `AbstractTranslator::setTrace()` / `getTrace()` / `getLoadedCatalogues()`.
 - v1.20.0 — Translation package: YAML / XLIFF 1.2 catalogues, fallbacks, ICU-lite plurals and selects, locale detection (route, query, session, cookie, `Accept-Language`), `translate()` / `trans` / `locale()` / `locales()` helpers, `translate()` and `switchLocale()` in controllers, translated validation, form and security messages, `translation:generate`, `translation:debug`, `translation:lint`.
