@@ -42,6 +42,7 @@ use NeoPHP\Component\Middleware\Contract\MiddlewareManagerInterface;
 use NeoPHP\Component\Middleware\Provider\MiddlewareProvider;
 use NeoPHP\Component\Routing\Contract\RoutingInterface;
 use NeoPHP\Component\Routing\Provider\RoutingProvider;
+use NeoPHP\Component\Serializer\Provider\SerializerProvider;
 use NeoPHP\Component\Service\Provider\ServiceProvider;
 use NeoPHP\Component\Session\Provider\SessionProvider;
 use NeoPHP\Component\Validator\Provider\ValidatorProvider;
@@ -363,6 +364,7 @@ abstract class AbstractKernel implements KernelInterface
             TranslationProvider::class,
             ValidatorProvider::class,
             DatabaseProvider::class,
+            SerializerProvider::class,
             OrmProvider::class,
             CacheProvider::class,
             CsrfProvider::class,

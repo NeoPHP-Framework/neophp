@@ -89,6 +89,7 @@ config/framework/http_client.yaml
 config/framework/logger.yaml
 config/framework/mailer.yaml
 config/framework/middleware.yaml
+config/framework/serializer.yaml
 config/framework/view.yaml
 config/packages/debug.yaml
 config/packages/orm.yaml
@@ -165,6 +166,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v1.23.0 — `config/framework/serializer.yaml` is generated.
 - v1.20.0 — `config/packages/translation.yaml` and the `translations/` directory are generated.
 - Bugfix after v1.17.0 — `APP_URL` written in `.env`.
 - v1.11.0 — The missing variables are added to an existing `.env`.

@@ -1,0 +1,9 @@
+default_format: json
+datetime_format: 'Y-m-d\TH:i:sP'
+circular_reference_limit: 1
+max_depth: 10
+enable_max_depth: true
+skip_null_values: false
+allow_extra_attributes: true
+name_converter: null
+normalizers: []

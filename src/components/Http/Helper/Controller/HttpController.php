@@ -9,13 +9,20 @@ use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
 use NeoPHP\Component\Http\Exception\NotFoundHttpException;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
+use NeoPHP\Component\Serializer\Contract\SerializerInterface;
 
 trait HttpController
 {
     abstract protected function get(string $id): mixed;
 
-    protected function json(mixed $data, int $status = 200, array $headers = []): JsonResponse
+    abstract protected function has(string $id): bool;
+
+    protected function json(mixed $data, int $status = 200, array $headers = [], array $context = []): JsonResponse
     {
+        if (($context !== [] || $this->jsonContainsObjects($data)) && $this->has(SerializerInterface::class)) {
+            $data = $this->get(SerializerInterface::class)->normalize($data, 'json', $context);
+        }
+
         return $this->get(HttpInterface::class)->json($data, $status, $headers);
     }
 
@@ -32,5 +39,24 @@ trait HttpController
     protected function createAccessDeniedException(string $message = 'Forbidden', array $context = []): AccessDeniedHttpException
     {
         return new AccessDeniedHttpException($message, $context);
+    }
+
+    protected function jsonContainsObjects(mixed $data): bool
+    {
+        if (is_object($data)) {
+            return true;
+        }
+
+        if (!is_array($data)) {
+            return false;
+        }
+
+        foreach ($data as $value) {
+            if ($this->jsonContainsObjects($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
