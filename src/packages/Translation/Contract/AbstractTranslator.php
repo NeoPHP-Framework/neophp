@@ -8,6 +8,7 @@ use FilesystemIterator;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Package\Translation\Exception\TranslationException;
 use NeoPHP\Package\Translation\Formatter\MessageFormatter;
+use NeoPHP\Package\Translation\Trace\TranslationTrace;
 
 abstract class AbstractTranslator implements TranslatorInterface
 {
@@ -51,12 +52,15 @@ abstract class AbstractTranslator implements TranslatorInterface
 
     protected ?array $scanned = null;
 
+    protected ?TranslationTrace $trace = null;
+
     public function translate(string $key, array $parameters = [], ?string $domain = null, ?string $locale = null): string
     {
         $domain = $domain === null || $domain === '' ? $this->defaultDomain : $domain;
         $locale = $locale === null || $locale === '' ? $this->locale : (static::normalizeLocale($locale) ?? $this->locale);
         $message = null;
         $formatLocale = $locale;
+        $resolved = null;
 
         foreach ([$locale, ...$this->getFallbackLocales($locale)] as $candidate) {
             $value = $this->loadCatalogue($candidate)[$domain][$key] ?? null;
@@ -64,11 +68,15 @@ abstract class AbstractTranslator implements TranslatorInterface
             if (is_string($value) && $value !== '') {
                 $message = $value;
                 $formatLocale = $candidate;
+                $resolved = $candidate;
                 break;
             }
         }
 
-        return $this->formatter->format($message ?? $key, $parameters, $formatLocale);
+        $result = $this->formatter->format($message ?? $key, $parameters, $formatLocale);
+        $this->trace?->add($key, $domain, $locale, $resolved, $result, $parameters);
+
+        return $result;
     }
 
     public function has(string $key, ?string $domain = null, ?string $locale = null): bool
@@ -266,6 +274,31 @@ abstract class AbstractTranslator implements TranslatorInterface
     public function getFormatter(): MessageFormatter
     {
         return $this->formatter;
+    }
+
+    public function setTrace(?TranslationTrace $trace): static
+    {
+        $this->trace = $trace;
+
+        return $this;
+    }
+
+    public function getTrace(): ?TranslationTrace
+    {
+        return $this->trace;
+    }
+
+    public function getLoadedCatalogues(): array
+    {
+        $loaded = [];
+
+        foreach ($this->catalogues as $locale => $catalogue) {
+            foreach ($catalogue as $domain => $messages) {
+                $loaded[(string) $locale][(string) $domain] = count($messages);
+            }
+        }
+
+        return $loaded;
     }
 
     public function clearCache(): void
