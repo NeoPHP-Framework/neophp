@@ -79,6 +79,7 @@ assets/css/app.css
 bin/neo
 config/routes.yaml
 config/services.yaml
+config/framework/api.yaml
 config/framework/app.yaml
 config/framework/asset.yaml
 config/framework/csrf.yaml
@@ -166,6 +167,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v1.24.0 — `config/framework/api.yaml` is generated (CORS, rate limiter, pagination, problem details, OpenAPI).
 - v1.23.0 — `config/framework/serializer.yaml` is generated.
 - v1.20.0 — `config/packages/translation.yaml` and the `translations/` directory are generated.
 - Bugfix after v1.17.0 — `APP_URL` written in `.env`.
