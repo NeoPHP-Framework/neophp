@@ -354,6 +354,15 @@ The documentation of a feature is in `src/<group>/<Feature>/Docs/v1.x/README.md`
 
 ## Changelog
 
+- v1.29.0 — NeoAI package (development assistant enabled only in debug: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers, read-only `neo-tool` loop in a sandbox with secret redaction, `ai:start` chat with patch review, `ai:scan` audit with Markdown report, `ai:test`, toolbar chat and profiler panel, `config/packages/neo_ai.yaml`); WebProfiler `ToolbarAssetInterface` to add CSS / JavaScript to the toolbar
+- v1.28.2 — Bugfix: translation profiler
+- v1.28.1 — Bugfix: missing `translation:generate` command
+- v1.28.0 — Translation profiler (toolbar item and panel, opt-in `TranslationTrace`: defined / fallback / missing messages, locale detection source, loaded catalogues)
+- v1.27.0 — Security profiler (toolbar item and panel, opt-in `SecurityTrace`: access decisions, voter votes, `access_control`, login / logout events)
+- v1.26.0 — Database and ORM profiler (query logger with transactions, Database panel, unit of work statistics, ORM panel)
+- v1.25.2 — Bugfix: WebProfiler controller helper location
+- v1.25.1 — Bugfix: YAML indentation of the generated configuration files
+- v1.25.0 — WebProfiler package (web debug toolbar and `/_profiler` interface, elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]`, panels and blocks, `Stopwatch`, Ajax requests tracking, `profiler:list` and `profiler:clear`, `config/packages/web_profiler.yaml`)
 - v1.24.0 — Api component (CORS, rate limiter with fixed window / sliding window / token bucket policies, `#[RateLimit]`, pagination with `Link` / `X-Total-Count` headers and `#[MapPagination]`, RFC 7807 problem details, OpenAPI 3.1 generation with `#[OA\Operation]` / `#[OA\Response]` / `#[OA\Tag]`, `openapi:dump`, `/api/doc`), `TooManyRequestsHttpException`
 - v1.23.0 — Serializer component (JSON / XML / CSV / YAML, normalizers for objects, dates, enums and ORM entities, `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments, `json()` with a serializer context, `serialize()` in controllers, `serializer:debug`)
 - v1.22.0 — Cache component (pools with filesystem / APCu / database / array adapters, `get()` with callback and stampede protection, tags, `cache()` in controllers, `cache:pool:*` commands, HttpClient `cache` option)
