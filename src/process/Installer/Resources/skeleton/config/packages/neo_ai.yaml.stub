@@ -1,0 +1,61 @@
+enabled: ~
+allow_remote: true
+default_connection: default
+language: en
+system_prompt: ''
+
+connections:
+    default:
+        provider: '%env(NEO_AI_PROVIDER)%'
+        model: '%env(NEO_AI_MODEL)%'
+        api_key: '%env(NEO_AI_API_KEY)%'
+        base_url: '%env(NEO_AI_BASE_URL)%'
+        temperature: 0.2
+        max_tokens: 4096
+        timeout: 120
+        retries: 2
+    openai:
+        provider: openai
+        model: gpt-4o-mini
+        api_key: '%env(OPENAI_API_KEY)%'
+    anthropic:
+        provider: anthropic
+        model: claude-sonnet-4-5
+        api_key: '%env(ANTHROPIC_API_KEY)%'
+    gemini:
+        provider: gemini
+        model: gemini-2.0-flash
+        api_key: '%env(GEMINI_API_KEY)%'
+    mistral:
+        provider: mistral
+        model: mistral-small-latest
+        api_key: '%env(MISTRAL_API_KEY)%'
+    local:
+        provider: ollama
+        model: qwen2.5-coder:7b
+        base_url: '%env(OLLAMA_URL)%'
+        timeout: 300
+
+providers: {}
+
+context:
+      max_files: 40
+      max_file_bytes: 60000
+      max_context_chars: 120000
+      max_tool_iterations: 8
+      max_tool_output: 12000
+
+scan:
+      paths: [src, templates, config]
+      extensions: [php, twig, yaml, yml, js, html, phtml]
+      max_files: 200
+      batch_chars: 60000
+
+excluded_paths: []
+redact_patterns: []
+
+web:
+      enabled: true
+      path: /_neo_ai
+      max_request_bytes: 200000
+      max_message_chars: 8000

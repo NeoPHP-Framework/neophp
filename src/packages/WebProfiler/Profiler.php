@@ -10,6 +10,7 @@ use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerElementInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerInterface;
+use NeoPHP\Package\WebProfiler\Contract\ToolbarAssetInterface;
 use NeoPHP\Package\WebProfiler\Contract\ToolbarInterface;
 use NeoPHP\Package\WebProfiler\Exception\InvalidElementException;
 use NeoPHP\Package\WebProfiler\Model\Panel;
@@ -273,6 +274,33 @@ class Profiler
         }
 
         return $items;
+    }
+
+    public function getToolbarAssets(Profile $profile): array
+    {
+        $assets = ['css' => [], 'js' => []];
+
+        foreach ($this->getElements() as $name => $element) {
+            if (!$element instanceof ToolbarAssetInterface || isset($profile->getData($name)['_error'])) {
+                continue;
+            }
+
+            try {
+                $elementAssets = $element->getToolbarAssets($profile, $profile->getData($name));
+            } catch (Throwable) {
+                continue;
+            }
+
+            foreach (['css', 'js'] as $type) {
+                $content = trim((string) ($elementAssets[$type] ?? ''));
+
+                if ($content !== '') {
+                    $assets[$type][$name] = $content;
+                }
+            }
+        }
+
+        return $assets;
     }
 
     public function getPanels(Profile $profile): array
