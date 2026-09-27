@@ -1,0 +1,6 @@
+default_pool: app
+
+pools:
+    app:
+        adapter: filesystem
+        default_ttl: 3600
