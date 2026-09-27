@@ -11,6 +11,7 @@ No external library is used: the pages and the toolbar are self-contained (inlin
 - [Adding an element to a feature](#adding-an-element-to-a-feature)
 - [Custom elements in the application](#custom-elements-in-the-application)
 - [Toolbar items](#toolbar-items)
+- [Toolbar assets](#toolbar-assets)
 - [Panels and blocks](#panels-and-blocks)
 - [Custom block types](#custom-block-types)
 - [Stopwatch](#stopwatch)
@@ -244,6 +245,26 @@ Built-in icon keys: `info`, `request`, `response`, `time`, `memory`, `exception`
 
 The toolbar also shows an **Ajax** item listing the `fetch()` and `XMLHttpRequest` calls made by the page (method, status, URL, duration and a link to their profile read from the `X-Debug-Token` response header). The toolbar can be hidden (state remembered in `localStorage`).
 
+## Toolbar assets
+
+The toolbar is loaded with Ajax and inserted with `innerHTML`, so an element cannot put a `<script>` in its item. An element that needs a behaviour on the page (a widget opened by its toolbar item, keyboard shortcuts...) implements `NeoPHP\Package\WebProfiler\Contract\ToolbarAssetInterface`:
+
+```php
+public function getToolbarAssets(Profile $profile, array $data): array
+{
+    return [
+        'css' => '.my-widget{position:fixed;right:16px;bottom:48px}',
+        'js' => '(function (config) { document.querySelector(\'.neo-wdt-item[data-name="my_element"] .neo-wdt-main\').addEventListener(\'click\', function () { alert(config.token); }); })(window.__neoWdt.config);',
+    ];
+}
+```
+
+- The assets are rendered once per toolbar, after the items: the CSS in a `<style>` tag, the JS executed by `toolbar.js` once the toolbar is in the page (the item of the element is available with `.neo-wdt-item[data-name="<element name>"]`).
+- `window.__neoWdt.config` gives the toolbar configuration (`token` of the current profile, `profilerPath`, `toolbarUrl`).
+- Use a `ToolbarItem` with `linked: false` to handle the click yourself.
+- The assets are trusted code of the element: never put request data in them without `json_encode()` (`JSON_HEX_TAG`).
+- They are skipped when `collect()` failed for this profile.
+
 ## Panels and blocks
 
 `Model\Panel(title, icon = 'info', blocks = [], badge = null, badgeStatus = Status::DEFAULT)` is displayed in the left menu of the profile page with its badge. `add(BlockInterface)` appends a block.
@@ -398,4 +419,5 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Changelog
 
+- v1.26.0 — `ToolbarAssetInterface`: an element can add CSS and JavaScript to the toolbar (executed after the Ajax load), `Profiler::getToolbarAssets()`, `window.__neoWdt.config`.
 - v1.25.0 — WebProfiler package: profiler and web debug toolbar structure, `ProfilerElementInterface` / `ToolbarInterface` / `ProfilerInterface` elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]` in the application (cached), `ToolbarItem` and `Panel` value objects, blocks (`Table`, `KeyValue`, `Metric`, `Timeline`, `Code`, `Alert`, `Text`, `Section`, `Tabs`, `Html`) with an extensible `BlockRenderer`, `FileProfileStorage`, `Stopwatch`, `X-Debug-Token` headers, Ajax requests tracking, `/_profiler` and `/_wdt` routes, `profiler:list` and `profiler:clear` commands, built-in Request, Exception, Performance and Config elements.
