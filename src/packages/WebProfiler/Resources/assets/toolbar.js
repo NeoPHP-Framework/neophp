@@ -4,7 +4,7 @@
     if (w.__neoWdt) {
         return;
     }
-    var state = {ajax: [], root: null};
+    var state = { ajax: [], root: null, config: config };
     w.__neoWdt = state;
     var storageKey = 'neo-wdt-collapsed';
     var nativeFetch = w.fetch ? w.fetch.bind(w) : null;
@@ -18,14 +18,7 @@
         if (ignored(url)) {
             return null;
         }
-        var entry = {
-            method: String(method || 'GET').toUpperCase(),
-            url: String(url),
-            status: null,
-            token: null,
-            start: w.performance ? performance.now() : Date.now(),
-            duration: null
-        };
+        var entry = { method: String(method || 'GET').toUpperCase(), url: String(url), status: null, token: null, start: w.performance ? performance.now() : Date.now(), duration: null };
         state.ajax.unshift(entry);
         if (state.ajax.length > config.ajaxLimit) {
             state.ajax.pop();
@@ -63,7 +56,7 @@
         var open = XMLHttpRequest.prototype.open;
         var send = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.open = function (method, url) {
-            this.__neoWdt = {method: method, url: url};
+            this.__neoWdt = { method: method, url: url };
             return open.apply(this, arguments);
         };
         XMLHttpRequest.prototype.send = function () {
@@ -115,11 +108,7 @@
             return;
         }
         item.hidden = state.ajax.length === 0;
-        item.className = 'neo-wdt-item neo-wdt-' + (state.ajax.some(function (e) {
-            return statusClass(e.status) === 'danger';
-        }) ? 'danger' : (state.ajax.some(function (e) {
-            return e.status === null;
-        }) ? 'info' : 'default'));
+        item.className = 'neo-wdt-item neo-wdt-' + (state.ajax.some(function (e) { return statusClass(e.status) === 'danger'; }) ? 'danger' : (state.ajax.some(function (e) { return e.status === null; }) ? 'info' : 'default'));
         item.querySelector('.neo-wdt-value').textContent = String(state.ajax.length);
         var body = item.querySelector('tbody');
         body.textContent = '';
@@ -164,21 +153,25 @@
         if (!bar || !mini) {
             return;
         }
-
         function toggle(collapsed) {
             bar.hidden = collapsed;
             mini.hidden = !collapsed;
             remember(collapsed);
         }
-
         toggle(collapsedByDefault());
-        container.querySelector('[data-neo-wdt-hide]').addEventListener('click', function () {
-            toggle(true);
-        });
-        mini.addEventListener('click', function () {
-            toggle(false);
-        });
+        container.querySelector('[data-neo-wdt-hide]').addEventListener('click', function () { toggle(true); });
+        mini.addEventListener('click', function () { toggle(false); });
         render();
+        scripts(container);
+    }
+
+    function scripts(container) {
+        Array.prototype.forEach.call(container.querySelectorAll('script[data-neo-wdt-script]'), function (source) {
+            var script = document.createElement('script');
+            script.setAttribute('data-neo-wdt-asset', source.getAttribute('data-neo-wdt-script') || '');
+            script.textContent = source.textContent;
+            source.parentNode.replaceChild(script, source);
+        });
     }
 
     function load() {
@@ -188,7 +181,7 @@
         }
         var xhr = new XMLHttpRequest();
         xhr.open('GET', config.toolbarUrl);
-        xhr.__neoWdt = {internal: true};
+        xhr.__neoWdt = { internal: true };
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.onload = function () {
             if (xhr.status === 200) {
