@@ -57,6 +57,7 @@ use NeoPHP\Package\Orm\Provider\OrmProvider;
 use NeoPHP\Package\Security\Provider\SecurityProvider;
 use NeoPHP\Package\Tailwind\Provider\TailwindProvider;
 use NeoPHP\Package\Translation\Provider\TranslationProvider;
+use NeoPHP\Package\WebProfiler\Provider\WebProfilerProvider;
 use NeoPHP\Package\Yaml\Provider\YamlProvider;
 use NeoPHP\Process\Console\Provider\ConsoleProvider;
 use NeoPHP\Process\Installer\Provider\InstallerProvider;
@@ -378,6 +379,7 @@ abstract class AbstractKernel implements KernelInterface
             HttpClientProvider::class,
             SecurityProvider::class,
             DebugProvider::class,
+            WebProfilerProvider::class,
             AssetProvider::class,
             TailwindProvider::class,
             MarkdownProvider::class,
