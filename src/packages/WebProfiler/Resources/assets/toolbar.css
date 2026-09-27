@@ -1,0 +1,219 @@
+.neo-wdt, .neo-wdt *, .neo-wdt-mini {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: normal;
+    text-transform: none
+}
+
+.neo-wdt {
+    --wdt-bg: #f8fafc;
+    --wdt-fg: #1e293b;
+    --wdt-muted: #64748b;
+    --wdt-border: #e2e8f0;
+    --wdt-pop: #ffffff;
+    --wdt-hover: #eef2f7;
+    --wdt-success: #15803d;
+    --wdt-info: #1d4ed8;
+    --wdt-warning: #b45309;
+    --wdt-danger: #b91c1c;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2147483000;
+    display: flex;
+    align-items: stretch;
+    height: 36px;
+    background: var(--wdt-bg);
+    color: var(--wdt-fg);
+    border-top: 1px solid var(--wdt-border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, .06)
+}
+
+.neo-wdt-mini {
+    --wdt-bg: #f8fafc;
+    --wdt-fg: #1e293b;
+    --wdt-border: #e2e8f0
+}
+
+@media (prefers-color-scheme: dark) {
+    .neo-wdt, .neo-wdt-mini {
+        --wdt-bg: #0f172a;
+        --wdt-fg: #e2e8f0;
+        --wdt-muted: #94a3b8;
+        --wdt-border: #1e293b;
+        --wdt-pop: #111827;
+        --wdt-hover: #1e293b;
+        --wdt-success: #4ade80;
+        --wdt-info: #60a5fa;
+        --wdt-warning: #fbbf24;
+        --wdt-danger: #f87171
+    }
+}
+
+.neo-wdt-items {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none
+}
+
+.neo-wdt-item {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    border-right: 1px solid var(--wdt-border)
+}
+
+.neo-wdt-main {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer
+}
+
+.neo-wdt-main:hover, .neo-wdt-item:focus-within .neo-wdt-main {
+    background: var(--wdt-hover)
+}
+
+.neo-wdt-main svg {
+    flex: none
+}
+
+.neo-wdt-label {
+    color: var(--wdt-muted);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.neo-wdt-value {
+    font-weight: 600
+}
+
+.neo-wdt-success .neo-wdt-value, .neo-wdt-success svg {
+    color: var(--wdt-success)
+}
+
+.neo-wdt-info .neo-wdt-value, .neo-wdt-info svg {
+    color: var(--wdt-info)
+}
+
+.neo-wdt-warning .neo-wdt-value, .neo-wdt-warning svg {
+    color: var(--wdt-warning)
+}
+
+.neo-wdt-danger {
+    background: var(--wdt-danger)
+}
+
+.neo-wdt-danger .neo-wdt-main, .neo-wdt-danger .neo-wdt-label, .neo-wdt-danger .neo-wdt-value, .neo-wdt-danger svg {
+    color: #fff
+}
+
+.neo-wdt-danger .neo-wdt-main:hover {
+    background: rgba(0, 0, 0, .15)
+}
+
+.neo-wdt-pop {
+    display: none;
+    position: fixed;
+    bottom: 36px;
+    min-width: 260px;
+    max-width: min(560px, 96vw);
+    max-height: 60vh;
+    overflow: auto;
+    background: var(--wdt-pop);
+    color: var(--wdt-fg);
+    border: 1px solid var(--wdt-border);
+    border-radius: 6px 6px 0 0;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, .15);
+    padding: 6px 0
+}
+
+.neo-wdt-item:hover .neo-wdt-pop, .neo-wdt-item:focus-within .neo-wdt-pop {
+    display: block
+}
+
+.neo-wdt-pop table {
+    border-collapse: collapse;
+    width: 100%
+}
+
+.neo-wdt-pop th, .neo-wdt-pop td {
+    padding: 3px 12px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--wdt-fg);
+    word-break: break-word
+}
+
+.neo-wdt-pop th {
+    color: var(--wdt-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    width: 1%
+}
+
+.neo-wdt-pop a {
+    color: var(--wdt-info)
+}
+
+.neo-wdt-pop .neo-wdt-empty {
+    padding: 4px 12px;
+    color: var(--wdt-muted)
+}
+
+.neo-wdt-actions {
+    display: flex;
+    align-items: stretch;
+    border-left: 1px solid var(--wdt-border)
+}
+
+.neo-wdt-actions a, .neo-wdt-actions button, .neo-wdt-mini {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    background: none;
+    border: 0;
+    color: var(--wdt-muted);
+    cursor: pointer;
+    text-decoration: none
+}
+
+.neo-wdt-actions a:hover, .neo-wdt-actions button:hover {
+    background: var(--wdt-hover);
+    color: var(--wdt-fg)
+}
+
+.neo-wdt-mini {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 2147483000;
+    height: 36px;
+    width: 40px;
+    background: var(--wdt-bg);
+    color: var(--wdt-fg);
+    border: 1px solid var(--wdt-border);
+    border-radius: 6px 0 0 0
+}
+
+.neo-wdt[hidden], .neo-wdt-mini[hidden], .neo-wdt-item[hidden] {
+    display: none
+}
+
+@media (max-width: 640px) {
+    .neo-wdt-label {
+        display: none
+    }
+}
