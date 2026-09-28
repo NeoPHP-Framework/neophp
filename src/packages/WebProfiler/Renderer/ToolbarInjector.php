@@ -41,7 +41,7 @@ class ToolbarInjector
         $snippet = $this->templates->render('loader', [
             'token' => $token,
             'toolbarUrl' => $this->profiler->getToolbarUrl($token),
-            'profilerPath' => $this->profiler->getPath(),
+            'profilerPath' => $this->profiler->getPublicPath(),
             'ajaxLimit' => (int) $this->profiler->getConfig()['ajax_limit'],
         ]);
 

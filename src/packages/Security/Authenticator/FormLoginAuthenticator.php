@@ -6,6 +6,7 @@ namespace NeoPHP\Package\Security\Authenticator;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\JsonResponse;
+use NeoPHP\Component\Http\Response\RedirectResponse;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Security\Authentication\Passport;
 use NeoPHP\Package\Security\Contract\AbstractAuthenticator;
@@ -95,7 +96,7 @@ class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPoint
         $session->remove(SecurityInterface::LAST_ERROR);
         $session->remove(SecurityInterface::LAST_USERNAME);
 
-        return $this->http->createRedirectResponse($this->targetPath($request, $firewall));
+        return new RedirectResponse($this->targetPath($request, $firewall));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
@@ -133,7 +134,7 @@ class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPoint
         $saved = $session->remove(self::targetPathKey($firewall));
 
         if ($this->options['always_use_default_target_path']) {
-            return (string) $this->options['default_target_path'];
+            return $this->http->generateUrl((string) $this->options['default_target_path']);
         }
 
         $target = $this->parameter($request, (string) $this->options['target_path_parameter']);

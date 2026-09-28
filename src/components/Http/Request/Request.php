@@ -251,6 +251,32 @@ class Request
 
     public function getPath(): string
     {
+        $path = $this->getRequestPath();
+        $basePath = $this->getBasePath();
+
+        if ($basePath !== '') {
+            $path = substr($path, strlen($basePath));
+        }
+
+        return $path === '' || $path === false ? '/' : $path;
+    }
+
+    public function getBasePath(): string
+    {
+        $script = str_replace('\\', '/', (string) $this->server->get('SCRIPT_NAME', ''));
+        $path = $this->getRequestPath();
+
+        foreach ([$script, rtrim(dirname($script), '/')] as $candidate) {
+            if ($candidate !== '' && $candidate !== '.' && ($path === $candidate || str_starts_with($path, $candidate . '/'))) {
+                return $candidate;
+            }
+        }
+
+        return '';
+    }
+
+    public function getRequestPath(): string
+    {
         $uri = (string) $this->server->get('REQUEST_URI', '/');
 
         if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $uri) === 1) {
@@ -342,7 +368,7 @@ class Request
     {
         $query = $this->getQueryString();
 
-        return $this->getSchemeAndHttpHost() . $this->getPath() . ($query !== null ? '?' . $query : '');
+        return $this->getSchemeAndHttpHost() . $this->getRequestPath() . ($query !== null ? '?' . $query : '');
     }
 
     public function getClientIp(): ?string

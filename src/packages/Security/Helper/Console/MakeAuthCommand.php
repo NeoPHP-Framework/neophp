@@ -63,6 +63,10 @@ class MakeAuthCommand extends AbstractConsole
             '  <comment>    logout:</comment>',
             '  <comment>      path: app_logout</comment>',
             '  <comment>      target: /</comment>',
+            '  <comment>      enable_csrf: true</comment>',
+            '  <comment>      methods: [POST]</comment>',
+            '',
+            'Logout button in a template: <info>{{ logout_form(\'Logout\') }}</info>',
         ]);
 
         return self::SUCCESS;

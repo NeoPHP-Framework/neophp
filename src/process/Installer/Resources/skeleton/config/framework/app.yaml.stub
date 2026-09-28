@@ -15,6 +15,22 @@ trusted_proxies: '%env(TRUSTED_PROXIES)%'
 # Accepted host names, e.g. example.com,*.example.com (empty = any host, set it in production)
 trusted_hosts: '%env(TRUSTED_HOSTS)%'
 
+# Security headers added to every response (pages, errors, API) that does not set them itself
+security_headers:
+  enabled: true
+  headers:
+    X-Content-Type-Options: nosniff
+    # DENY = never displayed in a frame, SAMEORIGIN = only by this site
+    X-Frame-Options: SAMEORIGIN
+    Referrer-Policy: strict-origin-when-cross-origin
+    Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+    # Content Security Policy: test it before enabling it (inline scripts and external CDNs must be allowed)
+    # Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+  # HTTPS only: seconds the browser must use HTTPS for this domain (31536000 = 1 year), ~ = disabled
+  hsts: ~
+  # Paths without these headers (regular expressions)
+  excluded_paths: ['^/_profiler', '^/_wdt']
+
 session:
   name: NEOSESSID
   # Lifetime of the session cookie in seconds, 0 = until the browser is closed

@@ -1,0 +1,41 @@
+# Changelog
+
+Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
+
+- v1.31.0 — Stabilization: the generated `security.yaml` protects the logout with CSRF and POST (`methods` option, `logout_form()`), entities in controller arguments (`show(Post $post)`, `#[MapEntity]`, 404 when not found), applications in a sub-directory (`Request::getBasePath()`, generated URLs, assets, redirections), security headers on every response (`security_headers` in `app.yaml`), remember-me tokens stored in database and revocable per device (`storage: database`), `make:migration` ignores the framework tables; `SECURITY.md`, `CHANGELOG.md` and versioning policy
+- v1.30.0 — Bugfix and security: ORM `findBy()` / `findOneBy()` / `count()` refuse unknown fields (SQL injection), `UploadedFile::move()` random name and executable extensions refused, PHP execution limited to `index.php` in `public/.htaccess`, CORS `allow_credentials` with `'*'` refused, trusted proxies and trusted hosts (`TRUSTED_PROXIES`, `TRUSTED_HOSTS`), profiler and NeoAI restricted to local networks (`allowed_ips`), `markdown` filter escapes raw HTML by default, cache entries signed with `APP_SECRET`, directories created in `0775`, login throttling files cleaned, CSRF tokens limited in the session, `RateLimitListener` file name, NeoAI `ai:test` and default models, commented configuration files and `.env`. Existing projects: run `php bin/neo install` to add the new variables to `.env`, then add `trusted_proxies` / `trusted_hosts` to `config/framework/app.yaml`
+- v1.29.0 — NeoAI package (development assistant enabled only in debug: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers, read-only `neo-tool` loop in a sandbox with secret redaction, `ai:start` chat with patch review, `ai:scan` audit with Markdown report, `ai:test`, toolbar chat and profiler panel, `config/packages/neo_ai.yaml`); WebProfiler `ToolbarAssetInterface` to add CSS / JavaScript to the toolbar
+- v1.28.2 — Bugfix: translation profiler
+- v1.28.1 — Bugfix: missing `translation:generate` command
+- v1.28.0 — Translation profiler (toolbar item and panel, opt-in `TranslationTrace`: defined / fallback / missing messages, locale detection source, loaded catalogues)
+- v1.27.0 — Security profiler (toolbar item and panel, opt-in `SecurityTrace`: access decisions, voter votes, `access_control`, login / logout events)
+- v1.26.0 — Database and ORM profiler (query logger with transactions, Database panel, unit of work statistics, ORM panel)
+- v1.25.2 — Bugfix: WebProfiler controller helper location
+- v1.25.1 — Bugfix: YAML indentation of the generated configuration files
+- v1.25.0 — WebProfiler package (web debug toolbar and `/_profiler` interface, elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]`, panels and blocks, `Stopwatch`, Ajax requests tracking, `profiler:list` and `profiler:clear`, `config/packages/web_profiler.yaml`)
+- v1.24.0 — Api component (CORS, rate limiter with fixed window / sliding window / token bucket policies, `#[RateLimit]`, pagination with `Link` / `X-Total-Count` headers and `#[MapPagination]`, RFC 7807 problem details, OpenAPI 3.1 generation with `#[OA\Operation]` / `#[OA\Response]` / `#[OA\Tag]`, `openapi:dump`, `/api/doc`), `TooManyRequestsHttpException`
+- v1.23.0 — Serializer component (JSON / XML / CSV / YAML, normalizers for objects, dates, enums and ORM entities, `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments, `json()` with a serializer context, `serialize()` in controllers, `serializer:debug`)
+- v1.22.0 — Cache component (pools with filesystem / APCu / database / array adapters, `get()` with callback and stampede protection, tags, `cache()` in controllers, `cache:pool:*` commands, HttpClient `cache` option)
+- v1.21.0 — HttpClient component (requests with JSON / form / multipart bodies, curl and stream transports, parallel requests, downloads, retries, named clients, `httpClient()`, `http:request`)
+- v1.20.0 — Translation package (YAML / XLIFF catalogues, ICU-lite plurals, locale detection, `translate()` / `trans`, translated validation and security messages, `translation:generate`, `translation:debug`, `translation:lint`)
+- v1.19.0 — Markdown package (parser, document API, HTML to Markdown, `markdown` filter, `markdown:convert`)
+- v1.18.0 — Tailwind package (`tailwind:install`, `tailwind:run`)
+- Bugfix after v1.17.0 — absolute URLs (`url()`, `APP_URL`), `make:auth` base layout, `make:migration` description, misnamed view helpers reported in debug
+- v1.17.0 — interactive console, `make:entity` wizard
+- v1.16.0 — Mailer
+- v1.15.0 — Console refactor (`#[AsCommand]`, `AbstractConsole`)
+- v1.14.0 — Debug (`dump()`, `dd()`)
+- v1.13.0 — Security
+- v1.12.0 — Forms and CSRF
+- v1.11.0 — Database and ORM
+- v1.10.0 — Validator
+- v1.9.0 — Events (v1.9.1: routing uses the kernel class discovery)
+- v1.8.0 — `#[Autowire]`, `#[Inject]`, `config/services.yaml`
+- v1.7.0 — Middlewares
+- v1.6.0 — Session, cookies and flash messages
+- v1.5.0 — `#[Route]` attributes, routes cache
+- v1.4.0 — `AbstractController` made of feature traits
+- v1.3.0 — Assets
+- v1.2.0 — Twig and view helpers
+- v1.1.0 — Logger
+- v1.0.0 — Base: routes, YAML, views, controllers, container, HTTP, console, installer, configuration

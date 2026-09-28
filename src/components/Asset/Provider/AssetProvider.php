@@ -9,6 +9,7 @@ use NeoPHP\Component\Asset\Contract\AssetInterface;
 use NeoPHP\Component\Config\Contract\ConfigInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Http\Request\Request;
 
 class AssetProvider extends AbstractProvider
 {
@@ -21,12 +22,14 @@ class AssetProvider extends AbstractProvider
             $rootPath = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
             $publicPath = $container->has('kernel.public_path') ? (string) $container->get('kernel.public_path') : $rootPath . '/public';
 
-            return AssetManager::fromConfig($config, [
+            $asset = AssetManager::fromConfig($config, [
                 'source_path' => $rootPath . '/assets',
                 'build_path' => $publicPath . '/builds',
                 'public_url' => '/builds',
                 'auto_compile' => $container->has('kernel.debug') && (bool) $container->get('kernel.debug'),
             ]);
+
+            return $asset->setBasePath(static fn (): string => $container->has(Request::class) ? $container->get(Request::class)->getBasePath() : '');
         });
 
         $container->alias(AssetManager::class, AssetInterface::class);

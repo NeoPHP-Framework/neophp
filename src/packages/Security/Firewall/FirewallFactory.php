@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Security\Firewall;
 
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Database\Contract\DatabaseInterface;
 use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Security\Authenticator\AccessTokenAuthenticator;
 use NeoPHP\Package\Security\Authenticator\FormLoginAuthenticator;
@@ -16,7 +17,9 @@ use NeoPHP\Package\Security\Contract\EntryPointInterface;
 use NeoPHP\Package\Security\Contract\UserCheckerInterface;
 use NeoPHP\Package\Security\Contract\UserProviderInterface;
 use NeoPHP\Package\Security\Exception\SecurityException;
+use NeoPHP\Package\Security\RememberMe\DatabaseTokenProvider;
 use NeoPHP\Package\Security\RememberMe\RememberMeHandler;
+use NeoPHP\Package\Security\RememberMe\TokenProviderInterface;
 use NeoPHP\Package\Security\Throttle\LoginThrottler;
 use NeoPHP\Package\Security\Token\TokenStorage;
 use NeoPHP\Package\Security\User\ChainUserProvider;
@@ -33,6 +36,7 @@ class FirewallFactory
         'csrf_parameter' => '_csrf_token',
         'csrf_token_id' => 'logout',
         'clear_cookies' => [],
+        'methods' => ['GET', 'POST'],
     ];
 
     protected array $providers = [];
@@ -94,7 +98,7 @@ class FirewallFactory
             }
 
             $options = is_array($config['remember_me']) ? $config['remember_me'] : [];
-            $rememberMe = new RememberMeHandler($this->http, (string) ($options['secret'] ?? $this->secret), $options);
+            $rememberMe = new RememberMeHandler($this->http, (string) ($options['secret'] ?? $this->secret), $options, $this->tokenProvider($name, $options));
             $authenticators['remember_me'] = new RememberMeAuthenticator($rememberMe, $this->tokens);
         }
 
@@ -180,6 +184,27 @@ class FirewallFactory
         }
 
         return null;
+    }
+
+    protected function tokenProvider(string $firewall, array $options): ?TokenProviderInterface
+    {
+        $storage = (string) ($options['storage'] ?? 'signature');
+
+        if ($storage === 'signature') {
+            return null;
+        }
+
+        if ($storage !== 'database') {
+            return $this->service($storage, TokenProviderInterface::class);
+        }
+
+        if (!$this->container->has(DatabaseInterface::class)) {
+            throw new SecurityException('The remember-me "storage: database" option of the firewall "{firewall}" needs the Database component (DATABASE_URL).', 0, null, ['firewall' => $firewall]);
+        }
+
+        $connection = $this->container->get(DatabaseInterface::class)->connection(isset($options['connection']) ? (string) $options['connection'] : null);
+
+        return new DatabaseTokenProvider($connection, (string) ($options['table'] ?? DatabaseTokenProvider::DEFAULT_TABLE));
     }
 
     protected function option(mixed $value, array $defaults): ?array

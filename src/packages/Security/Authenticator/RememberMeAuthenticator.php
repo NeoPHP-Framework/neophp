@@ -40,7 +40,7 @@ class RememberMeAuthenticator extends AbstractAuthenticator
         }
 
         return Passport::selfValidating($cookie['identifier'])->addCheck(function (UserInterface $user) use ($cookie): void {
-            if (!$this->handler->isValid($user, $cookie['expires'], $cookie['signature'])) {
+            if (!$this->handler->validate($user, $cookie)) {
                 throw new AuthenticationException('The remember-me cookie is invalid.');
             }
         });

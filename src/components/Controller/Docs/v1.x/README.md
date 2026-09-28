@@ -65,7 +65,7 @@ Controller arguments are resolved from, in order:
 5. the container (class type-hints);
 6. the default values.
 
-- A route parameter is never converted into an entity: `public function show(Post $post)` receives an empty `Post` built by the container. Use `public function show(int $id)` and `$this->getRepository(Post::class)->find($id)`.
+- With the ORM, an entity argument is loaded from the route parameters: `public function show(Post $post)` on `/post/{id}` receives the `Post` or throws a 404 (see "Entities in controllers" in the ORM documentation, `#[MapEntity]`).
 - `#[MapRequestPayload] PostInput $input` maps the request body (JSON, XML, form...) to a DTO and validates it, `#[MapQueryString] SearchQuery $query` maps the query string (see the Serializer documentation).
 - `#[Autowire]` and `#[Inject]` are not read on the parameters of an action. Put them on the constructor (or on a property) of the controller, or use `$this->get('service.id')` in the action.
 
@@ -214,6 +214,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v1.31.0 — entity arguments are loaded by the ORM `EntityValueResolver`.
 - v1.24.0 — `ApiController` trait: `paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()`; `PageRequest` / `#[MapPagination]` controller arguments (see the Api documentation).
 - v1.23.0 — Argument resolvers (`ArgumentResolverInterface`, `controller.argument_resolvers`) used by `#[MapRequestPayload]` / `#[MapQueryString]`; `serialize()` / `deserialize()` in controllers; `json()` accepts a serializer context.
 - v1.16.0 — `sendEmail()` in controllers.

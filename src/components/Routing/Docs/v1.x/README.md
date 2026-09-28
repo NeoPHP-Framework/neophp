@@ -185,6 +185,8 @@ APP_URL=https://example.com
 
 `APP_URL` is created by `neo install`. Without a base URL, or with an invalid one, a `RoutingException` explains what to configure. `RoutingInterface::setBaseUrl()` replaces the base URL (a string, a closure or `null`).
 
+When the application is installed in a sub-directory (`https://example.com/app/`), the generated paths start with it (`/app/posts/1`); it comes from `Request::getBasePath()` and can be replaced with `RoutingInterface::setBasePath()`. The routes themselves are written without it.
+
 ## Cache
 
 Routes are compiled into `var/cache/routing/routes.{env}.php`.
@@ -216,6 +218,7 @@ php bin/neo routes admin
 | `match(string $method, string $path): RouteMatch` | finds the route of a request |
 | `generate(string $name, array $parameters = [], bool $absolute = false): string` | path or absolute URL of a route |
 | `setBaseUrl(Closure\|string\|null $baseUrl): static` | base URL of the absolute URLs |
+| `setBasePath(Closure\|string\|null $basePath): static`, `getBasePath(): string` | sub-directory added to the generated paths |
 | `getBaseUrl(): string` | current base URL |
 | `add(Route $route): static` | adds a route |
 | `loadYaml(string $file): static` | loads a routes file |
@@ -268,6 +271,7 @@ $routing->add(new Route('health', '/health', HealthController::class, ['GET']));
 
 ## Changelog
 
+- v1.31.0 — generated paths contain the sub-directory of the application (`setBasePath()`, `getBasePath()`).
 - Bugfix after v1.17.0 — Absolute URLs: `generate(..., true)`, `generateUrl(..., true)`, `url()` view helper, `framework.app.url` / `APP_URL` for the console, `setBaseUrl()`.
 - v1.9.1 — Attribute routes discovered with the kernel `ClassFinder` and routes cache stored with `ResourceCache`; an old routes cache is rebuilt automatically.
 - v1.7.0 — `middlewares` option on routes, imports and `#[Route]`.
