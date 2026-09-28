@@ -26,10 +26,10 @@ class SandboxFilterIterator extends RecursiveFilterIterator
     {
         $inner = $this->getInnerIterator();
 
-        if (!$inner instanceof RecursiveIterator || ($children = $inner->getChildren()) === null) {
+        if (!$inner instanceof RecursiveIterator) {
             return null;
         }
 
-        return new static($children, $this->sandbox);
+        return new static($inner->getChildren(), $this->sandbox);
     }
 }

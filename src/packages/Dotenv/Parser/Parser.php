@@ -107,7 +107,7 @@ class Parser
             static function (array $m) use ($values): string {
                 $resolved = $values[$m[1]] ?? $_SERVER[$m[1]] ?? $_ENV[$m[1]] ?? getenv($m[1]);
 
-                if ($resolved === false || $resolved === '' || $resolved === null) {
+                if ($resolved === false || $resolved === '') {
                     return $m[2] ?? '';
                 }
 

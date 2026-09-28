@@ -50,9 +50,6 @@ class XliffLoader implements LoaderInterface
         $messages = [];
 
         foreach ($document->getElementsByTagNameNS('*', 'trans-unit') as $unit) {
-            if (!$unit instanceof DOMElement) {
-                continue;
-            }
 
             $source = self::child($unit, 'source');
             $key = $unit->getAttribute('resname') !== '' ? $unit->getAttribute('resname') : $source;
@@ -65,9 +62,6 @@ class XliffLoader implements LoaderInterface
         }
 
         foreach ($document->getElementsByTagNameNS('*', 'unit') as $unit) {
-            if (!$unit instanceof DOMElement) {
-                continue;
-            }
 
             $key = $unit->getAttribute('name') !== '' ? $unit->getAttribute('name') : ($unit->getAttribute('id') !== '' ? $unit->getAttribute('id') : null);
             $segment = self::child($unit, 'target');

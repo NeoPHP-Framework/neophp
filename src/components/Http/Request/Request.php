@@ -258,7 +258,7 @@ class Request
             $path = substr($path, strlen($basePath));
         }
 
-        return $path === '' || $path === false ? '/' : $path;
+        return $path === '' ? '/' : $path;
     }
 
     public function getBasePath(): string

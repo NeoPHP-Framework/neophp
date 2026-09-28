@@ -149,7 +149,7 @@ class PatchParser
                 $position = $this->locate($lines, $old, $expected);
 
                 if ($position === null) {
-                    throw new PatchException('Hunk #{hunk} of "{path}" does not match the current file content (context lines differ).', 0, null, ['hunk' => $number + 1, 'path' => (string) ($file['new'] ?? $file['old'])]);
+                    throw new PatchException('Hunk #{hunk} of "{path}" does not match the current file content (context lines differ).', 0, null, ['hunk' => $number + 1, 'path' => $file['new']]);
                 }
             }
 

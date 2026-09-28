@@ -94,6 +94,7 @@ class HtmlRenderer
         return $html;
     }
 
+    /** @phpstan-impure */
     protected function renderBlock(array $block, bool $tight): string
     {
         return match ($block['type']) {
