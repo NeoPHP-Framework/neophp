@@ -12,6 +12,7 @@ abstract class AbstractCsrf implements CsrfInterface
         'field_name' => '_token',
         'header_name' => 'X-CSRF-TOKEN',
         'session_key' => '_csrf',
+        'max_tokens' => 200,
     ];
 
     public const TOKEN_LENGTH = 32;
@@ -28,13 +29,28 @@ abstract class AbstractCsrf implements CsrfInterface
             return $this->refreshToken($id);
         }
 
-        return $this->mask($tokens[$id]);
+        $token = $tokens[$id];
+
+        if (array_key_last($tokens) !== $id) {
+            unset($tokens[$id]);
+            $tokens[$id] = $token;
+            $this->session->set((string) $this->options['session_key'], $tokens);
+        }
+
+        return $this->mask($token);
     }
 
     public function refreshToken(string $id): string
     {
         $tokens = $this->tokens();
+        unset($tokens[$id]);
         $tokens[$id] = self::encode(random_bytes(static::TOKEN_LENGTH));
+        $max = max(1, (int) $this->options['max_tokens']);
+
+        if (count($tokens) > $max) {
+            $tokens = array_slice($tokens, -$max, null, true);
+        }
+
         $this->session->set((string) $this->options['session_key'], $tokens);
 
         return $this->mask($tokens[$id]);
