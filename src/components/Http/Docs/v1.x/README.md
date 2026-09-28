@@ -6,6 +6,7 @@ It has no dependency and is used by the kernel, the routing and the controllers.
 ## Summary
 
 - [Request](#request)
+- [Reverse proxies and trusted hosts](#reverse-proxies-and-trusted-hosts)
 - [Bags](#bags)
 - [Uploaded files](#uploaded-files)
 - [Responses](#responses)
@@ -46,13 +47,33 @@ public function search(Request $request): Response
 | `getMethod()` | HTTP method; a POST can send `_method` or `X-HTTP-Method-Override` with `PUT`, `PATCH` or `DELETE` |
 | `getRealMethod()`, `setMethod($method)`, `isMethod($method)` | real method, override, comparison |
 | `getPath()`, `getQueryString()`, `getUri()` | URL parts |
-| `getScheme()`, `isSecure()`, `getHost()`, `getPort()`, `getSchemeAndHttpHost()` | server information |
-| `getClientIp()` | `REMOTE_ADDR` or `null` |
+| `getScheme()`, `isSecure()`, `getHost()`, `getPort()`, `getSchemeAndHttpHost()` | server information (`X-Forwarded-Proto`, `-Host`, `-Port` when the request comes from a trusted proxy) |
+| `getClientIp()` | client IP: `REMOTE_ADDR`, or the client of `X-Forwarded-For` behind a trusted proxy; `null` when unknown |
+| `isFromTrustedProxy()` | the request was sent by a trusted proxy |
 | `getContent()`, `toArray()` | raw body, decoded JSON body |
 | `get($key, $default)` | value from `attributes`, then `query`, then `request` |
 | `getContentType()`, `isJson()`, `wantsJson()`, `isXmlHttpRequest()` | content negotiation |
 
 `Request::METHODS` lists the accepted methods.
+
+## Reverse proxies and trusted hosts
+
+Behind Nginx, a load balancer, Cloudflare or a PaaS, PHP sees the IP of the proxy and plain `http`. Declare the proxies in `config/framework/app.yaml`, their `X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host` and `X-Forwarded-Port` headers are then used by `getClientIp()`, `isSecure()`, `getHost()` and `getPort()` (secure cookies, absolute URLs, login throttling and rate limiting per IP):
+
+```yaml
+# config/framework/app.yaml
+trusted_proxies: '%env(TRUSTED_PROXIES)%'   # e.g. TRUSTED_PROXIES=127.0.0.1,10.0.0.0/8
+trusted_hosts: '%env(TRUSTED_HOSTS)%'       # e.g. TRUSTED_HOSTS=example.com,*.example.com
+```
+
+| Option | Values |
+|---|---|
+| `trusted_proxies` | list or comma separated string of IPs and CIDR ranges (`127.0.0.1`, `10.0.0.0/8`, `::1`); `REMOTE_ADDR` trusts the machine that sends the request (only when the application cannot be reached without the proxy) |
+| `trusted_hosts` | list or comma separated string of host names (`example.com`, `*.example.com`) or regular expressions (`^(www\.)?example\.com$`); any other `Host` is refused with a 400 error. Empty: every host is accepted |
+
+The headers of a request that does not come from a trusted proxy are ignored: a client cannot fake its IP or the HTTPS scheme. Without `trusted_hosts`, a forged `Host` header can end up in the absolute URLs generated during the request (password reset emails): set it in production.
+
+The same can be done in PHP with `Request::setTrustedProxies(['10.0.0.0/8'])` and `Request::setTrustedHosts(['example.com'])`.
 
 ## Bags
 
@@ -171,6 +192,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v1.29.1 (bugfix) — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.
 - v1.29.1 (bugfix) — `UploadedFile::move()` generates a random name by default, refuses executable extensions and path separators, creates directories in `0775`; `getMimeType()` and `guessExtension()` detect the type from the content.
 - v1.24.0 — `TooManyRequestsHttpException` (429, `Retry-After`).
 - v1.23.0 — `json()` accepts a serializer context and normalizes objects with the Serializer

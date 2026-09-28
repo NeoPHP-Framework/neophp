@@ -5,6 +5,12 @@ root_path: '%kernel.root_path%'
 secret: '%env(APP_SECRET)%'
 url: '%env(APP_URL)%'
 
+# Reverse proxies (Nginx, load balancer, Cloudflare...) whose X-Forwarded-* headers are trusted:
+# comma separated IPs / CIDR ranges in TRUSTED_PROXIES, e.g. 127.0.0.1,10.0.0.0/8 (empty = no proxy)
+trusted_proxies: '%env(TRUSTED_PROXIES)%'
+# Accepted host names, e.g. example.com,*.example.com (empty = any host, set it in production)
+trusted_hosts: '%env(TRUSTED_HOSTS)%'
+
 session:
   name: NEOSESSID
   lifetime: 0
