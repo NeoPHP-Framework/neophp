@@ -2,7 +2,7 @@ parameters:
     level: 3
     paths:
         - src
-    excludedPaths:
+    excludePaths:
         - src/*/*/Resources/*
     tmpDir: var/phpstan
     ignoreErrors:
