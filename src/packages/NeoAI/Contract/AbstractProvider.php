@@ -119,7 +119,7 @@ abstract class AbstractProvider implements ProviderInterface
         $model = trim((string) $this->option($options, 'model'));
 
         if ($model === '') {
-            throw new ConfigurationException('No model configured for the AI connection "{name}" ({type}): set "model" in config/packages/neo_ai.yaml (e.g. NEO_AI_MODEL in .env.local).', 0, null, ['name' => $this->getName(), 'type' => static::TYPE]);
+            throw new ConfigurationException('No model configured for the AI connection "{name}" ({type}): set "model" in config/packages/neo_ai.yaml (e.g. NEO_AI_MODEL in .env.local).', 0, null, ['name' => $this->getName(), 'type' => $this->getType()]);
         }
 
         return $model;
@@ -130,7 +130,7 @@ abstract class AbstractProvider implements ProviderInterface
         $key = trim((string) $this->config['api_key']);
 
         if ($key === '' && static::REQUIRES_KEY) {
-            throw new ConfigurationException('Missing API key for the AI connection "{name}" ({type}): define it in .env.local and reference it with %env(...)% in config/packages/neo_ai.yaml.', 0, null, ['name' => $this->getName(), 'type' => static::TYPE]);
+            throw new ConfigurationException('Missing API key for the AI connection "{name}" ({type}): define it in .env.local and reference it with %env(...)% in config/packages/neo_ai.yaml.', 0, null, ['name' => $this->getName(), 'type' => $this->getType()]);
         }
 
         return $key;
@@ -209,7 +209,7 @@ abstract class AbstractProvider implements ProviderInterface
         $data = json_decode($body, true);
         $detail = is_array($data) ? $this->errorMessage($data) : '';
         $detail = $detail !== '' ? $detail : mb_substr(trim(strip_tags($body)), 0, 300);
-        $context = ['name' => $this->getName(), 'type' => static::TYPE, 'status' => $status, 'url' => $this->safeUrl($url), 'detail' => $detail];
+        $context = ['name' => $this->getName(), 'type' => $this->getType(), 'status' => $status, 'url' => $this->safeUrl($url), 'detail' => $detail];
 
         return match (true) {
             $status === 401, $status === 403 => new AuthenticationException('Authentication failed for the AI connection "{name}" ({type}, HTTP {status}): check the API key. {detail}', $status, null, $context),

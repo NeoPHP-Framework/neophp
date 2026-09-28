@@ -1,3 +1,5 @@
+# ORM (key packages.orm): entities, repositories and migrations (`make:entity`, `make:migration`, `migration:migrate`)
+# Connection of database.yaml, ~ = the default one
 connection: ~
 
 entity:
@@ -11,9 +13,12 @@ repository:
 migration:
     path: migrations
     namespace: Migrations
+    # Table storing the executed migrations
     table: neo_migrations
 
+# Generated lazy-loading classes (cleared by `php bin/neo cache:clear`)
 proxy:
     path: '%kernel.cache_path%/orm/proxies'
 
+# Tables never created nor dropped by `make:migration`, e.g. [cache_items, sessions]
 ignore_tables: []

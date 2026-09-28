@@ -77,7 +77,7 @@ class FileWriter
         $now ??= new DateTimeImmutable();
         $directory = dirname($this->file);
 
-        if (!is_dir($directory) && !@mkdir($directory, 0777, true) && !is_dir($directory)) {
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
             throw new LoggerException('Unable to create the log directory "{directory}".', 0, null, ['directory' => $directory]);
         }
 

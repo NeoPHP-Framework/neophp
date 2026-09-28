@@ -25,6 +25,8 @@ abstract class AbstractCache implements CacheInterface
 
     protected float $lockTimeout = self::DEFAULT_LOCK_TIMEOUT;
 
+    protected ?string $secret = null;
+
     public function getName(): string
     {
         return $this->name;
@@ -80,7 +82,7 @@ abstract class AbstractCache implements CacheInterface
             return $this->adapter->remove($key);
         }
 
-        return $this->adapter->save($key, serialize(['v' => $value, 't' => $this->tagVersions($tags)]), $expiresAt);
+        return $this->adapter->save($key, $this->encode(serialize(['v' => $value, 't' => $this->tagVersions($tags)])), $expiresAt);
     }
 
     public function has(string $key): bool
@@ -171,9 +173,24 @@ abstract class AbstractCache implements CacheInterface
         return $data === null ? null : $this->decode($data, $found);
     }
 
+    protected function encode(string $data): string
+    {
+        return $this->secret === null || $this->secret === '' ? $data : hash_hmac('sha256', $data, $this->secret) . $data;
+    }
+
     protected function decode(string $data, bool &$found): mixed
     {
         $found = false;
+
+        if ($this->secret !== null && $this->secret !== '') {
+            $signature = substr($data, 0, 64);
+            $data = (string) substr($data, 64);
+
+            if (strlen($signature) !== 64 || !hash_equals(hash_hmac('sha256', $data, $this->secret), $signature)) {
+                return null;
+            }
+        }
+
         $payload = @unserialize($data);
 
         if (!is_array($payload) || !array_key_exists('v', $payload)) {

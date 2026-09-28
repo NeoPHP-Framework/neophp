@@ -29,6 +29,8 @@ abstract class AbstractMarkdownParser implements MarkdownParserInterface
 
     protected ?HtmlRenderer $renderer = null;
 
+    protected ?HtmlRenderer $safeRenderer = null;
+
     protected ?HtmlConverter $converter = null;
 
     public function get(string $file): MarkdownDocument
@@ -44,6 +46,13 @@ abstract class AbstractMarkdownParser implements MarkdownParserInterface
     public function toHtml(string $markdown): string
     {
         return $this->renderer()->render($markdown)['html'];
+    }
+
+    public function toSafeHtml(string $markdown): string
+    {
+        $this->safeRenderer ??= (new HtmlRenderer())->setEscapeHtml(true);
+
+        return $this->safeRenderer->render($markdown)['html'];
     }
 
     public function parse(string $file, array $parameters = []): MarkdownConversion

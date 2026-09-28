@@ -83,7 +83,7 @@ assets/                 CSS, JS and images compiled into public/builds/
 bin/neo                 command line
 config/
     framework/          configuration of the components (api.yaml, app.yaml, cache.yaml, database.yaml, http_client.yaml, mailer.yaml, serializer.yaml, view.yaml...)
-    packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, tailwind.yaml, translation.yaml)
+    packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, translation.yaml, web_profiler.yaml, neo_ai.yaml; tailwind.yaml is created by tailwind:install)
     routes.yaml         routes
     services.yaml       services
 migrations/             database migrations
@@ -98,7 +98,8 @@ src/
 templates/              PHP (.php) and Twig (.html.twig) templates
 translations/           translation files ({domain}.{locale}.yaml|xlf)
 var/                    cache, logs, sessions
-.env                    environment variables (APP_ENV, APP_DEBUG, APP_SECRET, APP_URL, DATABASE_URL, MAILER_DSN)
+.env                    environment variables (APP_ENV, APP_DEBUG, APP_SECRET, APP_URL, TRUSTED_PROXIES, TRUSTED_HOSTS, DATABASE_URL, MAILER_DSN, NEO_AI_*)
+.env.local              local values and secrets, never committed
 ```
 
 ## First page
@@ -335,25 +336,26 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 
 ## Deployment
 
-1. `.env.local` (or real environment variables): `APP_ENV=prod`, `APP_DEBUG=0`, `APP_URL=https://example.com`, `DATABASE_URL`, `MAILER_DSN`
+1. `.env.local` (or real environment variables): `APP_ENV=prod`, `APP_DEBUG=0`, a new `APP_SECRET`, `APP_URL=https://example.com`, `TRUSTED_HOSTS=example.com`, `TRUSTED_PROXIES` when a reverse proxy / load balancer is in front of PHP, `DATABASE_URL`, `MAILER_DSN`
 2. `composer install --no-dev --optimize-autoloader`
 3. `php bin/neo migration:migrate -n`
 4. `php bin/neo tailwind:run --minify` (if Tailwind is used), then `php bin/neo asset:reload --minify`
 5. `php bin/neo cache:clear`
-6. Point the web server document root to `public/` (`public/.htaccess` is provided for Apache)
+6. Point the web server document root to `public/` (`public/.htaccess` is provided for Apache: only `index.php` is executed, hidden files are never served; with Nginx, send every request to `index.php` and refuse the other `.php` files)
 
 ## Features
 
 | Group | Features |
 |---|---|
-| components | Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Validator, View |
-| packages | Debug, Dotenv, Markdown, Orm, Security, Tailwind, Translation, Yaml |
+| components | Api, Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Validator, View |
+| packages | Debug, Dotenv, Markdown, NeoAI, Orm, Security, Tailwind, Translation, WebProfiler, Yaml |
 | process | Console, Installer |
 
 The documentation of a feature is in `src/<group>/<Feature>/Docs/v1.x/README.md`, for example `src/components/Routing/Docs/v1.x/README.md`.
 
 ## Changelog
 
+- v1.29.1 — Bugfix and security: ORM `findBy()` / `findOneBy()` / `count()` refuse unknown fields (SQL injection), `UploadedFile::move()` random name and executable extensions refused, PHP execution limited to `index.php` in `public/.htaccess`, CORS `allow_credentials` with `'*'` refused, trusted proxies and trusted hosts (`TRUSTED_PROXIES`, `TRUSTED_HOSTS`), profiler and NeoAI restricted to local networks (`allowed_ips`), `markdown` filter escapes raw HTML by default, cache entries signed with `APP_SECRET`, directories created in `0775`, login throttling files cleaned, CSRF tokens limited in the session, `RateLimitListener` file name, NeoAI `ai:test` and default models, commented configuration files and `.env`. Existing projects: run `php bin/neo install` to add the new variables to `.env`, then add `trusted_proxies` / `trusted_hosts` to `config/framework/app.yaml`
 - v1.29.0 — NeoAI package (development assistant enabled only in debug: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers, read-only `neo-tool` loop in a sandbox with secret redaction, `ai:start` chat with patch review, `ai:scan` audit with Markdown report, `ai:test`, toolbar chat and profiler panel, `config/packages/neo_ai.yaml`); WebProfiler `ToolbarAssetInterface` to add CSS / JavaScript to the toolbar
 - v1.28.2 — Bugfix: translation profiler
 - v1.28.1 — Bugfix: missing `translation:generate` command

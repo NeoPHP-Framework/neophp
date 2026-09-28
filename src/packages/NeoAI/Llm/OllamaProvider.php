@@ -33,12 +33,24 @@ class OllamaProvider extends AbstractProvider
             $settings['num_predict'] = $max;
         }
 
-        return [
+        $context = (int) ($this->option($options, 'context_window') ?? 0);
+
+        if ($context > 0) {
+            $settings['num_ctx'] = $context;
+        }
+
+        $payload = [
             'model' => $this->requireModel($options),
             'messages' => array_map(static fn (Message $message): array => $message->toArray(), $messages),
             'stream' => false,
             'options' => $settings,
         ];
+
+        if (($keepAlive = $this->option($options, 'keep_alive')) !== null && $keepAlive !== '') {
+            $payload['keep_alive'] = $keepAlive;
+        }
+
+        return $payload;
     }
 
     public function parse(array $data): ChatResponse

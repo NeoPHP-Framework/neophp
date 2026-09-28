@@ -16,10 +16,20 @@ class HtmlRenderer
 
     protected array $slugs = [];
 
+    protected bool $escapeHtml = false;
+
     public function __construct(?BlockParser $blockParser = null, ?InlineParser $inlineParser = null)
     {
         $this->blockParser = $blockParser ?? new BlockParser();
         $this->inlineParser = $inlineParser ?? new InlineParser();
+    }
+
+    public function setEscapeHtml(bool $escapeHtml): static
+    {
+        $this->escapeHtml = $escapeHtml;
+        $this->inlineParser->setEscapeHtml($escapeHtml);
+
+        return $this;
     }
 
     public function render(string $markdown): array
@@ -90,7 +100,7 @@ class HtmlRenderer
             'heading' => $this->heading($block),
             'paragraph' => $this->paragraph($block, $tight),
             'code' => $this->codeBlock($block),
-            'html' => $block['html'],
+            'html' => $this->escapeHtml ? '<p>' . InlineParser::escape(rtrim($block['html'])) . "</p>\n" : $block['html'],
             'hr' => "<hr />\n",
             'blockquote' => "<blockquote>\n" . $this->renderBlocks($block['children'], false) . "</blockquote>\n",
             'list' => $this->listBlock($block),

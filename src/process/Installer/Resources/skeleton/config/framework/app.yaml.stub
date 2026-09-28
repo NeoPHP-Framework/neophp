@@ -1,23 +1,41 @@
+# Application settings (key framework.app). Values in '%env(...)%' come from .env / .env.local.
 name: '%env(APP_NAME)%'
 environment: '%kernel.environment%'
 debug: '%kernel.debug%'
 root_path: '%kernel.root_path%'
+# Signs cookies, CSRF tokens, remember-me and cache entries: never commit the production value
 secret: '%env(APP_SECRET)%'
+# Base URL of absolute URLs generated outside of a request (console, emails), e.g. https://example.com
 url: '%env(APP_URL)%'
+
+# Reverse proxies (Nginx, load balancer, Cloudflare...) whose X-Forwarded-* headers are trusted:
+# comma separated IPs / CIDR ranges in TRUSTED_PROXIES, e.g. 127.0.0.1,10.0.0.0/8 (empty = no proxy).
+# A YAML list works too: trusted_proxies: [127.0.0.1, 10.0.0.0/8]
+trusted_proxies: '%env(TRUSTED_PROXIES)%'
+# Accepted host names, e.g. example.com,*.example.com (empty = any host, set it in production)
+trusted_hosts: '%env(TRUSTED_HOSTS)%'
 
 session:
   name: NEOSESSID
+  # Lifetime of the session cookie in seconds, 0 = until the browser is closed
   lifetime: 0
+  # Seconds of inactivity after which the session data can be deleted by the garbage collector
   gc_maxlifetime: 1440
   save_path: '%kernel.root_path%/var/sessions'
 
+# Default options of the cookies (session cookie included)
 cookie:
   lifetime: 0
   path: /
+  # ~ = current host only; .example.com = shared with the sub-domains
   domain: ~
+  # auto = secure on HTTPS (see trusted_proxies behind a proxy), true = always, false = never
   secure: auto
+  # true = not readable from JavaScript
   httponly: true
+  # Lax (recommended), Strict or None (None requires secure: true)
   samesite: Lax
 
 flash:
+  # Session key holding the flash messages
   key: _flashes

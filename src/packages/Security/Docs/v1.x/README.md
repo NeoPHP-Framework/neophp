@@ -208,7 +208,7 @@ The first firewall whose `pattern` (regular expression, plus optional `host`, `m
 | `access_token` | see [Access tokens](#access-tokens) |
 | `custom_authenticators` | list of classes implementing `AuthenticatorInterface` |
 | `remember_me` | `{ lifetime: 604800, name: REMEMBERME, parameter: _remember_me, always: false, path: /, domain: ~, secure: auto, samesite: Lax }`: `parameter` is the checkbox of the login form, `always` sets the cookie on every login |
-| `login_throttling` | `{ max_attempts: 5, interval: 60 }`: attempts per IP + identifier (and 5 × more per IP) during `interval` seconds, stored in `var/cache/security/throttling/`; the IP is `REMOTE_ADDR` |
+| `login_throttling` | `{ max_attempts: 5, interval: 60 }`: attempts per IP + identifier (and 5 × more per IP) during `interval` seconds, stored in `var/cache/security/throttling/` (empty files deleted, expired files removed by `LoginThrottler::gc()`, called on 1% of the attempts); the IP is `Request::getClientIp()`: behind a reverse proxy, set `trusted_proxies` (see the Http documentation) or every visitor shares the IP of the proxy |
 | `logout` | see [Logout](#logout) |
 | `user_checker` | class implementing `UserCheckerInterface` |
 | `entry_point` | `form_login`, `http_basic`, `access_token` or a class implementing `EntryPointInterface` |
@@ -600,6 +600,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v1.29.1 (bugfix) — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
 - v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).
 - bugfix — `UserClass::of()` resolves the real class of ORM proxies; `AuthenticationManager` and `Passport` moved to `NeoPHP\Package\Security\Authentication`.

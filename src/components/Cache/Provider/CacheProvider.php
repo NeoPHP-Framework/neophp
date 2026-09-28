@@ -27,7 +27,9 @@ class CacheProvider extends AbstractProvider
                 ? static fn (?string $name): ConnectionInterface => $container->get(DatabaseInterface::class)->connection($name)
                 : null;
 
-            return new CacheManager(self::config($container), $rootPath, $connections);
+            $secret = $container->has(ConfigInterface::class) ? (string) ($container->get(ConfigInterface::class)->get('framework.app.secret', '') ?? '') : '';
+
+            return new CacheManager(self::config($container), $rootPath, $connections, $secret !== '' ? $secret : null);
         });
 
         $container->alias(CacheManager::class, CacheManagerInterface::class);

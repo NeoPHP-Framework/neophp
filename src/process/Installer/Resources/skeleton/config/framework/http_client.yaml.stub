@@ -1,6 +1,17 @@
+# HttpClient (key framework.http_client): $this->httpClient()->request('GET', 'https://...')
+# Options applied to every request
 default_options:
+    # Seconds allowed for each attempt
     timeout: 30
     max_redirects: 5
     headers:
         User-Agent: 'NeoPHP HttpClient'
+# Named clients, merged over default_options, e.g.
+# clients:
+#     github:
+#         base_uri: 'https://api.github.com/'
+#         auth_bearer: '%env(GITHUB_TOKEN)%'
+#         headers: { Accept: application/vnd.github+json }
+#         retry: { max_retries: 3 }
+#         cache: 300
 clients: {}

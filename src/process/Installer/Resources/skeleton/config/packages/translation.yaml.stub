@@ -1,17 +1,24 @@
+# Translations (key packages.translation): translations/{domain}.{locale}.yaml, {{ 'home.title'|trans }}
 default_locale: en
+# Enabled locales, e.g. [en, fr]
 locales: [en]
+# Locales tried when a key is missing
 fallbacks: [en]
 path: '%kernel.root_path%/translations'
 default_domain: messages
+# Format of the files created by `translation:generate`: yaml or xliff
 format: yaml
 
 detection:
+    # Sources of the locale, in order (remove one to disable it): {_locale} route parameter, ?lang=, session, cookie, Accept-Language
     order: [route, query, session, cookie, header]
     query_parameter: lang
     session_key: _locale
     cookie_name: locale
 
+# Compiles the catalogues into var/cache/translation/
 cache: true
 
+# Directories scanned by `translation:generate` and `translation:debug`
 extract:
     paths: [templates, src]

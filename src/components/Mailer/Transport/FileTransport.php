@@ -27,7 +27,7 @@ class FileTransport extends AbstractTransport
 
     protected function doSend(SentMessage $message): void
     {
-        if (!is_dir($this->directory) && !@mkdir($this->directory, 0777, true) && !is_dir($this->directory)) {
+        if (!is_dir($this->directory) && !@mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
             throw new TransportException('Unable to create the directory "{directory}".', 0, null, ['directory' => $this->directory]);
         }
 

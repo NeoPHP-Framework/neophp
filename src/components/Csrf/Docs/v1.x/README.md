@@ -115,6 +115,7 @@ A hidden field `_token` is added to every form and checked by `isValid()` (error
 field_name: _token
 header_name: X-CSRF-TOKEN
 session_key: _csrf
+max_tokens: 200
 ```
 
 | Option | Default | Description |
@@ -122,6 +123,7 @@ session_key: _csrf
 | `field_name` | `_token` | name of the form field |
 | `header_name` | `X-CSRF-TOKEN` | name of the HTTP header |
 | `session_key` | `_csrf` | session key holding the tokens |
+| `max_tokens` | `200` | tokens kept in the session: the least recently used ones are removed first (a page with one form per entity, `delete-post-1`, `delete-post-2`..., no longer grows the session without limit) |
 
 ## PHP API
 
@@ -148,4 +150,5 @@ session_key: _csrf
 
 ## Changelog
 
+- v1.29.1 (bugfix) — `max_tokens` (200 by default): the least recently used tokens are removed from the session.
 - v1.12.0 — Csrf component: tokens in the session, automatic token in forms, `csrf_token()` / `csrf_field()` helpers, `getCsrfToken()` / `isCsrfTokenValid()` in controllers, `#[Csrf]` attribute.

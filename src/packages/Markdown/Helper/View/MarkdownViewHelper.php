@@ -19,8 +19,8 @@ class MarkdownViewHelper implements ViewFilterInterface, ViewSafeHtmlInterface
         return 'markdown';
     }
 
-    public function __invoke(?string $text): string
+    public function __invoke(?string $text, bool $allowHtml = false): string
     {
-        return $this->markdown->toHtml((string) $text);
+        return $allowHtml ? $this->markdown->toHtml((string) $text) : $this->markdown->toSafeHtml((string) $text);
     }
 }

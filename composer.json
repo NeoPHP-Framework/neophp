@@ -27,9 +27,9 @@
         "twig/twig": "<3.0"
     },
     "suggest": {
-        "ext-dom": "Required by the Serializer XML encoder",
+        "ext-dom": "Required by the Serializer XML encoder, to convert HTML to Markdown (Markdown package: parse() and convert()) and to read XLIFF translation files (Translation package)",
         "ext-apcu": "Required by the \"apcu\" adapter of the Cache component (in-memory shared cache pools; set apc.enable_cli=1 to use it from the console)",
-        "ext-curl": "Recommended by the HttpClient component (faster transport, parallel requests with requestMany()); the stream transport is used without it",        "ext-dom": "Required to convert HTML to Markdown (Markdown package: parse() and convert()) and to read XLIFF translation files (Translation package)",
+        "ext-curl": "Recommended by the HttpClient component (faster transport, parallel requests with requestMany()); the stream transport is used without it",
         "ext-fileinfo": "Required to detect the mime type of uploaded files (File and Image constraints) and of email attachments",
         "ext-mbstring": "Required by the Markdown package (heading anchors) and recommended for UTF-8 text",
         "ext-openssl": "Required to send emails over SSL/TLS (smtps:// or STARTTLS) and to download the Tailwind CLI (tailwind:install)",

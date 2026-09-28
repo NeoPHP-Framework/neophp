@@ -32,6 +32,15 @@ class InlineParser
 
     protected array $brackets = [];
 
+    protected bool $escapeHtml = false;
+
+    public function setEscapeHtml(bool $escapeHtml): static
+    {
+        $this->escapeHtml = $escapeHtml;
+
+        return $this;
+    }
+
     public function setReferences(array $references): static
     {
         $this->references = $references;
@@ -291,7 +300,7 @@ class InlineParser
         }
 
         if (preg_match(self::HTML_TAG, $rest, $matches) === 1) {
-            $this->addHtml($matches[0]);
+            $this->escapeHtml ? $this->addText($matches[0]) : $this->addHtml($matches[0]);
             $this->pos += mb_strlen($matches[0], 'UTF-8');
 
             return;

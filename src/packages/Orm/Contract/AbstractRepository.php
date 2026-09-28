@@ -94,6 +94,7 @@ abstract class AbstractRepository implements RepositoryInterface
         $index = 0;
 
         foreach ($criteria as $field => $value) {
+            $this->assertKnownField($field);
             $parameter = 'p' . $index++;
 
             if ($value === null) {
@@ -106,9 +107,19 @@ abstract class AbstractRepository implements RepositoryInterface
         }
 
         foreach ($orderBy as $field => $direction) {
+            $this->assertKnownField($field);
             $builder->addOrderBy('e.' . $field, (string) $direction);
         }
 
         return $builder;
+    }
+
+    protected function assertKnownField(int|string $field): void
+    {
+        $metadata = $this->getMetadata();
+
+        if (!is_string($field) || (!$metadata->hasField($field) && !$metadata->hasAssociation($field))) {
+            throw new OrmException('The entity "{class}" has no field or association "{field}".', 0, null, ['class' => $this->entityClass, 'field' => (string) $field]);
+        }
     }
 }

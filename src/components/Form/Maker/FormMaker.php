@@ -93,7 +93,7 @@ class FormMaker
 
         $directory = dirname($file);
 
-        if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
             throw new FormException('Unable to create the directory "{directory}".', 0, null, ['directory' => $directory]);
         }
 

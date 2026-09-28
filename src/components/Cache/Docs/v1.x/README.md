@@ -128,6 +128,7 @@ $cache->clear();                                     // every item of the pool
 ```
 
 - Values are stored with `serialize()`: scalars, arrays and serializable objects are supported (not closures or resources). `null` can be stored: use `has()` to distinguish it from a missing key.
+- When `APP_SECRET` is set, every entry is signed (HMAC SHA-256) before being stored: an entry modified outside of the application (shared cache directory, database table, APCu) is treated as missing and never unserialized. Changing `APP_SECRET` empties the cache in practice.
 - A TTL is an integer (seconds) or a `DateInterval`; a TTL of `0` or less deletes the item.
 - Keys cannot be empty and cannot contain `{}()/\@:`; an invalid key throws `NeoPHP\Component\Cache\Exception\InvalidArgumentException`. Use dots or underscores: `user.42`, `weather_paris`.
 
@@ -265,4 +266,5 @@ Custom storages implement `Contract\AdapterInterface` (usually by extending `Con
 
 ## Changelog
 
+- v1.29.1 (bugfix) — entries signed with `APP_SECRET` (HMAC SHA-256) and checked before `unserialize()`; `CacheManager` and `CachePool` accept a `$secret` argument.
 - v1.22.0 — Cache component: `CacheInterface` (`get()` with callback and stampede protection, `set()`, `has()`, `delete()`, `getMany()` / `setMany()` / `deleteMany()`, `clear()`, `invalidateTags()`, `prune()`), `CacheManager` with named pools `cache.<pool>`, filesystem / APCu / database / array adapters, tags, `cache()` in controllers, `cache:pool:list` / `cache:pool:clear` / `cache:pool:delete` / `cache:pool:invalidate-tags` / `cache:pool:prune` commands, `config/framework/cache.yaml`.

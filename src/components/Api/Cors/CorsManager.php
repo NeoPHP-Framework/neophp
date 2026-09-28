@@ -206,6 +206,10 @@ class CorsManager
         $options['allow_credentials'] = (bool) ($options['allow_credentials'] ?? false);
         $options['max_age'] = (int) ($options['max_age'] ?? 0);
 
+        if ($options['allow_credentials'] && in_array('*', $options['allow_origin'], true)) {
+            throw new InvalidConfigurationException('The CORS option "allow_credentials: true" cannot be combined with "allow_origin: \'*\'" (config/framework/api.yaml or #[Cors]): it would let any website read the responses with the cookies of the user. List the allowed origins instead.');
+        }
+
         return $options;
     }
 

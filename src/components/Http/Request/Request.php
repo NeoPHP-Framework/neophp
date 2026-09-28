@@ -13,6 +13,8 @@ class Request
 {
     public const METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'TRACE', 'CONNECT'];
 
+    public const LOCAL_NETWORKS = ['127.0.0.0/8', '::1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7', 'fe80::/10'];
+
     public ParameterBag $query;
 
     public ParameterBag $request;
@@ -30,6 +32,10 @@ class Request
     protected ?string $content;
 
     protected ?string $method = null;
+
+    protected static array $trustedProxies = [];
+
+    protected static array $trustedHostPatterns = [];
 
     public function __construct(
         array $query = [],
@@ -108,6 +114,106 @@ class Request
         return new static($query, $parameters, [], [], [], $server, $content);
     }
 
+    public static function setTrustedProxies(array $proxies): void
+    {
+        self::$trustedProxies = array_values(array_filter(array_map(static fn (mixed $proxy): string => trim((string) $proxy), $proxies), static fn (string $proxy): bool => $proxy !== ''));
+    }
+
+    public static function getTrustedProxies(): array
+    {
+        return self::$trustedProxies;
+    }
+
+    public static function setTrustedHosts(array $hosts): void
+    {
+        self::$trustedHostPatterns = [];
+
+        foreach ($hosts as $host) {
+            $host = strtolower(trim((string) $host));
+
+            if ($host === '') {
+                continue;
+            }
+
+            if (preg_match('/^[a-z0-9.\-*]+$/', $host) === 1) {
+                $host = '^' . str_replace('\\*', '[a-z0-9-]+', preg_quote($host, '#')) . '$';
+            }
+
+            self::$trustedHostPatterns[] = '#' . str_replace('#', '\\#', $host) . '#i';
+        }
+    }
+
+    public static function getTrustedHosts(): array
+    {
+        return self::$trustedHostPatterns;
+    }
+
+    public static function ipMatches(string $ip, string $range): bool
+    {
+        if (!str_contains($range, '/')) {
+            $binary = @inet_pton($ip);
+
+            return $binary !== false && $binary === @inet_pton($range);
+        }
+
+        [$subnet, $bits] = explode('/', $range, 2);
+        $ipBinary = @inet_pton($ip);
+        $subnetBinary = @inet_pton($subnet);
+
+        if ($ipBinary === false || $subnetBinary === false || strlen($ipBinary) !== strlen($subnetBinary) || !ctype_digit($bits)) {
+            return false;
+        }
+
+        $bits = (int) $bits;
+
+        if ($bits > strlen($ipBinary) * 8) {
+            return false;
+        }
+
+        $bytes = intdiv($bits, 8);
+        $remainder = $bits % 8;
+
+        if (strncmp($ipBinary, $subnetBinary, $bytes) !== 0) {
+            return false;
+        }
+
+        if ($remainder === 0) {
+            return true;
+        }
+
+        $mask = (0xFF << (8 - $remainder)) & 0xFF;
+
+        return (ord($ipBinary[$bytes]) & $mask) === (ord($subnetBinary[$bytes]) & $mask);
+    }
+
+    public function isClientIpIn(array $ranges): bool
+    {
+        if ($ranges === []) {
+            return true;
+        }
+
+        $ip = $this->getClientIp();
+
+        if ($ip === null) {
+            return false;
+        }
+
+        foreach ($ranges as $range) {
+            if (self::ipMatches($ip, (string) $range)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isFromTrustedProxy(): bool
+    {
+        $remote = (string) $this->server->get('REMOTE_ADDR', '');
+
+        return $remote !== '' && $this->isTrustedProxy($remote);
+    }
+
     public function getMethod(): string
     {
         if ($this->method !== null) {
@@ -170,6 +276,10 @@ class Request
 
     public function isSecure(): bool
     {
+        if (($proto = $this->getForwardedValue('X-Forwarded-Proto')) !== null) {
+            return in_array(strtolower($proto), ['https', 'on', 'ssl', '1'], true);
+        }
+
         $https = strtolower((string) $this->server->get('HTTPS', ''));
 
         return ($https !== '' && $https !== 'off') || (int) $this->server->get('SERVER_PORT') === 443;
@@ -177,11 +287,21 @@ class Request
 
     public function getHost(): string
     {
-        $host = (string) ($this->headers->get('Host') ?? $this->server->get('SERVER_NAME', 'localhost'));
+        $host = $this->getForwardedValue('X-Forwarded-Host') ?? (string) ($this->headers->get('Host') ?? $this->server->get('SERVER_NAME', 'localhost'));
         $host = strtolower((string) preg_replace('/:\d+$/', '', trim($host)));
 
         if ($host !== '' && preg_match('/^\[?[a-z0-9\-._:\]]+$/', $host) !== 1) {
             throw new BadRequestHttpException('Invalid host "{host}".', ['host' => $host]);
+        }
+
+        if (self::$trustedHostPatterns !== []) {
+            foreach (self::$trustedHostPatterns as $pattern) {
+                if (preg_match($pattern, $host) === 1) {
+                    return $host;
+                }
+            }
+
+            throw new BadRequestHttpException('Untrusted host "{host}" (see trusted_hosts in config/framework/app.yaml).', ['host' => $host]);
         }
 
         return $host;
@@ -189,6 +309,18 @@ class Request
 
     public function getPort(): int
     {
+        if (($port = $this->getForwardedValue('X-Forwarded-Port')) !== null && ctype_digit($port)) {
+            return (int) $port;
+        }
+
+        if (($forwardedHost = $this->getForwardedValue('X-Forwarded-Host')) !== null) {
+            return preg_match('/:(\d+)$/', $forwardedHost, $m) === 1 ? (int) $m[1] : ($this->isSecure() ? 443 : 80);
+        }
+
+        if ($this->getForwardedValue('X-Forwarded-Proto') !== null) {
+            return $this->isSecure() ? 443 : 80;
+        }
+
         $host = (string) $this->headers->get('Host', '');
 
         if (preg_match('/:(\d+)$/', $host, $m) === 1) {
@@ -216,8 +348,43 @@ class Request
     public function getClientIp(): ?string
     {
         $ip = $this->server->get('REMOTE_ADDR');
+        $ip = is_string($ip) && $ip !== '' ? $ip : null;
 
-        return is_string($ip) && $ip !== '' ? $ip : null;
+        if ($ip === null || !$this->isTrustedProxy($ip) || !$this->headers->has('X-Forwarded-For')) {
+            return $ip;
+        }
+
+        $chain = array_values(array_filter(array_map('trim', explode(',', (string) $this->headers->get('X-Forwarded-For'))), static fn (string $item): bool => filter_var($item, FILTER_VALIDATE_IP) !== false));
+
+        for ($index = count($chain) - 1; $index >= 0; --$index) {
+            if (!$this->isTrustedProxy($chain[$index])) {
+                return $chain[$index];
+            }
+        }
+
+        return $chain[0] ?? $ip;
+    }
+
+    protected function isTrustedProxy(string $ip): bool
+    {
+        foreach (self::$trustedProxies as $proxy) {
+            if ($proxy === 'REMOTE_ADDR' ? $ip === (string) $this->server->get('REMOTE_ADDR', '') : self::ipMatches($ip, $proxy)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getForwardedValue(string $header): ?string
+    {
+        if (self::$trustedProxies === [] || !$this->isFromTrustedProxy()) {
+            return null;
+        }
+
+        $value = trim(explode(',', (string) $this->headers->get($header, ''))[0]);
+
+        return $value === '' ? null : $value;
     }
 
     public function getContent(): string

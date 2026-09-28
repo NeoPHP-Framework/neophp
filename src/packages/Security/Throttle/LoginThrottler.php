@@ -12,6 +12,8 @@ class LoginThrottler
 {
     public const IP_FACTOR = 5;
 
+    public const GC_DIVISOR = 100;
+
     public function __construct(protected string $directory, protected int $maxAttempts = 5, protected int $interval = 60)
     {
         if ($maxAttempts < 1 || $interval < 1) {
@@ -47,9 +49,27 @@ class LoginThrottler
             });
         }
 
+        if (random_int(1, self::GC_DIVISOR) === 1) {
+            $this->gc();
+        }
+
         if ($retryAfter > 0) {
             throw new TooManyLoginAttemptsException($retryAfter);
         }
+    }
+
+    public function gc(): int
+    {
+        $removed = 0;
+        $limit = time() - $this->interval;
+
+        foreach (glob(rtrim($this->directory, '/\\') . DIRECTORY_SEPARATOR . '*.json') ?: [] as $file) {
+            if ((int) @filemtime($file) < $limit && @unlink($file)) {
+                $removed++;
+            }
+        }
+
+        return $removed;
     }
 
     public function reset(Request $request, string $identifier): void
@@ -69,11 +89,13 @@ class LoginThrottler
 
     protected function update(string $key, callable $callback): void
     {
-        if (!is_dir($this->directory) && !@mkdir($this->directory, 0777, true) && !is_dir($this->directory)) {
+        if (!is_dir($this->directory) && !@mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
             throw new SecurityException('Unable to create the login throttling directory "{directory}".', 0, null, ['directory' => $this->directory]);
         }
 
-        $handle = fopen($this->file($key), 'c+');
+        $file = $this->file($key);
+        $handle = fopen($file, 'c+');
+        $empty = false;
 
         if ($handle === false) {
             throw new SecurityException('Unable to open the login throttling file of "{key}".', 0, null, ['key' => $key]);
@@ -82,6 +104,7 @@ class LoginThrottler
         try {
             flock($handle, LOCK_EX);
             $attempts = $callback($this->prune(json_decode((string) stream_get_contents($handle), true)));
+            $empty = $attempts === [];
             ftruncate($handle, 0);
             rewind($handle);
             fwrite($handle, (string) json_encode(array_values($attempts)));
@@ -89,6 +112,10 @@ class LoginThrottler
             flock($handle, LOCK_UN);
         } finally {
             fclose($handle);
+        }
+
+        if ($empty) {
+            @unlink($file);
         }
     }
 
