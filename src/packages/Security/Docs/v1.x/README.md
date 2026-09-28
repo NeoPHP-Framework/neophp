@@ -600,7 +600,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
-- v1.29.1 (bugfix) — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
+- v1.30.0 — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
 - v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).
 - bugfix — `UserClass::of()` resolves the real class of ORM proxies; `AuthenticationManager` and `Passport` moved to `NeoPHP\Package\Security\Authentication`.

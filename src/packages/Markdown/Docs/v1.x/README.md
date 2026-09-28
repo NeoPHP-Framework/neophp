@@ -160,5 +160,5 @@ The text is escaped; `javascript:`, `vbscript:` and `data:` URLs (except `data:i
 
 ## Changelog
 
-- v1.29.1 (bugfix) — the `markdown` filter escapes raw HTML by default (`markdown(true)` keeps it), `toSafeHtml()` in `MarkdownParserInterface`, `HtmlRenderer::setEscapeHtml()`.
+- v1.30.0 — the `markdown` filter escapes raw HTML by default (`markdown(true)` keeps it), `toSafeHtml()` in `MarkdownParserInterface`, `HtmlRenderer::setEscapeHtml()`.
 - v1.19.0 — Markdown package: CommonMark + GFM parser, `MarkdownDocument` (title, description, summary, sections, links, images, code blocks), HTML and templates to Markdown, `markdown` view filter, `markdown:convert` command.
