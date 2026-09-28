@@ -119,7 +119,7 @@ abstract class AbstractConfig implements ConfigInterface
     {
         $value = $_SERVER[$name] ?? $_ENV[$name] ?? getenv($name);
 
-        return $value === false || $value === null ? null : (string) $value;
+        return $value === false ? null : (string) $value;
     }
 
     protected function castEnv(string $type, string $name, ?string $value): mixed

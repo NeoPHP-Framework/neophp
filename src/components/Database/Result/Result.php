@@ -122,7 +122,7 @@ class Result implements IteratorAggregate
 
         for ($index = 0, $count = $this->columnCount(); $index < $count; $index++) {
             $meta = $this->statement->getColumnMeta($index);
-            $names[] = is_array($meta) ? (string) ($meta['name'] ?? $index) : (string) $index;
+            $names[] = is_array($meta) ? (string) $meta['name'] : (string) $index;
         }
 
         return $names;

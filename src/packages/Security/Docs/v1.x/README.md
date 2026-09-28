@@ -107,7 +107,7 @@ A user implements `NeoPHP\Package\Security\Contract\UserInterface`, and `Passwor
 
 `NeoPHP\Package\Security\User\InMemoryUser` is a ready-made user: `new InMemoryUser(string $identifier, ?string $password = null, array $roles = [])`, with `setPassword()`.
 
-`NeoPHP\Package\Security\User\UserClass::of(UserInterface $user): string` returns the real class of a user, ORM lazy proxies included (use it to compare classes or pick a hasher).
+`NeoPHP\Package\Security\User\UserClass::of(object $user): string` returns the real class of a user, ORM lazy proxies included (use it to compare classes or pick a hasher).
 
 ## User providers
 

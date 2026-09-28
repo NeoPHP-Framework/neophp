@@ -101,7 +101,7 @@ class ExceptionProfiler extends AbstractProfiler implements ToolbarInterface, Pr
         foreach (array_slice($exception->getTrace(), 0, self::MAX_TRACE) as $index => $frame) {
             $trace[] = [
                 'index' => $index,
-                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '') . '()',
+                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function'] . '()',
                 'file' => $frame['file'] ?? null,
                 'line' => $frame['line'] ?? null,
             ];

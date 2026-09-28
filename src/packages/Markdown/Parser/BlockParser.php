@@ -17,7 +17,7 @@ class BlockParser
         $markdown = str_replace(["\r\n", "\r", "\0"], ["\n", "\n", "\u{FFFD}"], $markdown);
         $lines = array_map(fn (string $line): string => $this->expandTabs($line), explode("\n", $markdown));
 
-        if ($lines !== [] && end($lines) === '') {
+        if (end($lines) === '') {
             array_pop($lines);
         }
 
@@ -368,7 +368,7 @@ class BlockParser
             if (!isset($this->references[$label])) {
                 $this->references[$label] = [
                     'url' => InlineParser::unescape($url),
-                    'title' => isset($matches[3]) && $matches[3] !== '' ? InlineParser::unescape(substr($matches[3], 1, -1)) : null,
+                    'title' => isset($matches[3]) ? InlineParser::unescape(substr($matches[3], 1, -1)) : null,
                 ];
             }
 
@@ -472,7 +472,7 @@ class BlockParser
             return null;
         }
 
-        $ordered = ($matches[3] ?? '') !== '';
+        $ordered = $matches[3] !== '';
         $width = strlen($matches[1]) + strlen($matches[2]);
         $spaces = strlen($matches[5]);
         $content = $matches[6];

@@ -23,6 +23,7 @@ use NeoPHP\Component\View\Helper\Controller\ViewController;
 use NeoPHP\Component\HttpClient\Helper\Controller\HttpClientController;
 use NeoPHP\Package\Orm\Helper\Controller\OrmController;
 use NeoPHP\Package\Security\Helper\Controller\SecurityController;
+use NeoPHP\Package\Translation\Helper\Controller\TranslationController;
 
 abstract class AbstractController implements ControllerInterface
 {
@@ -42,6 +43,7 @@ abstract class AbstractController implements ControllerInterface
     use RoutingController;
     use SecurityController;
     use SessionController;
+    use TranslationController;
     use ValidatorController;
     use ViewController;
     use SerializerController;

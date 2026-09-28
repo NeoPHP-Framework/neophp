@@ -219,8 +219,14 @@ abstract class AbstractTailwind implements TailwindInterface
         $context = stream_context_create([
             'http' => ['follow_location' => 1, 'max_redirects' => 10, 'timeout' => 120, 'user_agent' => 'NeoPHP tailwind:install', 'ignore_errors' => true],
         ]);
-        $content = @file_get_contents($url, false, $context);
-        $headers = function_exists('http_get_last_response_headers') ? (http_get_last_response_headers() ?? []) : (get_defined_vars()['http_response_header'] ?? []);
+        $stream = @fopen($url, 'r', false, $context);
+        $headers = $stream === false ? [] : (array) stream_get_meta_data($stream)['wrapper_data'];
+        $content = $stream === false ? false : stream_get_contents($stream);
+
+        if ($stream !== false) {
+            fclose($stream);
+        }
+
         $status = 0;
         $version = null;
 

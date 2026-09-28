@@ -70,8 +70,8 @@ abstract class AbstractException extends Exception implements ExceptionInterface
                 'line' => $frame['line'] ?? null,
                 'class' => $frame['class'] ?? null,
                 'type' => $frame['type'] ?? null,
-                'function' => $frame['function'] ?? null,
-                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '') . '()',
+                'function' => $frame['function'],
+                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function'] . '()',
             ];
         }
 

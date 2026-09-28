@@ -436,7 +436,7 @@ abstract class AbstractContainer implements ContainerInterface
         if ($autowire->env !== null) {
             $value = $_SERVER[$autowire->env] ?? $_ENV[$autowire->env] ?? getenv($autowire->env);
 
-            if ($value === false || $value === null) {
+            if ($value === false) {
                 if ($nullable) {
                     return null;
                 }

@@ -412,7 +412,7 @@ abstract class AbstractConnection implements ConnectionInterface
                 return implode(', ', array_fill(0, count($value), '?'));
             }
 
-            if (!isset($m[1]) || $m[1] === '' || !array_key_exists($m[1], $named)) {
+            if (!isset($m[1]) || !array_key_exists($m[1], $named)) {
                 return $m[0];
             }
 

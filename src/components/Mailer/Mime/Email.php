@@ -200,7 +200,7 @@ class Email
             throw new MailerException('The value of the header "{name}" contains a line break.', 0, null, ['name' => $name]);
         }
 
-        if (max(array_map('strlen', explode(' ', $value)) ?: [0]) > self::MAX_WORD_LENGTH) {
+        if (max(array_map('strlen', explode(' ', $value))) > self::MAX_WORD_LENGTH) {
             throw new MailerException('The value of the header "{name}" contains a word longer than {max} characters: it cannot be folded.', 0, null, ['name' => $name, 'max' => self::MAX_WORD_LENGTH]);
         }
 

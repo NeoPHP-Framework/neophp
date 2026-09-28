@@ -81,7 +81,7 @@ class StreamTransport extends AbstractTransport
 
                     $chunk = fread($stream, self::CHUNK_SIZE);
 
-                    if ($chunk === false || (stream_get_meta_data($stream)['timed_out'] ?? false)) {
+                    if ($chunk === false || stream_get_meta_data($stream)['timed_out']) {
                         throw $this->exception($request, 'Operation timed out while reading the response');
                     }
 
