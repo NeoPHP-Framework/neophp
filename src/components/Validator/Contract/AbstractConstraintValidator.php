@@ -28,6 +28,12 @@ abstract class AbstractConstraintValidator implements ConstraintValidatorInterfa
         return null;
     }
 
+    /**
+     * @template T of ConstraintInterface
+     * @param class-string<T> $class
+     * @phpstan-assert T $constraint
+     * @throws ValidatorException
+     */
     protected function expect(ConstraintInterface $constraint, string $class): void
     {
         if (!$constraint instanceof $class) {
