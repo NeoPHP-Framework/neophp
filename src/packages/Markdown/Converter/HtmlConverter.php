@@ -55,6 +55,7 @@ class HtmlConverter
         return (string) preg_replace('/<\/?(?:html|body|!doctype)\b[^>]*>/i', '', $html);
     }
 
+    /** @phpstan-impure */
     protected function blocks(DOMNode $parent): string
     {
         $blocks = [];
@@ -281,7 +282,7 @@ class HtmlConverter
         }
 
         foreach ([$code, $element] as $candidate) {
-            if ($candidate instanceof DOMElement && preg_match('/(?:^|\s)(?:language|lang)-([^\s]+)/', $candidate->getAttribute('class'), $matches) === 1) {
+            if (preg_match('/(?:^|\s)(?:language|lang)-([^\s]+)/', $candidate->getAttribute('class'), $matches) === 1) {
                 $language = $matches[1];
 
                 break;

@@ -40,9 +40,19 @@ class DefaultBlockRenderer implements BlockRendererInterface
 
     public function render(BlockInterface $block, BlockRenderer $renderer): string
     {
-        $method = self::METHODS[$block->getType()] ?? null;
-
-        return $method === null ? '' : $this->{$method}($block, $renderer);
+        return match (true) {
+            $block instanceof TableBlock => $this->table($block, $renderer),
+            $block instanceof KeyValueBlock => $this->keyValue($block, $renderer),
+            $block instanceof MetricBlock => $this->metric($block, $renderer),
+            $block instanceof TimelineBlock => $this->timeline($block, $renderer),
+            $block instanceof CodeBlock => $this->code($block, $renderer),
+            $block instanceof AlertBlock => $this->alert($block, $renderer),
+            $block instanceof TextBlock => $this->text($block, $renderer),
+            $block instanceof SectionBlock => $this->section($block, $renderer),
+            $block instanceof TabsBlock => $this->tabs($block, $renderer),
+            $block instanceof HtmlBlock => $this->html($block, $renderer),
+            default => '',
+        };
     }
 
     protected function table(TableBlock $block, BlockRenderer $r): string

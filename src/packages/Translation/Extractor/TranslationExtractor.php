@@ -72,7 +72,7 @@ class TranslationExtractor
 
                 $domain = $this->defaultDomain;
 
-                if (isset($match['call']) && $match['call'][1] >= 0 && $match['call'][0] !== '') {
+                if (isset($match['call']) && $match['call'][1] >= 0) {
                     $arguments = self::arguments($code, $match['call'][1] + strlen($match['call'][0]));
                     $domain = self::named($arguments, 'domain') ?? self::literal($arguments[1] ?? null) ?? $this->defaultDomain;
                 }

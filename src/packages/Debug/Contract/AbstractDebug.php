@@ -250,7 +250,7 @@ abstract class AbstractDebug implements DebugInterface
     {
         $debug = $_SERVER['APP_DEBUG'] ?? $_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG');
 
-        if ($debug !== false && $debug !== null && $debug !== '') {
+        if ($debug !== false && $debug !== '') {
             return filter_var($debug, FILTER_VALIDATE_BOOLEAN);
         }
 

@@ -59,6 +59,6 @@ class File extends AbstractConstraint
             throw new ValidatorException('The size "{size}" is not valid: use bytes, "500k", "2M", "1Gi"...', 0, null, ['size' => $size]);
         }
 
-        return (int) round((float) $m[1] * (isset($m[2]) && $m[2] !== '' ? self::UNITS[strtolower($m[2])] : 1));
+        return (int) round((float) $m[1] * (isset($m[2]) ? self::UNITS[strtolower($m[2])] : 1));
     }
 }

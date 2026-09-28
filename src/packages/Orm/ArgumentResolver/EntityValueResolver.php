@@ -41,7 +41,7 @@ class EntityValueResolver implements ArgumentResolverInterface
             return $entity;
         }
 
-        throw new NotFoundHttpException($this->attribute($parameter)?->message ?? 'The "{entity}" object was not found.', ['entity' => substr(strrchr('\\' . $class, '\\'), 1)]);
+        throw new NotFoundHttpException($this->attribute($parameter)->message ?? 'The "{entity}" object was not found.', ['entity' => substr(strrchr('\\' . $class, '\\'), 1)]);
     }
 
     protected function criteria(ReflectionParameter $parameter, Request $request, string $class): ?array

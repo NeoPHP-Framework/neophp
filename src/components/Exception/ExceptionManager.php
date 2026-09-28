@@ -188,7 +188,7 @@ class ExceptionManager
                 'index' => $index,
                 'file' => $frame['file'] ?? null,
                 'line' => $frame['line'] ?? null,
-                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '') . '()',
+                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function'] . '()',
             ];
         }
 

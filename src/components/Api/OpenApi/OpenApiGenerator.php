@@ -154,6 +154,7 @@ class OpenApiGenerator
         return false;
     }
 
+    /** @phpstan-impure */
     protected function operation(Route $route, string $httpMethod, ?ReflectionMethod $method, ?Operation $attribute, bool $multiple): array
     {
         $operation = ['tags' => $this->operationTags($route, $method, $attribute)];
@@ -166,7 +167,7 @@ class OpenApiGenerator
             $operation['description'] = $attribute->description;
         }
 
-        $operation['operationId'] = $this->operationId($attribute?->operationId ?? ($multiple ? $route->getName() . '_' . strtolower($httpMethod) : $route->getName()));
+        $operation['operationId'] = $this->operationId($attribute->operationId ?? ($multiple ? $route->getName() . '_' . strtolower($httpMethod) : $route->getName()));
 
         if ($attribute !== null && $attribute->deprecated) {
             $operation['deprecated'] = true;
@@ -225,7 +226,7 @@ class OpenApiGenerator
 
     protected function operationTags(Route $route, ?ReflectionMethod $method, ?Operation $attribute): array
     {
-        $tags = $attribute?->tags ?? [];
+        $tags = $attribute->tags ?? [];
         $attributes = [];
 
         if ($method !== null) {

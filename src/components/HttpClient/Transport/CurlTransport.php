@@ -179,11 +179,11 @@ class CurlTransport extends AbstractTransport
             fclose($state['sink']);
         }
 
-        $info = curl_getinfo($handle);
+        $ip = (string) curl_getinfo($handle, CURLINFO_PRIMARY_IP);
 
         return Response::fromRaw($state['headers'], $state['sink'] !== null ? null : $state['body'], $this->info($state['request'], $state['start'], [
-            'total_time' => (float) ($info['total_time'] ?? 0),
-            'primary_ip' => ($info['primary_ip'] ?? '') !== '' ? $info['primary_ip'] : null,
+            'total_time' => (float) curl_getinfo($handle, CURLINFO_TOTAL_TIME),
+            'primary_ip' => $ip !== '' ? $ip : null,
         ]));
     }
 

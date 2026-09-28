@@ -76,7 +76,7 @@ class ProblemDetailsFactory
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
                 'trace' => array_map(
-                    static fn (array $frame): string => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '') . '() ' . ($frame['file'] ?? '[internal]') . ':' . ($frame['line'] ?? '?'),
+                    static fn (array $frame): string => ($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function'] . '() ' . ($frame['file'] ?? '[internal]') . ':' . ($frame['line'] ?? '?'),
                     array_slice($exception->getTrace(), 0, 20),
                 ),
             ]);

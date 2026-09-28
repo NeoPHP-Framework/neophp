@@ -95,16 +95,16 @@ class AttributeRouteLoader
     protected function createRoute(ReflectionClass $class, ReflectionMethod $method, RouteAttribute $attribute, ?RouteAttribute $global): Route
     {
         $name = $attribute->name ?? $this->defaultName($class->getName(), $method->getName(), $global?->name !== null);
-        $name = rtrim(($global?->name ?? '') . $name, '_');
+        $name = rtrim(($global->name ?? '') . $name, '_');
         $controller = $method->getName() === '__invoke' ? $class->getName() : $class->getName() . '::' . $method->getName();
 
         $route = new Route(
             $name,
-            ($global?->path ?? '') . '/' . ltrim($attribute->path, '/'),
+            ($global->path ?? '') . '/' . ltrim($attribute->path, '/'),
             $controller,
             $attribute->getMethods() !== [] ? $attribute->getMethods() : ($global?->getMethods() ?? []),
-            array_replace($global?->requirements ?? [], $attribute->requirements),
-            array_replace($global?->defaults ?? [], $attribute->defaults),
+            array_replace($global->requirements ?? [], $attribute->requirements),
+            array_replace($global->defaults ?? [], $attribute->defaults),
             $this->options($global, $attribute),
         );
 
@@ -113,8 +113,8 @@ class AttributeRouteLoader
 
     protected function options(?RouteAttribute $global, RouteAttribute $attribute): array
     {
-        $options = array_replace($global?->options ?? [], $attribute->options);
-        $middlewares = [...($global?->middlewares ?? []), ...$attribute->middlewares];
+        $options = array_replace($global->options ?? [], $attribute->options);
+        $middlewares = [...($global->middlewares ?? []), ...$attribute->middlewares];
 
         if ($middlewares !== []) {
             $options['middlewares'] = array_values(array_unique([...(array) ($options['middlewares'] ?? []), ...$middlewares]));
