@@ -15,6 +15,8 @@ interface MarkdownParserInterface
 
     public function toHtml(string $markdown): string;
 
+    public function toSafeHtml(string $markdown): string;
+
     public function parse(string $file, array $parameters = []): MarkdownConversion;
 
     public function convert(string $html): string;

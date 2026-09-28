@@ -56,7 +56,8 @@ $markdown->parse('templates/page/about.html.twig', ['user' => $user])->to('docs/
 |---|---|
 | `get(string $file): MarkdownDocument` | reads a `.md` file (absolute path or relative to the project root) |
 | `fromString(string $markdown): MarkdownDocument` | parses a Markdown string |
-| `toHtml(string $markdown): string` | converts a Markdown string into HTML |
+| `toHtml(string $markdown): string` | converts a Markdown string into HTML (raw HTML kept: trusted content) |
+| `toSafeHtml(string $markdown): string` | converts untrusted Markdown into HTML (raw HTML escaped) |
 
 A missing file throws `NeoPHP\Package\Markdown\Exception\MarkdownException`.
 
@@ -107,14 +108,16 @@ Ids follow the GitHub rules: lowercase, punctuation removed (except `-` and `_`)
 
 ## View filter
 
-The `markdown` filter converts Markdown into HTML (safe HTML, not escaped again):
+The `markdown` filter converts Markdown into HTML (safe HTML, not escaped again). By default the raw HTML written in the Markdown is escaped, so the filter can be used on content written by visitors (comments, profiles):
 
 ```twig
-{{ content|markdown }}
+{{ comment.body|markdown }}        {# <script> is displayed as text #}
+{{ page.body|markdown(true) }}     {# trusted content: raw HTML kept #}
 ```
 
 ```php
-<?= $this->filter('markdown', $text) ?>
+<?= $this->filter('markdown', $comment->getBody()) ?>
+<?= $this->filter('markdown', $page->getBody(), true) ?>
 ```
 
 A `markdown` filter of the application (`src/Helper/View`) replaces the one of the framework.
@@ -134,6 +137,7 @@ php bin/neo markdown:convert templates/page/about.html.twig docs/about.md
 | `get(string $file): MarkdownDocument` | reads a Markdown file |
 | `fromString(string $markdown): MarkdownDocument` | parses a string |
 | `toHtml(string $markdown): string` | Markdown to HTML |
+| `toSafeHtml(string $markdown): string` | Markdown to HTML, raw HTML escaped |
 | `parse(string $file, array $parameters = []): MarkdownConversion` | HTML file, template or text file to Markdown |
 | `convert(string $html): string` | HTML to Markdown |
 
@@ -152,8 +156,9 @@ Errors throw `NeoPHP\Package\Markdown\Exception\MarkdownException` (extends `Fra
 - tables with alignment, thematic breaks
 - raw HTML blocks and inline HTML, backslash escapes, HTML entities
 
-The text is escaped; `javascript:`, `vbscript:` and `data:` URLs (except `data:image`) are replaced by `#`. Raw HTML is kept as written: do not render untrusted Markdown containing HTML.
+The text is escaped; `javascript:`, `vbscript:` and `data:` URLs (except `data:image`) are replaced by `#`. `toHtml()`, `get()` and `fromString()` keep raw HTML as written (trusted content); use `toSafeHtml()` or the `markdown` filter without argument for untrusted Markdown.
 
 ## Changelog
 
+- v1.29.1 (bugfix) — the `markdown` filter escapes raw HTML by default (`markdown(true)` keeps it), `toSafeHtml()` in `MarkdownParserInterface`, `HtmlRenderer::setEscapeHtml()`.
 - v1.19.0 — Markdown package: CommonMark + GFM parser, `MarkdownDocument` (title, description, summary, sections, links, images, code blocks), HTML and templates to Markdown, `markdown` view filter, `markdown:convert` command.
