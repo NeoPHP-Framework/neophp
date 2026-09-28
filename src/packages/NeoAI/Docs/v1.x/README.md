@@ -77,10 +77,10 @@ connections:
     max_tokens: 4096
     timeout: 120
     retries: 2
-  anthropic:
-    provider: anthropic
-    model: claude-sonnet-4-5
-    api_key: '%env(ANTHROPIC_API_KEY)%'
+    anthropic:
+        provider: anthropic
+        model: claude-sonnet-5
+        api_key: '%env(ANTHROPIC_API_KEY)%'
   local:
     provider: ollama
     model: qwen2.5-coder:7b
@@ -147,6 +147,8 @@ Connection options:
 | `retries` | `2` | retries on network errors, HTTP 429 and 5xx (exponential backoff) |
 | `retry_delay` | `1000` | first retry delay in milliseconds |
 | `headers` | `{}` | extra HTTP headers (e.g. `HTTP-Referer` for OpenRouter) |
+| `context_window` | model default | Ollama only: context size in tokens (`num_ctx`); Ollama truncates longer prompts to 2048 / 4096 tokens, `16384` is recommended for the assistant |
+| `keep_alive` | Ollama default (`5m`) | Ollama only: time the model stays loaded after a request (`30m`, `-1` = forever): avoids reloading it on CPU |
 
 ## Environment variables per provider
 
@@ -156,7 +158,7 @@ OpenAI:
 
 ````dotenv
 NEO_AI_PROVIDER=openai
-NEO_AI_MODEL=gpt-4o-mini
+NEO_AI_MODEL=gpt-5.4-mini
 OPENAI_API_KEY=sk-...
 NEO_AI_API_KEY=${OPENAI_API_KEY}
 ````
@@ -165,7 +167,7 @@ Anthropic (Messages API):
 
 ````dotenv
 NEO_AI_PROVIDER=anthropic
-NEO_AI_MODEL=claude-sonnet-4-5
+NEO_AI_MODEL=claude-sonnet-5
 ANTHROPIC_API_KEY=sk-ant-...
 NEO_AI_API_KEY=${ANTHROPIC_API_KEY}
 ````
@@ -174,10 +176,12 @@ Google Gemini (`generateContent`):
 
 ````dotenv
 NEO_AI_PROVIDER=gemini
-NEO_AI_MODEL=gemini-2.0-flash
+NEO_AI_MODEL=gemini-3.8-flash
 GEMINI_API_KEY=AIza...
 NEO_AI_API_KEY=${GEMINI_API_KEY}
 ````
+
+The free tier of the Gemini API has a small daily quota per model (requests per day): an HTTP 429 means the quota is reached. The "Live" models use another API (WebSocket) and cannot be used. A model that is retired returns an HTTP 404: pick a current one in Google AI Studio.
 
 Mistral, Groq, OpenRouter (OpenAI-compatible, default base URLs built in):
 
@@ -421,5 +425,6 @@ All exceptions extend `NeoPHP\Package\NeoAI\Exception\NeoAiException` (a `Framew
 
 ## Changelog
 
+- v1.29.1 (bugfix) — `ai:test` sends 512 tokens (reasoning models answered empty with 16) and fails on an empty answer; error messages show the configured provider (`mistral`, `groq`...) instead of `openai`; Ollama `context_window` (`num_ctx`) and `keep_alive` options; default models updated (`gpt-5.4-mini`, `claude-sonnet-5`, `gemini-3.8-flash`).
 - v1.29.1 (bugfix) — `web.allowed_ips` (local and private networks by default) checked by `RequestGuard` on the chat endpoint.
 - v1.26.0 — NeoAI package: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers through HttpClient with named connections, retries and typed errors; portable `neo-tool` loop (`list_files`, `read_file`, `search`, `project_info`, `profile`, `propose_patch`) in a sandbox with excluded paths and secret redaction; `ai:start` chat with patch review (hash check and backups), `ai:scan` batched audit with Markdown report and `--fail-on`, `ai:test`; AI toolbar item with floating chat and page context, AI profiler panel, `POST /_neo_ai/chat` protected by origin and token checks; `FakeProvider` for tests.

@@ -59,9 +59,15 @@ class AiTestCommand extends AbstractAiCommand
             $provider = $manager->connection(is_string($connection) && $connection !== '' ? $connection : null);
             $this->privacy($output, $provider);
             $start = microtime(true);
-            $response = $provider->chat([Message::user('Reply with the single word: pong')], ['max_tokens' => 16]);
+            $response = $provider->chat([Message::user('Reply with the single word: pong')], ['max_tokens' => 512]);
         } catch (NeoAiException $exception) {
             $output->error($manager->redactor()->redact($exception->getMessage()));
+
+            return self::FAILURE;
+        }
+
+        if (trim($response->getContent()) === '') {
+            $output->warning(sprintf('%s (%s, model %s) answered with an empty message in %d ms (%d tokens): the model may need a higher max_tokens, or is not a chat model.', $provider->getName(), $provider->getType(), $response->getModel(), (int) ((microtime(true) - $start) * 1000), $response->getTotalTokens()));
 
             return self::FAILURE;
         }
