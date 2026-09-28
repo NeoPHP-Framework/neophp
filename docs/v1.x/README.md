@@ -344,7 +344,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 
 ## Deployment
 
-1. `.env.local` (or real environment variables): `APP_ENV=prod`, `APP_DEBUG=0`, a new `APP_SECRET`, `APP_URL=https://example.com`, `TRUSTED_HOSTS=example.com`, `TRUSTED_PROXIES` when a reverse proxy / load balancer is in front of PHP, `DATABASE_URL`, `MAILER_DSN`
+1. `.env.local` (or real environment variables): `APP_ENV=prod`, `APP_DEBUG=0`, a new `APP_SECRET`, `APP_URL=https://example.com`, `TRUSTED_HOSTS=example.com`, `TRUSTED_PROXIES` when a reverse proxy / load balancer is in front of PHP, `DATABASE_URL`, `MAILER_DSN`; in `config/framework/app.yaml`, keep `security_headers.enabled: true` and set `hsts: 31536000` once HTTPS works
 2. `composer install --no-dev --optimize-autoloader`
 3. `php bin/neo migration:migrate -n`
 4. `php bin/neo tailwind:run --minify` (if Tailwind is used), then `php bin/neo asset:reload --minify`

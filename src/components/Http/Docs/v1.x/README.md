@@ -7,6 +7,7 @@ It has no dependency and is used by the kernel, the routing and the controllers.
 
 - [Request](#request)
 - [Reverse proxies and trusted hosts](#reverse-proxies-and-trusted-hosts)
+- [Security headers](#security-headers)
 - [Application in a sub-directory](#application-in-a-sub-directory)
 - [Bags](#bags)
 - [Uploaded files](#uploaded-files)
@@ -57,6 +58,32 @@ public function search(Request $request): Response
 | `getContentType()`, `isJson()`, `wantsJson()`, `isXmlHttpRequest()` | content negotiation |
 
 `Request::METHODS` lists the accepted methods.
+
+## Security headers
+
+`config/framework/app.yaml` adds security headers to every response (pages, error pages, API):
+
+```yaml
+security_headers:
+  enabled: true
+  headers:
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: SAMEORIGIN
+    Referrer-Policy: strict-origin-when-cross-origin
+    Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+    Content-Security-Policy: "default-src 'self'"
+  hsts: 31536000
+  excluded_paths: ['^/_profiler', '^/_wdt']
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `false` (`true` in the generated `app.yaml`) | adds the headers |
+| `headers` | the 4 headers above, without `Content-Security-Policy` | merged with the defaults; `~` removes a default header |
+| `hsts` | `~` | `Strict-Transport-Security` on HTTPS requests: a number of seconds (`max-age=N; includeSubDomains`) or the full value |
+| `excluded_paths` | profiler and toolbar | regular expressions of paths without the headers |
+
+A header already set by the controller is kept: `$response->headers->set('X-Frame-Options', 'DENY')` makes one page stricter, `Content-Security-Policy` can be set per page the same way. The headers are added by `NeoPHP\Component\Http\Helper\Listener\SecurityHeadersListener` (`ResponseEvent`) with `NeoPHP\Component\Http\Security\SecurityHeaders`.
 
 ## Application in a sub-directory
 
@@ -206,7 +233,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
-- v1.31.0 — application in a sub-directory: `getBasePath()`, `getRequestPath()`; `getPath()` no longer contains the sub-directory.
+- v1.31.0 — security headers (`security_headers` in `app.yaml`, `SecurityHeaders`); application in a sub-directory: `getBasePath()`, `getRequestPath()`; `getPath()` no longer contains the sub-directory.
 - v1.30.0 — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.
 - v1.29.1 (bugfix) — `UploadedFile::move()` generates a random name by default, refuses executable extensions and path separators, creates directories in `0775`; `getMimeType()` and `guessExtension()` detect the type from the content.
 - v1.24.0 — `TooManyRequestsHttpException` (429, `Retry-After`).
