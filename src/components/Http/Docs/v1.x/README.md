@@ -192,7 +192,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
-- v1.29.1 (bugfix) — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.
+- v1.30.0 — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.
 - v1.29.1 (bugfix) — `UploadedFile::move()` generates a random name by default, refuses executable extensions and path separators, creates directories in `0775`; `getMimeType()` and `guessExtension()` detect the type from the content.
 - v1.24.0 — `TooManyRequestsHttpException` (429, `Retry-After`).
 - v1.23.0 — `json()` accepts a serializer context and normalizes objects with the Serializer
