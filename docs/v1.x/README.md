@@ -349,7 +349,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 3. `php bin/neo migration:migrate -n`
 4. `php bin/neo tailwind:run --minify` (if Tailwind is used), then `php bin/neo asset:reload --minify`
 5. `php bin/neo cache:clear`
-6. Point the web server document root to `public/` (`public/.htaccess` is provided for Apache: only `index.php` is executed, hidden files are never served; with Nginx, send every request to `index.php` and refuse the other `.php` files)
+6. Point the web server document root to `public/`. In a sub-directory of the domain (`https://example.com/app/`), make `/app/` serve `public/` (Apache `Alias /app /var/www/app/public` and `RewriteBase /app/` in `public/.htaccess`) and set `APP_URL=https://example.com/app`: the routes stay the same, the generated URLs contain `/app` (`public/.htaccess` is provided for Apache: only `index.php` is executed, hidden files are never served; with Nginx, send every request to `index.php` and refuse the other `.php` files)
 
 ## Features
 

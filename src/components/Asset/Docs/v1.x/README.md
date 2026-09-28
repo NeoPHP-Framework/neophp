@@ -72,7 +72,7 @@ php bin/neo asset:reload --minify
 
 ## CSS rewriting
 
-In CSS files, `url(...)` and `@import` pointing to another file of `assets/` are rewritten to the compiled URL: `url('../img/logo.png')` becomes `url('/builds/img/logo-d07ec8c2.png')`. External URLs, absolute paths and files outside `assets/` are kept as is.
+In CSS files, `url(...)` and `@import` pointing to another file of `assets/` are rewritten to the compiled URL: `url('../img/logo.png')` becomes `url('../img/logo-d07ec8c2.png')` (a path relative to the compiled CSS file, so it works in a sub-directory and on a CDN). External URLs, absolute paths and files outside `assets/` are kept as is.
 
 ## Configuration
 
@@ -179,5 +179,6 @@ $asset->addCompiler(new SvgCompiler());
 
 ## Changelog
 
+- v1.31.0 — `asset()` adds the sub-directory of the application (`setBasePath()`); URLs rewritten in CSS files are relative to the compiled file.
 - v1.18.0 — `AssetInterface::setSourceFile()` (and `getSourceFile()`) to compile another file in place of an asset.
 - v1.3.0 — Asset component: `assets/` compiled into `public/builds/` with hashed names, `manifest.json`, `asset()` helper, `asset:reload [--minify]` command.

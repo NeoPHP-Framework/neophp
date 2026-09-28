@@ -19,6 +19,10 @@ interface RoutingInterface
 
     public function getBaseUrl(): string;
 
+    public function setBasePath(Closure|string|null $basePath): static;
+
+    public function getBasePath(): string;
+
     public function add(Route $route): static;
 
     public function loadYaml(string $file): static;

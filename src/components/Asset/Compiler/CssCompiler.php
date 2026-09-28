@@ -50,7 +50,20 @@ class CssCompiler implements CompilerInterface
 
         $url = $resolve($target);
 
-        return is_string($url) ? $url . $suffix : null;
+        return is_string($url) ? $this->relative(dirname($path), dirname($target), basename((string) parse_url($url, PHP_URL_PATH))) . $suffix : null;
+    }
+
+    protected function relative(string $from, string $to, string $file): string
+    {
+        $from = $from === '.' ? [] : explode('/', trim($from, '/'));
+        $to = $to === '.' ? [] : explode('/', trim($to, '/'));
+
+        while ($from !== [] && $to !== [] && $from[0] === $to[0]) {
+            array_shift($from);
+            array_shift($to);
+        }
+
+        return implode('/', [...array_fill(0, count($from), '..'), ...$to, $file]);
     }
 
     protected function normalize(string $path): ?string

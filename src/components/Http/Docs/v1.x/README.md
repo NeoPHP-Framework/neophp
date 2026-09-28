@@ -7,6 +7,7 @@ It has no dependency and is used by the kernel, the routing and the controllers.
 
 - [Request](#request)
 - [Reverse proxies and trusted hosts](#reverse-proxies-and-trusted-hosts)
+- [Application in a sub-directory](#application-in-a-sub-directory)
 - [Bags](#bags)
 - [Uploaded files](#uploaded-files)
 - [Responses](#responses)
@@ -46,7 +47,8 @@ public function search(Request $request): Response
 | `new Request($query, $request, $attributes, $cookies, $files, $server, $content)` | a request |
 | `getMethod()` | HTTP method; a POST can send `_method` or `X-HTTP-Method-Override` with `PUT`, `PATCH` or `DELETE` |
 | `getRealMethod()`, `setMethod($method)`, `isMethod($method)` | real method, override, comparison |
-| `getPath()`, `getQueryString()`, `getUri()` | URL parts |
+| `getPath()`, `getQueryString()`, `getUri()` | URL parts; `getPath()` is relative to the application (without the sub-directory) |
+| `getBasePath()`, `getRequestPath()` | sub-directory of the application (`/app`, `''` at the root of the domain) and full path of the URL |
 | `getScheme()`, `isSecure()`, `getHost()`, `getPort()`, `getSchemeAndHttpHost()` | server information (`X-Forwarded-Proto`, `-Host`, `-Port` when the request comes from a trusted proxy) |
 | `getClientIp()` | client IP: `REMOTE_ADDR`, or the client of `X-Forwarded-For` behind a trusted proxy; `null` when unknown |
 | `isFromTrustedProxy()` | the request was sent by a trusted proxy |
@@ -55,6 +57,18 @@ public function search(Request $request): Response
 | `getContentType()`, `isJson()`, `wantsJson()`, `isXmlHttpRequest()` | content negotiation |
 
 `Request::METHODS` lists the accepted methods.
+
+## Application in a sub-directory
+
+The application can be installed in a sub-directory of the domain (`https://example.com/app/`, with `public/index.php` reachable at `/app/index.php`). The sub-directory is detected from `SCRIPT_NAME`:
+
+| URL | `getBasePath()` | `getPath()` | `getRequestPath()` |
+|---|---|---|---|
+| `https://example.com/posts/1` | `''` | `/posts/1` | `/posts/1` |
+| `https://example.com/app/posts/1` | `/app` | `/posts/1` | `/app/posts/1` |
+| `https://example.com/app/index.php/posts/1` | `/app/index.php` | `/posts/1` | `/app/index.php/posts/1` |
+
+The routes, the firewalls and `access_control` use `getPath()`, so they are written without the sub-directory (`/posts/{id}`, `^/admin`). The generated URLs (`path()`, `url()`, `redirectToRoute()`, `asset()`, the login and logout redirections, the pagination links, the profiler) contain it. For absolute URLs generated outside of a request (console), set `APP_URL` with the sub-directory: `APP_URL=https://example.com/app`.
 
 ## Reverse proxies and trusted hosts
 
@@ -192,6 +206,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v1.31.0 — application in a sub-directory: `getBasePath()`, `getRequestPath()`; `getPath()` no longer contains the sub-directory.
 - v1.30.0 — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.
 - v1.29.1 (bugfix) — `UploadedFile::move()` generates a random name by default, refuses executable extensions and path separators, creates directories in `0775`; `getMimeType()` and `guessExtension()` detect the type from the content.
 - v1.24.0 — `TooManyRequestsHttpException` (429, `Retry-After`).

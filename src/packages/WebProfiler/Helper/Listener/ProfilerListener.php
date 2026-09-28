@@ -49,6 +49,7 @@ class ProfilerListener
             return;
         }
 
+        $profiler->setBasePath($event->getRequest()->getBasePath());
         $this->registerRoutes($profiler);
         $stopwatch = $profiler->getStopwatch();
 

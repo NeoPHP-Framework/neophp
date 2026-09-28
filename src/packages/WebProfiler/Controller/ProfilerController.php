@@ -43,7 +43,7 @@ class ProfilerController
     {
         $latest = $this->profiler->find(1)[0] ?? null;
 
-        return new RedirectResponse($latest === null ? $this->profiler->getPath() : $this->profiler->getProfileUrl((string) $latest['token']));
+        return new RedirectResponse($latest === null ? $this->profiler->getPublicPath() : $this->profiler->getProfileUrl((string) $latest['token']));
     }
 
     public function show(string $token, Request $request): Response
@@ -81,7 +81,7 @@ class ProfilerController
             'profile' => $profile,
             'items' => $this->profiler->getToolbarItems($profile),
             'assets' => $this->profiler->getToolbarAssets($profile),
-            'profilerPath' => $this->profiler->getPath(),
+            'profilerPath' => $this->profiler->getPublicPath(),
         ]), 200, self::HEADERS);
     }
 
@@ -103,12 +103,12 @@ class ProfilerController
 
     protected function html(string $template, array $parameters, int $status = 200): Response
     {
-        $content = $this->templates->render($template, [...$parameters, 'profilerPath' => $this->profiler->getPath()]);
+        $content = $this->templates->render($template, [...$parameters, 'profilerPath' => $this->profiler->getPublicPath()]);
 
         return new Response($this->templates->render('layout', [
             'title' => (string) ($parameters['title'] ?? 'Profiler'),
             'content' => $content,
-            'profilerPath' => $this->profiler->getPath(),
+            'profilerPath' => $this->profiler->getPublicPath(),
             'profile' => $parameters['profile'] ?? null,
         ]), $status, self::HEADERS);
     }

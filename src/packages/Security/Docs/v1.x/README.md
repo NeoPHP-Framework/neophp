@@ -613,7 +613,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
-- v1.31.0 — logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.
+- v1.31.0 — the redirections (login, logout, target path) contain the sub-directory of the application; logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.
 - v1.30.0 — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
 - v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).

@@ -44,6 +44,8 @@ class Profiler
 
     protected ?Throwable $exception = null;
 
+    protected string $basePath = '';
+
     public function __construct(
         protected ContainerInterface $container,
         protected ProfileStorageInterface $storage,
@@ -103,14 +105,31 @@ class Profiler
         return '/' . trim((string) $this->config['toolbar_path'], '/');
     }
 
+    public function setBasePath(string $basePath): static
+    {
+        $this->basePath = rtrim($basePath, '/');
+
+        return $this;
+    }
+
+    public function getBasePath(): string
+    {
+        return $this->basePath;
+    }
+
+    public function getPublicPath(): string
+    {
+        return $this->basePath . $this->getPath();
+    }
+
     public function getProfileUrl(string $token, ?string $panel = null): string
     {
-        return $this->getPath() . '/' . rawurlencode($token) . ($panel !== null ? '?panel=' . rawurlencode($panel) : '');
+        return $this->getPublicPath() . '/' . rawurlencode($token) . ($panel !== null ? '?panel=' . rawurlencode($panel) : '');
     }
 
     public function getToolbarUrl(string $token): string
     {
-        return $this->getToolbarPath() . '/' . rawurlencode($token);
+        return $this->basePath . $this->getToolbarPath() . '/' . rawurlencode($token);
     }
 
     public function isAllowed(Request $request): bool

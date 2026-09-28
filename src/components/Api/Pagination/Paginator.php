@@ -61,7 +61,7 @@ class Paginator implements PaginatorInterface
 
         $page = $this->integer($request->query->get($pageParameter), $pageParameter, 1);
         $limit = min($maxLimit, $this->integer($request->query->get($limitParameter), $limitParameter, $defaultLimit));
-        $path = ($this->config['absolute_links'] ? $request->getSchemeAndHttpHost() : '') . $request->getPath();
+        $path = ($this->config['absolute_links'] ? $request->getSchemeAndHttpHost() : '') . $request->getBasePath() . $request->getPath();
 
         return new PageRequest($page, $limit, $path, $request->query->all(), $pageParameter, $limitParameter);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Asset\Contract;
 
+use Closure;
 use FilesystemIterator;
 use NeoPHP\Component\Asset\Compiler\CompilerInterface;
 use NeoPHP\Component\Asset\Exception\AssetException;
@@ -34,6 +35,8 @@ abstract class AbstractAsset implements AssetInterface
 
     protected array $resolved = [];
 
+    protected Closure|string|null $basePath = null;
+
     protected array $compiling = [];
 
     protected array $sourceFiles = [];
@@ -47,7 +50,21 @@ abstract class AbstractAsset implements AssetInterface
         $url = $this->resolve($this->normalize($path));
         $this->getManifest()->save();
 
-        return $url;
+        return $this->isExternal($url) ? $url : $this->getBasePath() . $url;
+    }
+
+    public function setBasePath(Closure|string|null $basePath): static
+    {
+        $this->basePath = $basePath;
+
+        return $this;
+    }
+
+    public function getBasePath(): string
+    {
+        $basePath = $this->basePath instanceof Closure ? ($this->basePath)() : $this->basePath;
+
+        return rtrim(trim((string) $basePath), '/');
     }
 
     public function compile(string $path): string
