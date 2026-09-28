@@ -36,7 +36,7 @@ class CacheManager implements CacheManagerInterface
 
     protected string $default;
 
-    public function __construct(array $config = [], protected string $rootPath = '', protected ?Closure $connections = null)
+    public function __construct(array $config = [], protected string $rootPath = '', protected ?Closure $connections = null, protected ?string $secret = null)
     {
         $pools = (array) ($config['pools'] ?? []);
 
@@ -156,7 +156,7 @@ class CacheManager implements CacheManagerInterface
 
     protected function createPool(string $name, array $config): CacheInterface
     {
-        return new CachePool($name, $this->createAdapter($name, $config), $config['default_ttl'], $config['lock_timeout']);
+        return new CachePool($name, $this->createAdapter($name, $config), $config['default_ttl'], $config['lock_timeout'], $this->secret);
     }
 
     protected function createAdapter(string $name, array $config): AdapterInterface
