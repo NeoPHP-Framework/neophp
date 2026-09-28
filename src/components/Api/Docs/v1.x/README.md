@@ -158,7 +158,7 @@ cors:
 | `allow_methods` | `[GET, POST, PUT, PATCH, DELETE, OPTIONS]` | `Access-Control-Allow-Methods` of preflight responses (`'*'` echoes the requested method) |
 | `allow_headers` | `[Content-Type, Authorization, X-Requested-With]` | `Access-Control-Allow-Headers` (`'*'` echoes `Access-Control-Request-Headers`) |
 | `expose_headers` | `[]` | `Access-Control-Expose-Headers` of actual responses |
-| `allow_credentials` | `false` | sends `Access-Control-Allow-Credentials: true`; the origin is then echoed instead of `*` |
+| `allow_credentials` | `false` | sends `Access-Control-Allow-Credentials: true` (cookies and `Authorization` allowed); the allowed origins must then be listed: combined with `'*'` it throws an `InvalidConfigurationException` |
 | `max_age` | `0` | `Access-Control-Max-Age` of preflight responses (seconds, `0` omits it) |
 
 How it runs:
@@ -518,4 +518,5 @@ php bin/neo openapi:dump --format=yaml --output=public/openapi.yaml
 
 ## Changelog
 
+- v1.29.1 (bugfix) — CORS: `allow_credentials: true` combined with `allow_origin: '*'` is refused (it reflected any origin with credentials).
 - v1.24.0 — Api component: CORS (`cors` configuration, preflight answered before routing, headers on error responses, `#[Cors]`, `CorsMiddleware`), rate limiter (fixed window, sliding window, token bucket and no limit policies stored in a cache pool, `RateLimiterFactory`, `#[RateLimit]` with ip / user / route / header / attribute / query / custom keys, `X-RateLimit-*` and `Retry-After` headers), pagination (array, iterable and ORM query builder adapters, `Page` with links, `Link` and `X-Total-Count` headers, `PageRequest` / `#[MapPagination]` arguments), RFC 7807 problem details (`application/problem+json` with violations, `ProblemDetailsProviderInterface`), OpenAPI 3.1 generation (routes, DTO schemas from the Serializer metadata and the Validator constraints, `#[OA\Operation]`, `#[OA\Response]`, `#[OA\Tag]`, `#[OA\Parameter]`, `#[OA\Property]`, `#[OA\Schema]`), `openapi:dump`, `/api/doc` and `/api/doc.json` routes, `ApiController` trait (`paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()`).
