@@ -56,7 +56,7 @@ ignore_tables: []
 | `repository` | directory and namespace of the repositories, used by `make:repository` and to find the repository of an entity |
 | `migration` | directory, namespace and table of the migrations |
 | `proxy` | directory of the generated proxy classes (cleared by `cache:clear`) |
-| `ignore_tables` | tables ignored by `make:migration` (never created nor dropped) |
+| `ignore_tables` | tables ignored by `make:migration` (never created nor dropped); the tables of the framework (`cache_items`, `remember_me_tokens`) are always ignored |
 
 ## Entities
 
@@ -587,7 +587,7 @@ When the Web Profiler is enabled, the `Helper/Profiler/OrmProfiler` element adds
 
 ## Changelog
 
-- v1.31.0 — entities in controller arguments (`EntityValueResolver`, `#[MapEntity]`), 404 when not found.
+- v1.31.0 — `make:migration` ignores the framework tables `cache_items` and `remember_me_tokens`; entities in controller arguments (`EntityValueResolver`, `#[MapEntity]`), 404 when not found.
 - v1.30.0 — `findBy()`, `findOneBy()`, `count()` and `findAll()` refuse the criteria and order keys that are not fields or associations of the entity (SQL injection through a user-controlled key).
 - v1.25.1 — profiler integration: `UnitOfWork::getStatistics()` (managed entities, flushes, initialized proxies) and ORM panel of the Web Profiler.
 - v1.17.0 — `make:entity` wizard (fields asked one by one, guessed types, relations with their inverse side written in the target entity, completion of existing entities, checks before writing), sub-namespace repositories; `make:*` commands ask for their values. Bugfix: `make:migration` asks the optional description only when there are changes.

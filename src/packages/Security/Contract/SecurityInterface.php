@@ -39,6 +39,12 @@ interface SecurityInterface
 
     public function getLogoutPath(?string $firewall = null): ?string;
 
+    public function getRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): array;
+
+    public function revokeRememberMeToken(string $series, ?UserInterface $user = null, ?string $firewall = null): bool;
+
+    public function revokeAllRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): int;
+
     public function getLastAuthenticationError(bool $clear = true): ?string;
 
     public function getLastUsername(): string;

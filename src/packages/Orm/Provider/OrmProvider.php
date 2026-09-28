@@ -27,6 +27,8 @@ class OrmProvider extends AbstractProvider
 
     public const CONFIG_ID = 'orm.config';
 
+    public const FRAMEWORK_TABLES = ['cache_items', 'remember_me_tokens'];
+
     public function register(ContainerInterface $container): void
     {
         $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
@@ -61,7 +63,7 @@ class OrmProvider extends AbstractProvider
         $container->singleton(SchemaTool::class, static function (ContainerInterface $container): SchemaTool {
             $config = $container->get(self::CONFIG_ID);
 
-            return new SchemaTool($container->get(OrmInterface::class), [$config['migration']['table'], ...$config['ignore_tables']]);
+            return new SchemaTool($container->get(OrmInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables']]);
         });
 
         $container->singleton(EntityMaker::class, static function (ContainerInterface $container): EntityMaker {

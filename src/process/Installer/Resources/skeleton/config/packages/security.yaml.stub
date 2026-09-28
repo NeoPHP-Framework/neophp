@@ -37,6 +37,8 @@ firewalls:
         remember_me:
             # "Remember me" checkbox (_remember_me): 604800 s = 7 days
             lifetime: 604800
+            # database = one token per device in the remember_me_tokens table (revocable), signature = cookie only
+            storage: database
         login_throttling:
             # Attempts per IP + identifier during interval seconds (5 x more per IP)
             max_attempts: 5

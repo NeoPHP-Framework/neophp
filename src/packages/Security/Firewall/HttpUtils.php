@@ -33,9 +33,14 @@ class HttpUtils
 
     public function getBasePath(): string
     {
+        return $this->getRequest()?->getBasePath() ?? '';
+    }
+
+    public function getRequest(): ?Request
+    {
         $request = $this->container->has(Request::class) ? $this->container->get(Request::class) : null;
 
-        return $request instanceof Request ? $request->getBasePath() : '';
+        return $request instanceof Request ? $request : null;
     }
 
     public function checkRequestPath(Request $request, string $path): bool
