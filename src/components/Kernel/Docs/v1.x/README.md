@@ -10,6 +10,7 @@ It also dispatches the kernel events and ships shared tools used by other featur
 - [Providers](#providers)
 - [Parameters](#parameters)
 - [Kernel events](#kernel-events)
+- [The app variable](#the-app-variable)
 - [Class discovery](#class-discovery)
 - [Resource cache](#resource-cache)
 - [Clearing the cache](#clearing-the-cache)
@@ -190,6 +191,38 @@ class MaintenanceListener
 
 The framework uses them too: the queued cookies are added and the session is saved by listeners of `ResponseEvent`.
 
+## The app variable
+
+Every template receives the global `app` variable (`NeoPHP\Component\Kernel\AppVariable`). Each value is read when the template uses it:
+
+| Twig | PHP template | Value |
+|---|---|---|
+| `app.name` | `$app->getName()` | `framework.app.name` (`APP_NAME`) |
+| `app.environment` | `$app->getEnvironment()` | kernel environment (`dev`, `prod`...) |
+| `app.debug` | `$app->getDebug()` | debug mode |
+| `app.request` | `$app->getRequest()` | current `Request`, `null` outside of an HTTP request |
+| `app.session` | `$app->getSession()` | `SessionInterface`, `null` without the Session component |
+| `app.user` | `$app->getUser()` | logged in user, `null` when anonymous or without the Security package |
+| `app.flashes` / `app.flashes('success')` | `$app->getFlashes()` | flash messages (read and removed, like `flashes()`) |
+| `app.locale` | `$app->getLocale()` | current locale (`en` without the Translation package) |
+| `app.current_route` | `$app->getCurrentRoute()` | name of the matched route, `null` when none |
+| `app.current_route_parameters` | `$app->getCurrentRouteParameters()` | route parameters (without `_route` / `_controller`) |
+
+```twig
+<title>{{ app.name }}</title>
+
+<a href="{{ path('home') }}" {% if app.current_route == 'home' %}aria-current="page"{% endif %}>Home</a>
+
+{% if app.user %}
+    {{ app.user.userIdentifier }}
+{% endif %}
+
+{{ app.request.query.get('q') }}
+{{ app.request.attributes.get('_route') }}
+```
+
+`app.current_route` and `app.currentRoute` are equivalent.
+
 ## Class discovery
 
 `NeoPHP\Component\Kernel\Discovery\ClassFinder` finds the classes declared in a directory (scanned recursively) or a PHP file, without loading them. It is used to discover attribute routes, middlewares, commands, listeners...
@@ -246,6 +279,7 @@ php bin/neo cc --env=prod -v
 
 ## Changelog
 
+- v1.32.0 — global `app` template variable (`AppVariable`): request, session, user, flashes, locale, environment, debug, current route and its parameters.
 - v1.9.1 — `ClassFinder` and `ResourceCache` shared with the other features (routing uses them).
 - v1.9.0 — Kernel events `RequestEvent`, `ControllerEvent`, `ResponseEvent`, `ExceptionEvent`, `TerminateEvent`, replacing `TerminableInterface`.
 - v1.5.0 — `cache:clear` command.
