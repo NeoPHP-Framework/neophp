@@ -13,8 +13,13 @@ class RequestGuard
 
     public const PERIOD = 43200;
 
-    public function __construct(protected string $secretFile)
+    public function __construct(protected string $secretFile, protected array $allowedIps = [])
     {
+    }
+
+    public function isAllowedIp(Request $request): bool
+    {
+        return $request->isClientIpIn($this->allowedIps);
     }
 
     public function token(?int $time = null): string
@@ -62,6 +67,10 @@ class RequestGuard
 
     public function check(Request $request): void
     {
+        if (!$this->isAllowedIp($request)) {
+            throw new SecurityException('The IP "{ip}" is not allowed on the AI endpoint (web.allowed_ips of config/packages/neo_ai.yaml).', 403, null, ['ip' => (string) $request->getClientIp()]);
+        }
+
         if (!$this->isSameOrigin($request)) {
             throw new SecurityException('Cross-origin requests are not allowed on the AI endpoint.', 403);
         }

@@ -45,7 +45,7 @@ class ProfilerListener
     {
         $profiler = $this->profiler();
 
-        if ($profiler === null) {
+        if ($profiler === null || !$profiler->isAllowed($event->getRequest())) {
             return;
         }
 
@@ -113,7 +113,7 @@ class ProfilerListener
         $response = $event->getResponse();
         $profiler->getStopwatch()->stop('kernel.response');
 
-        if ($profiler->isExcluded($request)) {
+        if (!$profiler->isAllowed($request) || $profiler->isExcluded($request)) {
             return;
         }
 

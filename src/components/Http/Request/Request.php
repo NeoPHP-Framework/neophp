@@ -13,6 +13,8 @@ class Request
 {
     public const METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'TRACE', 'CONNECT'];
 
+    public const LOCAL_NETWORKS = ['127.0.0.0/8', '::1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7', 'fe80::/10'];
+
     public ParameterBag $query;
 
     public ParameterBag $request;
@@ -182,6 +184,27 @@ class Request
         $mask = (0xFF << (8 - $remainder)) & 0xFF;
 
         return (ord($ipBinary[$bytes]) & $mask) === (ord($subnetBinary[$bytes]) & $mask);
+    }
+
+    public function isClientIpIn(array $ranges): bool
+    {
+        if ($ranges === []) {
+            return true;
+        }
+
+        $ip = $this->getClientIp();
+
+        if ($ip === null) {
+            return false;
+        }
+
+        foreach ($ranges as $range) {
+            if (self::ipMatches($ip, (string) $range)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function isFromTrustedProxy(): bool

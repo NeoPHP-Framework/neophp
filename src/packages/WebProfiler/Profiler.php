@@ -33,6 +33,7 @@ class Profiler
         'panels' => [],
         'block_renderers' => [],
         'ajax_limit' => 50,
+        'allowed_ips' => Request::LOCAL_NETWORKS,
     ];
 
     public const DATA_DEPTH = 12;
@@ -110,6 +111,11 @@ class Profiler
     public function getToolbarUrl(string $token): string
     {
         return $this->getToolbarPath() . '/' . rawurlencode($token);
+    }
+
+    public function isAllowed(Request $request): bool
+    {
+        return $request->isClientIpIn(array_values((array) $this->config['allowed_ips']));
     }
 
     public function isExcluded(Request $request): bool

@@ -109,6 +109,7 @@ web:
   path: /_neo_ai
   max_request_bytes: 200000
   max_message_chars: 8000
+  allowed_ips: ~
 ````
 
 | Key | Default | Description |
@@ -129,6 +130,7 @@ web:
 | `redact_patterns` | `[]` | extra regular expressions replaced by `[REDACTED]` |
 | `web.enabled` | `true` | toolbar item, panel and `/_neo_ai` endpoint |
 | `web.path` | `/_neo_ai` | prefix of the endpoint |
+| `web.allowed_ips` | `~` (local and private networks) | IPs / CIDR ranges allowed on `/_neo_ai/chat` (list or comma separated string); `~` = `Request::LOCAL_NETWORKS`, `[]` = any client |
 | `storage` | `var/ai` | conversations, reports, backups and the web secret |
 
 Connection options:
@@ -322,7 +324,7 @@ The sandbox restricts every path to the project root: absolute paths outside the
 - Everything sent to a provider is redacted first: the values of the environment variables whose name contains `PASSWORD`, `SECRET`, `KEY`, `TOKEN`, `AUTH`, `DSN`, `DATABASE_URL` (and the password of every `scheme://user:password@` URL), the configured API keys, well-known key formats (OpenAI, Anthropic, Google, Groq, GitHub, Slack, AWS, Stripe, JWT, private key blocks), `KEY=value` lines, YAML `password: value` entries, quoted `'secret' => '...'` literals and `redact_patterns`. `%env(...)%` references are kept.
 - The provider, the model and whether the server is local or remote are shown in the console, in the toolbar popover, in the chat window and in the panel.
 - `allow_remote: false` refuses every connection whose server is not local.
-- `/_neo_ai/chat` requires `POST`, a JSON body smaller than `web.max_request_bytes`, the same origin (`Sec-Fetch-Site`, `Origin` or `Referer`) and the `X-Neo-AI-Token` header: an HMAC of a random secret stored in `var/ai/secret`, rotated every 12 hours and embedded in the toolbar and the panel.
+- `/_neo_ai/chat` requires `POST`, a client IP in `web.allowed_ips` (local and private networks by default), a JSON body smaller than `web.max_request_bytes`, the same origin (`Sec-Fetch-Site`, `Origin` or `Referer`) and the `X-Neo-AI-Token` header: an HMAC of a random secret stored in `var/ai/secret`, rotated every 12 hours and embedded in the toolbar and the panel.
 - Error messages returned to the browser are redacted.
 - `var/ai` contains conversations and backups: keep `var/` out of version control.
 
@@ -419,4 +421,5 @@ All exceptions extend `NeoPHP\Package\NeoAI\Exception\NeoAiException` (a `Framew
 
 ## Changelog
 
+- v1.29.1 (bugfix) — `web.allowed_ips` (local and private networks by default) checked by `RequestGuard` on the chat endpoint.
 - v1.26.0 — NeoAI package: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers through HttpClient with named connections, retries and typed errors; portable `neo-tool` loop (`list_files`, `read_file`, `search`, `project_info`, `profile`, `propose_patch`) in a sandbox with excluded paths and secret redaction; `ai:start` chat with patch review (hash check and backups), `ai:scan` batched audit with Markdown report and `--fail-on`, `ai:test`; AI toolbar item with floating chat and page context, AI profiler panel, `POST /_neo_ai/chat` protected by origin and token checks; `FakeProvider` for tests.
