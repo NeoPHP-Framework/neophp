@@ -255,6 +255,8 @@ Repositories are services: inject them in controllers and services (`public func
 | `save($entity, $flush = false)` / `delete($entity, $flush = false)` | `persist()` / `remove()`, then `flush()` if asked |
 | `getEntityClass()`, `getOrm()`, `getMetadata()` | the entity class, the ORM, its metadata |
 
+The keys of `$criteria` and `$orderBy` must be fields or associations of the entity, otherwise an `OrmException` is thrown: a sort column coming from the URL can be passed safely (`findBy([], [$request->query->getString('sort', 'id') => 'ASC'])`), catch the exception to fall back on a default order. The direction is always `ASC` or `DESC`.
+
 ## Query builder
 
 The entity query builder uses properties (`p.publishedAt`) and relations (`p.category`); it translates them to columns and joins:
@@ -533,6 +535,9 @@ When the Web Profiler is enabled, the `Helper/Profiler/OrmProfiler` element adds
 
 ## Changelog
 
+## Changelog
+
+- v1.29.1 (bugfix) — `findBy()`, `findOneBy()`, `count()` and `findAll()` refuse the criteria and order keys that are not fields or associations of the entity (SQL injection through a user-controlled key).
 - v1.25.1 — profiler integration: `UnitOfWork::getStatistics()` (managed entities, flushes, initialized proxies) and ORM panel of the Web Profiler.
 - v1.17.0 — `make:entity` wizard (fields asked one by one, guessed types, relations with their inverse side written in the target entity, completion of existing entities, checks before writing), sub-namespace repositories; `make:*` commands ask for their values. Bugfix: `make:migration` asks the optional description only when there are changes.
 - v1.15.0 — ORM commands rewritten as `AbstractConsole` commands.
