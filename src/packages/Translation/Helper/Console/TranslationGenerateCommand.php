@@ -156,7 +156,7 @@ class TranslationGenerateCommand extends AbstractConsole
     {
         $path = $this->translator->getPath();
 
-        foreach ($this->translator->getResources($locale, false) as $resource) {
+        foreach ($this->translator->getResources($locale) as $resource) {
             if ($resource['domain'] === $domain && dirname($resource['file']) === $path) {
                 return [$resource['file'], $resource['format'], true];
             }

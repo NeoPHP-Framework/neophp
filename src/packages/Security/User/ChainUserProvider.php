@@ -59,7 +59,7 @@ class ChainUserProvider implements UserProviderInterface, PasswordUpgraderInterf
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $hashedPassword): void
     {
         foreach ($this->providers as $provider) {
-            if ($provider instanceof PasswordUpgraderInterface && $provider->supportsClass(UserClass::of($user))) {
+            if ($provider instanceof UserProviderInterface && $provider instanceof PasswordUpgraderInterface && $provider->supportsClass(UserClass::of($user))) {
                 $provider->upgradePassword($user, $hashedPassword);
 
                 return;

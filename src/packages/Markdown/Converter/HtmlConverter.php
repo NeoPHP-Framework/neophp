@@ -36,7 +36,7 @@ class HtmlConverter
         $markdown = (string) preg_replace('/[ \t]+$/m', '', $markdown);
         $markdown = (string) preg_replace('/\n{3,}/', "\n\n", $markdown);
         $markdown = str_replace(self::BREAK, '  ', $markdown);
-        $markdown = (string) preg_replace_callback('/\x{E001}(\d+)\x{E001}/u', fn (array $matches): string => $this->codeBlocks[(int) $matches[1]], $markdown);
+        $markdown = (string) preg_replace_callback('/\x{E001}(\d+)\x{E001}/u', fn (array $matches): string => $this->codeBlocks[(int) $matches[1]] ?? '', $markdown);
         $markdown = trim($markdown, "\n");
 
         return $markdown === '' ? '' : $markdown . "\n";

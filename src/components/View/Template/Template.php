@@ -30,9 +30,10 @@ class Template
         ob_start();
 
         try {
-            (function (): void {
-                extract(array_diff_key(func_get_arg(1), ['this' => true]), EXTR_SKIP);
-                include func_get_arg(0);
+            (function (string $__template, array $__parameters): void {
+                extract(array_diff_key($__parameters, ['this' => true, '__template' => true, '__parameters' => true]), EXTR_SKIP);
+                unset($__parameters);
+                include $__template;
             })->call($this, $file, $parameters);
 
             if ($this->openSections !== []) {
