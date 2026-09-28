@@ -156,7 +156,7 @@ abstract class AbstractSession implements SessionInterface
         $savePath = $this->options['save_path'];
 
         if ($savePath !== null && $savePath !== '') {
-            if (!is_dir($savePath) && !mkdir($savePath, 0777, true) && !is_dir($savePath)) {
+            if (!is_dir($savePath) && !mkdir($savePath, 0700, true) && !is_dir($savePath)) {
                 throw new SessionException('Unable to create the session directory "{directory}".', 0, null, ['directory' => $savePath]);
             }
 

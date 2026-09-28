@@ -423,6 +423,6 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Changelog
 
-- v1.29.1 (bugfix) — `allowed_ips` (local and private networks by default): the toolbar and the profiles are only served to these clients, `Profiler::isAllowed()`.
+- v1.30.0 — `allowed_ips` (local and private networks by default): the toolbar and the profiles are only served to these clients, `Profiler::isAllowed()`.
 - v1.26.0 — `ToolbarAssetInterface`: an element can add CSS and JavaScript to the toolbar (executed after the Ajax load), `Profiler::getToolbarAssets()`, `window.__neoWdt.config`.
 - v1.25.0 — WebProfiler package: profiler and web debug toolbar structure, `ProfilerElementInterface` / `ToolbarInterface` / `ProfilerInterface` elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]` in the application (cached), `ToolbarItem` and `Panel` value objects, blocks (`Table`, `KeyValue`, `Metric`, `Timeline`, `Code`, `Alert`, `Text`, `Section`, `Tabs`, `Html`) with an extensible `BlockRenderer`, `FileProfileStorage`, `Stopwatch`, `X-Debug-Token` headers, Ajax requests tracking, `/_profiler` and `/_wdt` routes, `profiler:list` and `profiler:clear` commands, built-in Request, Exception, Performance and Config elements.

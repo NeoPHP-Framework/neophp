@@ -150,5 +150,5 @@ max_tokens: 200
 
 ## Changelog
 
-- v1.29.1 (bugfix) — `max_tokens` (200 by default): the least recently used tokens are removed from the session.
+- v1.30.0 — `max_tokens` (200 by default): the least recently used tokens are removed from the session.
 - v1.12.0 — Csrf component: tokens in the session, automatic token in forms, `csrf_token()` / `csrf_field()` helpers, `getCsrfToken()` / `isCsrfTokenValid()` in controllers, `#[Csrf]` attribute.

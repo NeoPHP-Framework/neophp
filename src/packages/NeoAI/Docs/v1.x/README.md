@@ -77,10 +77,10 @@ connections:
     max_tokens: 4096
     timeout: 120
     retries: 2
-    anthropic:
-        provider: anthropic
-        model: claude-sonnet-5
-        api_key: '%env(ANTHROPIC_API_KEY)%'
+  anthropic:
+      provider: anthropic
+      model: claude-sonnet-5
+      api_key: '%env(ANTHROPIC_API_KEY)%'
   local:
     provider: ollama
     model: qwen2.5-coder:7b
@@ -425,6 +425,6 @@ All exceptions extend `NeoPHP\Package\NeoAI\Exception\NeoAiException` (a `Framew
 
 ## Changelog
 
-- v1.29.1 (bugfix) — `ai:test` sends 512 tokens (reasoning models answered empty with 16) and fails on an empty answer; error messages show the configured provider (`mistral`, `groq`...) instead of `openai`; Ollama `context_window` (`num_ctx`) and `keep_alive` options; default models updated (`gpt-5.4-mini`, `claude-sonnet-5`, `gemini-3.8-flash`).
+- v1.30.0 — `ai:test` sends 512 tokens (reasoning models answered empty with 16) and fails on an empty answer; error messages show the configured provider (`mistral`, `groq`...) instead of `openai`; Ollama `context_window` (`num_ctx`) and `keep_alive` options; default models updated (`gpt-5.4-mini`, `claude-sonnet-5`, `gemini-3.8-flash`).
 - v1.29.1 (bugfix) — `web.allowed_ips` (local and private networks by default) checked by `RequestGuard` on the chat endpoint.
 - v1.26.0 — NeoAI package: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers through HttpClient with named connections, retries and typed errors; portable `neo-tool` loop (`list_files`, `read_file`, `search`, `project_info`, `profile`, `propose_patch`) in a sandbox with excluded paths and secret redaction; `ai:start` chat with patch review (hash check and backups), `ai:scan` batched audit with Markdown report and `--fail-on`, `ai:test`; AI toolbar item with floating chat and page context, AI profiler panel, `POST /_neo_ai/chat` protected by origin and token checks; `FakeProvider` for tests.
