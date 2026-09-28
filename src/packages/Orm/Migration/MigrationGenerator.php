@@ -24,7 +24,7 @@ class MigrationGenerator
         $class = AbstractMigration::PREFIX . $version;
         $file = rtrim($this->directory, '/\\') . DIRECTORY_SEPARATOR . $class . '.php';
 
-        if (!is_dir($this->directory) && !mkdir($this->directory, 0777, true) && !is_dir($this->directory)) {
+        if (!is_dir($this->directory) && !mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
             throw new MigrationException('Unable to create the migrations directory "{directory}".', 0, null, ['directory' => $this->directory]);
         }
 

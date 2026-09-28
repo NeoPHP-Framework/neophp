@@ -64,7 +64,7 @@ class ResourceCache
     {
         $directory = dirname($this->file);
 
-        if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
             throw new KernelException('Unable to create the cache directory "{directory}".', 0, null, ['directory' => $directory]);
         }
 

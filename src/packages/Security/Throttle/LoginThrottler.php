@@ -69,7 +69,7 @@ class LoginThrottler
 
     protected function update(string $key, callable $callback): void
     {
-        if (!is_dir($this->directory) && !@mkdir($this->directory, 0777, true) && !is_dir($this->directory)) {
+        if (!is_dir($this->directory) && !@mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
             throw new SecurityException('Unable to create the login throttling directory "{directory}".', 0, null, ['directory' => $this->directory]);
         }
 
