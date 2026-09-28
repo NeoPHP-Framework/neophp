@@ -20,11 +20,27 @@ class HttpUtils
 
     public function generateUrl(string $path, array $parameters = []): string
     {
-        if ($path === '' || str_starts_with($path, '/') || preg_match('#^[a-z][a-z0-9+.-]*://#i', $path) === 1) {
-            return $path === '' ? '/' : $path;
+        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $path) === 1) {
+            return $path;
+        }
+
+        if ($path === '' || str_starts_with($path, '/')) {
+            return $this->getBasePath() . ($path === '' ? '/' : $path);
         }
 
         return $this->container->get(RoutingInterface::class)->generate($path, $parameters);
+    }
+
+    public function getBasePath(): string
+    {
+        return $this->getRequest()?->getBasePath() ?? '';
+    }
+
+    public function getRequest(): ?Request
+    {
+        $request = $this->container->has(Request::class) ? $this->container->get(Request::class) : null;
+
+        return $request instanceof Request ? $request : null;
     }
 
     public function checkRequestPath(Request $request, string $path): bool
@@ -32,7 +48,7 @@ class HttpUtils
         $url = $this->generateUrl($path);
         $target = (string) (parse_url($url, PHP_URL_PATH) ?? '/');
 
-        return Route::normalizePath(rawurldecode($request->getPath())) === Route::normalizePath($target);
+        return Route::normalizePath(rawurldecode($request->getBasePath() . $request->getPath())) === Route::normalizePath($target);
     }
 
     public function createRedirectResponse(string $path, int $status = 302): RedirectResponse
@@ -59,7 +75,7 @@ class HttpUtils
     {
         $query = $request->getQueryString();
 
-        return $request->getPath() . ($query !== null && $query !== '' ? '?' . $query : '');
+        return $request->getBasePath() . $request->getPath() . ($query !== null && $query !== '' ? '?' . $query : '');
     }
 
     public function getSession(): SessionInterface

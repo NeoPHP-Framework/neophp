@@ -12,6 +12,7 @@ It is enabled when `config/packages/security.yaml` defines at least one firewall
 - [Firewalls](#firewalls)
 - [Login form](#login-form)
 - [Logout](#logout)
+- [Remember me](#remember-me)
 - [Access tokens](#access-tokens)
 - [Custom authenticators](#custom-authenticators)
 - [Tokens](#tokens)
@@ -207,7 +208,7 @@ The first firewall whose `pattern` (regular expression, plus optional `host`, `m
 | `http_basic` | `{ realm: 'Secured Area' }` |
 | `access_token` | see [Access tokens](#access-tokens) |
 | `custom_authenticators` | list of classes implementing `AuthenticatorInterface` |
-| `remember_me` | `{ lifetime: 604800, name: REMEMBERME, parameter: _remember_me, always: false, path: /, domain: ~, secure: auto, samesite: Lax }`: `parameter` is the checkbox of the login form, `always` sets the cookie on every login |
+| `remember_me` | `{ lifetime: 604800, name: REMEMBERME, parameter: _remember_me, always: false, path: /, domain: ~, secure: auto, samesite: Lax }`: `parameter` is the checkbox of the login form, `always` sets the cookie on every login; `storage: database` makes the cookies revocable per device, see [Remember me](#remember-me) |
 | `login_throttling` | `{ max_attempts: 5, interval: 60 }`: attempts per IP + identifier (and 5 × more per IP) during `interval` seconds, stored in `var/cache/security/throttling/` (empty files deleted, expired files removed by `LoginThrottler::gc()`, called on 1% of the attempts); the IP is `Request::getClientIp()`: behind a reverse proxy, set `trusted_proxies` (see the Http documentation) or every visitor shares the IP of the proxy |
 | `logout` | see [Logout](#logout) |
 | `user_checker` | class implementing `UserCheckerInterface` |
@@ -288,9 +289,67 @@ logout:
   csrf_parameter: _csrf_token
   csrf_token_id: logout
   clear_cookies: []
+  methods: [GET, POST]
 ```
 
 The request on `path` is handled by the firewall (the route needs no code). `logout_path()` in views returns the URL, with the CSRF token when enabled.
+
+`methods` lists the accepted HTTP methods (any other one gets a 405 error). The generated `security.yaml` uses `enable_csrf: true` and `methods: [POST]`: a link or an image of another website cannot log the user out. Use a form instead of a link, `logout_form()` renders it:
+
+```twig
+{{ logout_form('Logout') }}
+{{ logout_form('Déconnexion', 'btn btn-link') }}   {# label, CSS class of the button, firewall #}
+```
+
+```html
+<form method="post" action="/logout?_csrf_token=..." style="display:inline"><button type="submit">Logout</button></form>
+```
+
+## Remember me
+
+```yaml
+remember_me:
+  lifetime: 604800
+  storage: database      # signature (default) or database
+  connection: ~          # database connection (database.yaml), ~ = default
+  table: remember_me_tokens
+```
+
+| `storage` | Cookie | Revocation |
+|---|---|---|
+| `signature` (default) | identifier, expiration and HMAC signature (`APP_SECRET` + password hash) | all the devices at once, by changing the password or `APP_SECRET` |
+| `database` | random series + secret; only the SHA-256 hash of the secret is stored in `remember_me_tokens` (created automatically, ignored by `make:migration`) | per device, at logout, or all the devices; a password change also invalidates them |
+
+`storage` can also be the class of a service implementing `NeoPHP\Package\Security\RememberMe\TokenProviderInterface` (Redis, API...).
+
+With `storage: database`, a "connected devices" page:
+
+```php
+#[Route('/account/devices', name: 'account_devices')]
+public function devices(SecurityInterface $security): Response
+{
+    // [['series' => ..., 'created_at' => ..., 'last_used_at' => ..., 'expires_at' => ..., 'user_agent' => ..., 'ip' => ..., 'current' => bool], ...]
+    return $this->render('account/devices.html.twig', ['devices' => $security->getRememberMeTokens()]);
+}
+
+#[Route('/account/devices/{series}/revoke', name: 'account_device_revoke', methods: ['POST'])]
+public function revoke(string $series, Request $request, SecurityInterface $security): Response
+{
+    if ($this->isCsrfTokenValid('revoke-device', $request->request->getString('_token'))) {
+        $security->revokeRememberMeToken($series);        // only a device of the current user
+    }
+
+    return $this->redirectToRoute('account_devices');
+}
+```
+
+| Method of `SecurityInterface` | Description |
+|---|---|
+| `getRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): array` | devices of the user (current user by default), `current` marks this browser |
+| `revokeRememberMeToken(string $series, ?UserInterface $user = null, ?string $firewall = null): bool` | removes one device of the user, `false` when it does not belong to them |
+| `revokeAllRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): int` | removes every device of the user (after a password reset, "log out everywhere") |
+
+The logout removes the device of the current browser. Switching from `signature` to `database` invalidates the existing cookies once (the users log in again).
 
 ## Access tokens
 
@@ -518,13 +577,14 @@ A voter can also implement `VoterInterface` directly: `vote(TokenInterface $toke
 | `getLastAuthenticationError($clear = true)` | `last_authentication_error($clear = true)` | last login error message |
 | `loginUser($user, $firewall = null, $rememberMe = false)` | | logs a user in (after a registration...) |
 | `logoutUser()` | `logout_path($firewall = null)` | logs out and returns the redirection / URL of the logout (with the CSRF token when enabled, `null` without `logout`) |
+| | `logout_form($label = 'Logout', $class = '', $firewall = null)` | a POST form with a button to the logout (safe HTML, empty without `logout`) |
 
 ```twig
 {% if is_granted('ROLE_ADMIN') %}
     <a href="/admin">Admin</a>
 {% endif %}
 {% if app_user() %}
-    {{ app_user().userIdentifier }} <a href="{{ logout_path() }}">Logout</a>
+    {{ app_user().userIdentifier }} {{ logout_form('Logout') }}
 {% endif %}
 ```
 
@@ -600,6 +660,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v1.31.0 — remember-me `storage: database` (`DatabaseTokenProvider`, `TokenProviderInterface`, revocation per device with `getRememberMeTokens()`, `revokeRememberMeToken()`, `revokeAllRememberMeTokens()`); the redirections (login, logout, target path) contain the sub-directory of the application; logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.
 - v1.30.0 — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
 - v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).

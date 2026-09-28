@@ -119,7 +119,7 @@ class NeoAiProfiler extends AbstractProfiler implements ToolbarInterface, Profil
         return [
             'mode' => $mode,
             'item' => $this->getName(),
-            'endpoint' => $manager->getWebPath() . '/chat',
+            'endpoint' => ($this->container->has(Request::class) ? $this->container->get(Request::class)->getBasePath() : '') . $manager->getWebPath() . '/chat',
             'header' => RequestGuard::HEADER,
             'token' => $manager->guard()->token(),
             'profileToken' => $profile->getToken(),

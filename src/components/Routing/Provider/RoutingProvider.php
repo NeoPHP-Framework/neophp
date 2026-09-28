@@ -35,6 +35,7 @@ class RoutingProvider extends AbstractProvider
             $yaml = $container->get(YamlInterface::class);
             $routing = new RoutingManager($yaml, null, $resolver);
             $routing->setBaseUrl(static fn (): ?string => self::baseUrl($container));
+            $routing->setBasePath(static fn (): string => self::basePath($container));
             $file = self::routesFile($container);
 
             if ($file === null) {
@@ -72,6 +73,13 @@ class RoutingProvider extends AbstractProvider
         });
 
         $container->alias(RoutingManager::class, RoutingInterface::class);
+    }
+
+    protected static function basePath(ContainerInterface $container): string
+    {
+        $request = $container->has(Request::class) ? $container->get(Request::class) : null;
+
+        return $request instanceof Request ? $request->getBasePath() : '';
     }
 
     protected static function baseUrl(ContainerInterface $container): ?string

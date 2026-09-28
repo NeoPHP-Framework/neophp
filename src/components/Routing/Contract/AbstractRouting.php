@@ -19,6 +19,8 @@ abstract class AbstractRouting implements RoutingInterface
 
     protected Closure|string|null $baseUrl = null;
 
+    protected Closure|string|null $basePath = null;
+
     public function __construct(?RouteCollection $routes = null)
     {
         $this->routes = $routes ?? new RouteCollection();
@@ -62,9 +64,24 @@ abstract class AbstractRouting implements RoutingInterface
             throw new RouteNotDefinedException(sprintf('Route "%s" does not exist.', $name));
         }
 
-        $path = $route->generate($parameters);
+        $path = $this->getBasePath() . $route->generate($parameters);
 
         return $absolute ? $this->getBaseUrl() . $path : $path;
+    }
+
+    public function setBasePath(Closure|string|null $basePath): static
+    {
+        $this->basePath = $basePath;
+
+        return $this;
+    }
+
+    public function getBasePath(): string
+    {
+        $basePath = $this->basePath instanceof Closure ? ($this->basePath)() : $this->basePath;
+        $basePath = rtrim(trim((string) $basePath), '/');
+
+        return $basePath === '' ? '' : '/' . ltrim($basePath, '/');
     }
 
     public function setBaseUrl(Closure|string|null $baseUrl): static

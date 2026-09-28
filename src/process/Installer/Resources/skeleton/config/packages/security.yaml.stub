@@ -30,11 +30,15 @@ firewalls:
             path: /logout
             # Page displayed after the logout
             target: /
-            # Protects the logout link against CSRF: use {{ logout_path() }} which adds the token
-            # enable_csrf: true
+            # A CSRF token is required and only POST is accepted: another site cannot log your users out.
+            # In the templates: {{ logout_form('Logout') }} (a small form with a button)
+            enable_csrf: true
+            methods: [POST]
         remember_me:
             # "Remember me" checkbox (_remember_me): 604800 s = 7 days
             lifetime: 604800
+            # database = one token per device in the remember_me_tokens table (revocable), signature = cookie only
+            storage: database
         login_throttling:
             # Attempts per IP + identifier during interval seconds (5 x more per IP)
             max_attempts: 5

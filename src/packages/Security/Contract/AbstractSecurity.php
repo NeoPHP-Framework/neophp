@@ -8,6 +8,7 @@ use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Csrf\Contract\CsrfInterface;
 use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
 use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
+use NeoPHP\Component\Http\Exception\HttpException;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
@@ -24,6 +25,7 @@ use NeoPHP\Package\Security\Firewall\Firewall;
 use NeoPHP\Package\Security\Firewall\FirewallFactory;
 use NeoPHP\Package\Security\Firewall\FirewallMap;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
+use NeoPHP\Package\Security\RememberMe\PersistentToken;
 use NeoPHP\Package\Security\Token\NullToken;
 use NeoPHP\Package\Security\Token\RememberMeToken;
 use NeoPHP\Package\Security\Token\SecurityToken;
@@ -213,6 +215,44 @@ abstract class AbstractSecurity implements SecurityInterface
         return $this->doLogout($request, $firewall, $firewall->getLogout() ?? FirewallFactory::LOGOUT_OPTIONS);
     }
 
+    public function getRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): array
+    {
+        [$handler, $user] = $this->rememberMeContext($user, $firewall);
+
+        if ($handler === null || $user === null) {
+            return [];
+        }
+
+        $request = $this->currentRequest();
+        $current = $request === null ? null : $handler->getSeries($request);
+
+        return array_map(
+            static fn (PersistentToken $token): array => $token->toArray() + ['current' => $token->series === $current],
+            $handler->getProvider()->findUserTokens(UserClass::of($user), $user->getUserIdentifier()),
+        );
+    }
+
+    public function revokeRememberMeToken(string $series, ?UserInterface $user = null, ?string $firewall = null): bool
+    {
+        [$handler, $user] = $this->rememberMeContext($user, $firewall);
+        $token = $handler?->getProvider()->loadToken($series);
+
+        if ($token === null || $user === null || $token->class !== UserClass::of($user) || $token->identifier !== $user->getUserIdentifier()) {
+            return false;
+        }
+
+        $handler->getProvider()->deleteToken($series);
+
+        return true;
+    }
+
+    public function revokeAllRememberMeTokens(?UserInterface $user = null, ?string $firewall = null): int
+    {
+        [$handler, $user] = $this->rememberMeContext($user, $firewall);
+
+        return $handler === null || $user === null ? 0 : $handler->getProvider()->deleteUserTokens(UserClass::of($user), $user->getUserIdentifier());
+    }
+
     public function getLogoutPath(?string $firewall = null): ?string
     {
         $name = $firewall ?? $this->firewall;
@@ -348,6 +388,12 @@ abstract class AbstractSecurity implements SecurityInterface
 
     protected function handleLogout(Request $request, Firewall $firewall, array $logout): Response
     {
+        $methods = array_map('strtoupper', array_map('strval', (array) $logout['methods']));
+
+        if ($methods !== [] && !in_array($request->getRealMethod(), $methods, true)) {
+            throw new HttpException(405, 'The logout only accepts the {methods} method(s).', ['Allow' => implode(', ', $methods)], ['methods' => implode(', ', $methods)]);
+        }
+
         if ($logout['enable_csrf']) {
             $token = $request->request->get((string) $logout['csrf_parameter']) ?? $request->query->get((string) $logout['csrf_parameter']);
 
@@ -410,6 +456,14 @@ abstract class AbstractSecurity implements SecurityInterface
         }
 
         return $event;
+    }
+
+    protected function rememberMeContext(?UserInterface $user, ?string $firewall): array
+    {
+        $name = $firewall ?? $this->firewall;
+        $handler = $name === null ? null : $this->factory->get($name)->getRememberMe();
+
+        return [$handler?->getProvider() === null ? null : $handler, $user ?? $this->getUser()];
     }
 
     protected function currentRequest(): ?Request

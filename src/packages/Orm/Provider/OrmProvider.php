@@ -7,8 +7,10 @@ namespace NeoPHP\Package\Orm\Provider;
 use NeoPHP\Component\Config\Contract\ConfigInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Database\Contract\DatabaseInterface;
 use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Package\Orm\ArgumentResolver\EntityValueResolver;
 use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Maker\EntityMaker;
 use NeoPHP\Package\Orm\Maker\RepositoryMaker;
@@ -24,6 +26,8 @@ class OrmProvider extends AbstractProvider
     public const CONFIG_KEY = 'packages.orm';
 
     public const CONFIG_ID = 'orm.config';
+
+    public const FRAMEWORK_TABLES = ['cache_items', 'remember_me_tokens'];
 
     public function register(ContainerInterface $container): void
     {
@@ -59,7 +63,7 @@ class OrmProvider extends AbstractProvider
         $container->singleton(SchemaTool::class, static function (ContainerInterface $container): SchemaTool {
             $config = $container->get(self::CONFIG_ID);
 
-            return new SchemaTool($container->get(OrmInterface::class), [$config['migration']['table'], ...$config['ignore_tables']]);
+            return new SchemaTool($container->get(OrmInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables']]);
         });
 
         $container->singleton(EntityMaker::class, static function (ContainerInterface $container): EntityMaker {
@@ -76,6 +80,10 @@ class OrmProvider extends AbstractProvider
 
         $container->alias(OrmManager::class, OrmInterface::class);
         $container->alias('orm', OrmInterface::class);
+
+        $container->singleton(EntityValueResolver::class, static fn (ContainerInterface $container): EntityValueResolver => new EntityValueResolver($container));
+        $resolvers = $container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $container->get(ArgumentResolverInterface::SERVICES_ID) : [];
+        $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, EntityValueResolver::class]);
     }
 
     public static function configure(ContainerInterface $container): array
