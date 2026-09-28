@@ -12,6 +12,7 @@ It ships repositories, query builders, lifecycle events, code generators and mig
 - [Persisting](#persisting)
 - [Repositories](#repositories)
 - [Query builder](#query-builder)
+- [Entities in controllers](#entities-in-controllers)
 - [Lifecycle callbacks and events](#lifecycle-callbacks-and-events)
 - [Forms](#forms)
 - [Generating code](#generating-code)
@@ -317,6 +318,57 @@ $orm->createSqlQueryBuilder()->update('post')->set('views', 'views + 1')->where(
 | `fetchAllAssociative()`, `fetchAssociative()`, `fetchOne()`, `fetchFirstColumn()` | fetch helpers |
 | `getSQL()` / `__toString()`, `getType()`, `getConnection()` | inspection |
 
+## Entities in controllers
+
+An argument typed with an entity is loaded from the route parameters; a 404 error is thrown when it does not exist (`null` is passed instead when the argument is nullable):
+
+```php
+#[Route('/post/{id}', name: 'post_show')]
+public function show(Post $post): Response                     // find({id})
+
+#[Route('/post/{slug}', name: 'post_by_slug')]
+public function bySlug(Post $post): Response                   // findOneBy(['slug' => {slug}])
+
+#[Route('/user/{user}/post/{post}')]
+public function userPost(User $user, Post $post): Response     // find({user}), find({post})
+
+#[Route('/post/{id}/edit')]
+public function edit(?Post $post): Response                    // null when not found
+```
+
+The route parameters are read in this order:
+
+1. `#[MapEntity]` of the argument;
+2. the parameter named like the argument (`{post}`), or `{post_id}` / `{postId}`: the identifier;
+3. `{id}`: the identifier, only when the action has a single entity argument;
+4. the other route parameters that are fields of the entity (`{slug}`, `{email}`...): `findOneBy()`.
+
+When the route gives none of them, the argument is resolved as before (the container builds an empty entity): use `#[MapEntity]` or type the argument with `int $id`.
+
+```php
+use NeoPHP\Package\Orm\Attribute\MapEntity;
+
+#[Route('/blog/{category}/{slug}')]
+public function show(
+    #[MapEntity(mapping: ['category' => 'slug'])] Category $category,
+    #[MapEntity(mapping: ['slug' => 'slug', 'category' => 'category'], message: 'Article introuvable.')] Post $post,
+): Response
+
+#[Route('/comment/{comment_id}')]
+public function comment(#[MapEntity(id: 'comment_id')] Comment $comment): Response
+
+public function create(#[MapEntity(disabled: true)] Post $post): Response   // never converted
+```
+
+| `#[MapEntity]` option | Description |
+|---|---|
+| `id` | route parameter holding the identifier |
+| `mapping` | route parameter => field (or association) of the entity, searched with `findOneBy()` |
+| `disabled` | `true`: the argument is not converted |
+| `message` | message of the 404 error |
+
+The conversion is done by `NeoPHP\Package\Orm\ArgumentResolver\EntityValueResolver`, registered as a controller argument resolver.
+
 ## Lifecycle callbacks and events
 
 ```php
@@ -535,6 +587,7 @@ When the Web Profiler is enabled, the `Helper/Profiler/OrmProfiler` element adds
 
 ## Changelog
 
+- v1.31.0 — entities in controller arguments (`EntityValueResolver`, `#[MapEntity]`), 404 when not found.
 - v1.30.0 — `findBy()`, `findOneBy()`, `count()` and `findAll()` refuse the criteria and order keys that are not fields or associations of the entity (SQL injection through a user-controlled key).
 - v1.25.1 — profiler integration: `UnitOfWork::getStatistics()` (managed entities, flushes, initialized proxies) and ORM panel of the Web Profiler.
 - v1.17.0 — `make:entity` wizard (fields asked one by one, guessed types, relations with their inverse side written in the target entity, completion of existing entities, checks before writing), sub-namespace repositories; `make:*` commands ask for their values. Bugfix: `make:migration` asks the optional description only when there are changes.

@@ -178,9 +178,15 @@ public function index(PostRepository $posts): Response
 {
     return $this->render('post/index.html.twig', ['posts' => $posts->findBy([], ['id' => 'DESC'])]);
 }
+
+#[Route('/posts/{id}', name: 'post_show')]
+public function show(Post $post): Response
+{
+    return $this->render('post/show.html.twig', ['post' => $post]);
+}
 ```
 
-See the Database and ORM documentation.
+`Post $post` is loaded from `{id}` (or `{slug}`...), a 404 error is returned when it does not exist. See the Database and ORM documentation.
 
 ## Forms
 
