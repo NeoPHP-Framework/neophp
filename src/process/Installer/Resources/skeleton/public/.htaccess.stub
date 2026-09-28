@@ -1,5 +1,17 @@
 Options -MultiViews -Indexes
 
+<FilesMatch "\.(php[0-9]?|phtml|phar|pht|phps)$">
+    Require all denied
+</FilesMatch>
+<Files "index.php">
+    Require all granted
+</Files>
+
+# Hidden files (.env, .git, .htaccess...) are never served.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

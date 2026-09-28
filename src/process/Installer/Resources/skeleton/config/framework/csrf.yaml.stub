@@ -1,3 +1,9 @@
+# CSRF protection (key framework.csrf): {{ csrf_field('delete-post') }} / $this->isCsrfTokenValid('delete-post', $token)
+# Name of the form field
 field_name: _token
+# Name of the HTTP header (AJAX requests)
 header_name: X-CSRF-TOKEN
+# Session key holding the tokens
 session_key: _csrf
+# Tokens kept in the session (the least recently used are removed first)
+max_tokens: 200

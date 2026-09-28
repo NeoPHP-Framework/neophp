@@ -93,6 +93,7 @@ class WebProfilerProvider extends AbstractProvider
         $config['excluded_paths'] = array_values((array) $config['excluded_paths']);
         $config['panels'] = array_values((array) $config['panels']);
         $config['block_renderers'] = array_values((array) $config['block_renderers']);
+        $config['allowed_ips'] = is_string($config['allowed_ips']) ? array_values(array_filter(array_map('trim', explode(',', $config['allowed_ips'])))) : array_values((array) $config['allowed_ips']);
 
         return $config;
     }

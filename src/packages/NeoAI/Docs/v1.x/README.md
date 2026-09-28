@@ -77,10 +77,10 @@ connections:
     max_tokens: 4096
     timeout: 120
     retries: 2
-  anthropic:
-    provider: anthropic
-    model: claude-sonnet-4-5
-    api_key: '%env(ANTHROPIC_API_KEY)%'
+    anthropic:
+        provider: anthropic
+        model: claude-sonnet-5
+        api_key: '%env(ANTHROPIC_API_KEY)%'
   local:
     provider: ollama
     model: qwen2.5-coder:7b
@@ -109,6 +109,7 @@ web:
   path: /_neo_ai
   max_request_bytes: 200000
   max_message_chars: 8000
+  allowed_ips: ~
 ````
 
 | Key | Default | Description |
@@ -129,6 +130,7 @@ web:
 | `redact_patterns` | `[]` | extra regular expressions replaced by `[REDACTED]` |
 | `web.enabled` | `true` | toolbar item, panel and `/_neo_ai` endpoint |
 | `web.path` | `/_neo_ai` | prefix of the endpoint |
+| `web.allowed_ips` | `~` (local and private networks) | IPs / CIDR ranges allowed on `/_neo_ai/chat` (list or comma separated string); `~` = `Request::LOCAL_NETWORKS`, `[]` = any client |
 | `storage` | `var/ai` | conversations, reports, backups and the web secret |
 
 Connection options:
@@ -145,6 +147,8 @@ Connection options:
 | `retries` | `2` | retries on network errors, HTTP 429 and 5xx (exponential backoff) |
 | `retry_delay` | `1000` | first retry delay in milliseconds |
 | `headers` | `{}` | extra HTTP headers (e.g. `HTTP-Referer` for OpenRouter) |
+| `context_window` | model default | Ollama only: context size in tokens (`num_ctx`); Ollama truncates longer prompts to 2048 / 4096 tokens, `16384` is recommended for the assistant |
+| `keep_alive` | Ollama default (`5m`) | Ollama only: time the model stays loaded after a request (`30m`, `-1` = forever): avoids reloading it on CPU |
 
 ## Environment variables per provider
 
@@ -154,7 +158,7 @@ OpenAI:
 
 ````dotenv
 NEO_AI_PROVIDER=openai
-NEO_AI_MODEL=gpt-4o-mini
+NEO_AI_MODEL=gpt-5.4-mini
 OPENAI_API_KEY=sk-...
 NEO_AI_API_KEY=${OPENAI_API_KEY}
 ````
@@ -163,7 +167,7 @@ Anthropic (Messages API):
 
 ````dotenv
 NEO_AI_PROVIDER=anthropic
-NEO_AI_MODEL=claude-sonnet-4-5
+NEO_AI_MODEL=claude-sonnet-5
 ANTHROPIC_API_KEY=sk-ant-...
 NEO_AI_API_KEY=${ANTHROPIC_API_KEY}
 ````
@@ -172,10 +176,12 @@ Google Gemini (`generateContent`):
 
 ````dotenv
 NEO_AI_PROVIDER=gemini
-NEO_AI_MODEL=gemini-2.0-flash
+NEO_AI_MODEL=gemini-3.8-flash
 GEMINI_API_KEY=AIza...
 NEO_AI_API_KEY=${GEMINI_API_KEY}
 ````
+
+The free tier of the Gemini API has a small daily quota per model (requests per day): an HTTP 429 means the quota is reached. The "Live" models use another API (WebSocket) and cannot be used. A model that is retired returns an HTTP 404: pick a current one in Google AI Studio.
 
 Mistral, Groq, OpenRouter (OpenAI-compatible, default base URLs built in):
 
@@ -322,7 +328,7 @@ The sandbox restricts every path to the project root: absolute paths outside the
 - Everything sent to a provider is redacted first: the values of the environment variables whose name contains `PASSWORD`, `SECRET`, `KEY`, `TOKEN`, `AUTH`, `DSN`, `DATABASE_URL` (and the password of every `scheme://user:password@` URL), the configured API keys, well-known key formats (OpenAI, Anthropic, Google, Groq, GitHub, Slack, AWS, Stripe, JWT, private key blocks), `KEY=value` lines, YAML `password: value` entries, quoted `'secret' => '...'` literals and `redact_patterns`. `%env(...)%` references are kept.
 - The provider, the model and whether the server is local or remote are shown in the console, in the toolbar popover, in the chat window and in the panel.
 - `allow_remote: false` refuses every connection whose server is not local.
-- `/_neo_ai/chat` requires `POST`, a JSON body smaller than `web.max_request_bytes`, the same origin (`Sec-Fetch-Site`, `Origin` or `Referer`) and the `X-Neo-AI-Token` header: an HMAC of a random secret stored in `var/ai/secret`, rotated every 12 hours and embedded in the toolbar and the panel.
+- `/_neo_ai/chat` requires `POST`, a client IP in `web.allowed_ips` (local and private networks by default), a JSON body smaller than `web.max_request_bytes`, the same origin (`Sec-Fetch-Site`, `Origin` or `Referer`) and the `X-Neo-AI-Token` header: an HMAC of a random secret stored in `var/ai/secret`, rotated every 12 hours and embedded in the toolbar and the panel.
 - Error messages returned to the browser are redacted.
 - `var/ai` contains conversations and backups: keep `var/` out of version control.
 
@@ -419,4 +425,6 @@ All exceptions extend `NeoPHP\Package\NeoAI\Exception\NeoAiException` (a `Framew
 
 ## Changelog
 
+- v1.29.1 (bugfix) — `ai:test` sends 512 tokens (reasoning models answered empty with 16) and fails on an empty answer; error messages show the configured provider (`mistral`, `groq`...) instead of `openai`; Ollama `context_window` (`num_ctx`) and `keep_alive` options; default models updated (`gpt-5.4-mini`, `claude-sonnet-5`, `gemini-3.8-flash`).
+- v1.29.1 (bugfix) — `web.allowed_ips` (local and private networks by default) checked by `RequestGuard` on the chat endpoint.
 - v1.26.0 — NeoAI package: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers through HttpClient with named connections, retries and typed errors; portable `neo-tool` loop (`list_files`, `read_file`, `search`, `project_info`, `profile`, `propose_patch`) in a sandbox with excluded paths and secret redaction; `ai:start` chat with patch review (hash check and backups), `ai:scan` batched audit with Markdown report and `--fail-on`, `ai:test`; AI toolbar item with floating chat and page context, AI profiler panel, `POST /_neo_ai/chat` protected by origin and token checks; `FakeProvider` for tests.

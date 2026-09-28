@@ -349,6 +349,7 @@ lifetime: 86400
 ajax_limit: 50
 excluded_paths:
     - '^/(favicon\.ico|robots\.txt|build|builds|assets)(/|$)'
+allowed_ips: ~
 panels: []
 block_renderers: []
 ```
@@ -364,8 +365,11 @@ block_renderers: []
 | `lifetime` | `86400` | seconds, `0` = unlimited |
 | `ajax_limit` | `50` | requests listed in the Ajax item |
 | `excluded_paths` | assets, favicon, robots | regular expressions of paths never profiled |
+| `allowed_ips` | `~` (local and private networks) | IPs / CIDR ranges allowed to see the toolbar and the profiles (list or comma separated string); `~` = `Request::LOCAL_NETWORKS` (`127.0.0.0/8`, `::1`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `fc00::/7`, `fe80::/10`: local machine, Docker, LAN); `[]` = any client |
 | `panels` | `[]` | extra element classes |
 | `block_renderers` | `[]` | extra `BlockRendererInterface` classes |
+
+Other clients get no toolbar, no `X-Debug-Token` header and a 404 on the profiler pages, even if `APP_DEBUG=1` is left in production by mistake. Behind a reverse proxy, declare it in `trusted_proxies` (see the Http documentation) so that the real client IP is checked.
 
 The profiler and toolbar paths are always excluded. The toolbar is only injected in responses with a `text/html` content type containing `</body>`, not for redirections, attachments, `HEAD` or `XMLHttpRequest` requests.
 
@@ -419,5 +423,6 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Changelog
 
+- v1.29.1 (bugfix) — `allowed_ips` (local and private networks by default): the toolbar and the profiles are only served to these clients, `Profiler::isAllowed()`.
 - v1.26.0 — `ToolbarAssetInterface`: an element can add CSS and JavaScript to the toolbar (executed after the Ajax load), `Profiler::getToolbarAssets()`, `window.__neoWdt.config`.
 - v1.25.0 — WebProfiler package: profiler and web debug toolbar structure, `ProfilerElementInterface` / `ToolbarInterface` / `ProfilerInterface` elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]` in the application (cached), `ToolbarItem` and `Panel` value objects, blocks (`Table`, `KeyValue`, `Metric`, `Timeline`, `Code`, `Alert`, `Text`, `Section`, `Tabs`, `Html`) with an extensible `BlockRenderer`, `FileProfileStorage`, `Stopwatch`, `X-Debug-Token` headers, Ajax requests tracking, `/_profiler` and `/_wdt` routes, `profiler:list` and `profiler:clear` commands, built-in Request, Exception, Performance and Config elements.

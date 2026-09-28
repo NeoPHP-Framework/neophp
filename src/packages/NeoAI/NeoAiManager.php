@@ -6,6 +6,7 @@ namespace NeoPHP\Package\NeoAI;
 
 use NeoPHP\Component\Config\Contract\ConfigInterface;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\HttpClient\Contract\HttpClientInterface;
 use NeoPHP\Component\Kernel\Contract\KernelInterface;
 use NeoPHP\Component\Routing\Contract\RoutingInterface;
@@ -75,6 +76,7 @@ class NeoAiManager
             'path' => '/_neo_ai',
             'max_request_bytes' => 200000,
             'max_message_chars' => 8000,
+            'allowed_ips' => Request::LOCAL_NETWORKS,
         ],
     ];
 
@@ -103,6 +105,8 @@ class NeoAiManager
         $normalized['enabled'] = $normalized['enabled'] === null || $normalized['enabled'] === '' ? $debug : filter_var($normalized['enabled'], FILTER_VALIDATE_BOOLEAN);
         $normalized['allow_remote'] = filter_var($normalized['allow_remote'], FILTER_VALIDATE_BOOLEAN);
         $normalized['web']['enabled'] = filter_var($normalized['web']['enabled'], FILTER_VALIDATE_BOOLEAN);
+        $allowedIps = $normalized['web']['allowed_ips'];
+        $normalized['web']['allowed_ips'] = is_string($allowedIps) ? array_values(array_filter(array_map('trim', explode(',', $allowedIps)))) : array_values((array) $allowedIps);
         $normalized['excluded_paths'] = array_values(array_unique([...Sandbox::EXCLUDED, ...array_map('strval', (array) $normalized['excluded_paths'])]));
         $normalized['connections'] = array_filter((array) $normalized['connections'], 'is_array');
         $normalized['language'] = (string) ($normalized['language'] ?: 'en');
@@ -285,7 +289,7 @@ class NeoAiManager
 
     public function guard(): RequestGuard
     {
-        return new RequestGuard($this->getStoragePath('secret'));
+        return new RequestGuard($this->getStoragePath('secret'), $this->config['web']['allowed_ips']);
     }
 
     public function projectInfo(): array

@@ -1,61 +1,82 @@
+# NeoAI: development assistant (chat in the toolbar, `php bin/neo ai:start`, `ai:scan`, `ai:test`).
+# It only reads the project (vendor/, var/, .env* and keys are never sent) and never writes a file by itself.
+# Documentation: vendor/neophp/framework/src/packages/NeoAI/Docs/v1.x/README.md
+
+# ~ = active when APP_DEBUG=1 only. true = console commands also in other environments (the web chat always requires APP_DEBUG=1).
 enabled: ~
+# false = only local servers are allowed (Ollama, LM Studio, localhost): nothing leaves the machine.
 allow_remote: true
+# Connection used by default (a key of "connections" below). `php bin/neo ai:start --connection=local` picks another one.
 default_connection: default
+# Language of the answers: en, fr, de, es, it, pt, nl
 language: en
+# Instructions added to the system prompt, e.g. 'Answer in short sentences. Our entities use UUIDs.'
 system_prompt: ''
 
 connections:
+    # Configured from .env / .env.local (NEO_AI_PROVIDER, NEO_AI_MODEL, NEO_AI_API_KEY, NEO_AI_BASE_URL)
     default:
         provider: '%env(NEO_AI_PROVIDER)%'
         model: '%env(NEO_AI_MODEL)%'
         api_key: '%env(NEO_AI_API_KEY)%'
         base_url: '%env(NEO_AI_BASE_URL)%'
         temperature: 0.2
-        max_tokens: 4096
-        timeout: 120
-        retries: 2
+        max_tokens: 4096        # maximum length of an answer (reasoning models also count their "thinking" tokens)
+        timeout: 120            # seconds
+        retries: 2              # retries on network errors, HTTP 429 and 5xx
+    # Optional named connections: remove the ones you do not use.
     openai:
         provider: openai
-        model: gpt-4o-mini
+        model: gpt-5.4-mini
         api_key: '%env(OPENAI_API_KEY)%'
     anthropic:
         provider: anthropic
-        model: claude-sonnet-4-5
+        model: claude-sonnet-5
         api_key: '%env(ANTHROPIC_API_KEY)%'
     gemini:
         provider: gemini
-        model: gemini-2.0-flash
+        model: gemini-3.8-flash    # free tier: small daily quota per model (HTTP 429 when reached)
         api_key: '%env(GEMINI_API_KEY)%'
     mistral:
         provider: mistral
         model: mistral-small-latest
         api_key: '%env(MISTRAL_API_KEY)%'
     local:
-        provider: ollama
+        provider: ollama           # `ollama pull qwen2.5-coder:7b` first; on CPU prefer a small model (qwen2.5-coder:3b)
         model: qwen2.5-coder:7b
         base_url: '%env(OLLAMA_URL)%'
         timeout: 300
+        context_window: 16384      # Ollama truncates the prompt to 2048/4096 tokens without it
+        keep_alive: 30m            # keeps the model in memory between two questions
 
+# Custom provider types: my_provider: App\Ai\MyProvider (implements ProviderInterface)
 providers: {}
 
+# Limits of what is sent to the model
 context:
-      max_files: 40
-      max_file_bytes: 60000
-      max_context_chars: 120000
-      max_tool_iterations: 8
-      max_tool_output: 12000
+    max_files: 40
+    max_file_bytes: 60000        # bytes returned when reading one file
+    max_context_chars: 120000    # characters sent in one request (oldest messages dropped first)
+    max_tool_iterations: 8       # tool rounds (read a file, search...) per question
+    max_tool_output: 12000
 
+# `php bin/neo ai:scan` (audit of the code)
 scan:
-      paths: [src, templates, config]
-      extensions: [php, twig, yaml, yml, js, html, phtml]
-      max_files: 200
-      batch_chars: 60000
+    paths: [src, templates, config]
+    extensions: [php, twig, yaml, yml, js, html, phtml]
+    max_files: 200
+    batch_chars: 60000
 
+# Extra paths never readable by the assistant (vendor/, var/, .env* are always excluded), e.g. [config/secrets, storage/private]
 excluded_paths: []
+# Extra regular expressions of secrets replaced by [REDACTED], e.g. ['/INTERNAL-[A-Z0-9]{16}/']
 redact_patterns: []
 
+# Chat of the toolbar and of the profiler (only when APP_DEBUG=1)
 web:
-      enabled: true
-      path: /_neo_ai
-      max_request_bytes: 200000
-      max_message_chars: 8000
+    enabled: true
+    path: /_neo_ai
+    max_request_bytes: 200000
+    max_message_chars: 8000
+    # ~ = local machine, Docker and private networks only; [] = anyone (never in production); or a list: [203.0.113.10, 10.0.0.0/8]
+    allowed_ips: ~
