@@ -1,3 +1,6 @@
+# Forms (key framework.form)
+# default (plain HTML) or bootstrap5
 theme: default
+# Adds a CSRF token to every form
 csrf_protection: true
 csrf_field_name: _token

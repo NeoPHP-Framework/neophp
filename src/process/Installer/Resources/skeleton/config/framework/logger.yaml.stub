@@ -1,25 +1,34 @@
+# Logger (key framework.logger): files var/log/<channel>.log
 channels:
+  # $logger->info(...) of the application
   app:
     enabled: true
     extension: log
+  # Messages of the framework (errors, deprecations)
   framework:
     enabled: true
     extension: log
 
 rotation:
   enabled: true
+  # Rotated files kept
   max_files: 30
   when:
+    # e.g. 10M; ~ = never on size
     filesize: ~
+    # minute, hour, day, week, month, year; ~ = never on time
     every: day
 
+# Compresses the rotated files (ext-zip for zip)
 archive:
   enabled: false
   extension: zip
 
 settings:
   path: '%kernel.root_path%/var/log'
-  format_message: '[%datetime%] %channel%.%type% %message% %context%'
+  format_message: '[%datetime%] %channel%.%level% %message% %context%'
   date_format: 'Y-m-d H:i:s'
+  # e.g. Europe/Paris; ~ = PHP date.timezone
   timezone: ~
+  # debug, info, notice, warning, error, critical, alert, emergency (use warning in production)
   minimum_level: debug

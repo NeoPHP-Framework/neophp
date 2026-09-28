@@ -1,9 +1,19 @@
+# Serializer (key framework.serializer): $this->json($object, context: ['groups' => ['read']])
+# json, xml (ext-dom) or csv
 default_format: json
+# RFC 3339
 datetime_format: 'Y-m-d\TH:i:sP'
+# Times an object can appear in its own branch before the circular reference handler is called
 circular_reference_limit: 1
+# Maximum nesting (safety limit, 0 disables it)
 max_depth: 10
+# Reads the #[MaxDepth] attributes
 enable_max_depth: true
+# true = null values are omitted
 skip_null_values: false
+# false = unknown input keys throw an ExtraAttributesException
 allow_extra_attributes: true
+# snake_case (createdAt <-> created_at), camel_case, null or a NameConverterInterface class
 name_converter: null
+# Extra normalizers, e.g. [App\Serializer\MoneyNormalizer] or [{ class: App\Serializer\MoneyNormalizer, priority: 10 }]
 normalizers: []
