@@ -73,7 +73,7 @@ class YamlDumper implements DumperInterface
     protected static function render(array $tree, int $depth): string
     {
         $output = '';
-        $indent = str_repeat('  ', $depth);
+        $indent = str_repeat('    ', $depth);
 
         foreach ($tree as $key => $value) {
             if (is_array($value)) {

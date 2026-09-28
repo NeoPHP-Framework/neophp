@@ -323,5 +323,6 @@ $trace?->getMessages(TranslationTrace::STATE_MISSING);
 
 ## Changelog
 
+- v1.31.3 — `translation:generate` indents the YAML files with 4 spaces, like the other YAML files of the framework.
 - v1.25.3 — profiler integration: `TranslationProfiler` toolbar item and panel, opt-in `TranslationTrace` on the translator (defined / fallback / missing messages with counts, parameters and results), locale detection source, loaded catalogues, `AbstractTranslator::setTrace()` / `getTrace()` / `getLoadedCatalogues()`.
 - v1.20.0 — Translation package: YAML / XLIFF 1.2 catalogues, fallbacks, ICU-lite plurals and selects, locale detection (route, query, session, cookie, `Accept-Language`), `translate()` / `trans` / `locale()` / `locales()` helpers, `translate()` and `switchLocale()` in controllers, translated validation, form and security messages, `translation:generate`, `translation:debug`, `translation:lint`.
