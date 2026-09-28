@@ -220,7 +220,7 @@ abstract class AbstractTailwind implements TailwindInterface
             'http' => ['follow_location' => 1, 'max_redirects' => 10, 'timeout' => 120, 'user_agent' => 'NeoPHP tailwind:install', 'ignore_errors' => true],
         ]);
         $content = @file_get_contents($url, false, $context);
-        $headers = $http_response_header ?? [];
+        $headers = function_exists('http_get_last_response_headers') ? (http_get_last_response_headers() ?? []) : (get_defined_vars()['http_response_header'] ?? []);
         $status = 0;
         $version = null;
 

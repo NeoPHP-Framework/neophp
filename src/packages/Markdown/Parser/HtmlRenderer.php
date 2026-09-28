@@ -49,7 +49,7 @@ class HtmlRenderer
             $html .= $rendered;
 
             if ($block['type'] === 'heading') {
-                $outline[] = $this->headings[$headingCount] + ['type' => 'heading', 'start' => $block['start'], 'end' => $block['end']];
+                $outline[] = ($this->headings[$headingCount] ?? []) + ['type' => 'heading', 'start' => $block['start'], 'end' => $block['end']];
             } elseif ($block['type'] === 'paragraph') {
                 $outline[] = ['type' => 'paragraph', 'text' => self::plain($rendered), 'start' => $block['start'], 'end' => $block['end']];
             } else {

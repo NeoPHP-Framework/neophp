@@ -1,0 +1,10 @@
+parameters:
+    level: 3
+    paths:
+        - src
+    excludePaths:
+        - src/*/*/Resources/*
+    tmpDir: var/phpstan
+    ignoreErrors:
+        -
+            identifier: new.static

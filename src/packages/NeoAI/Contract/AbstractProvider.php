@@ -179,7 +179,7 @@ abstract class AbstractProvider implements ProviderInterface
             $this->wait($attempt, $attempts, $delay);
         }
 
-        throw $last ?? new ProviderException('The AI connection "{name}" did not answer.', 0, null, ['name' => $this->getName()]);
+        throw $last;
     }
 
     protected function wait(int $attempt, int $attempts, int $delay): void
