@@ -8,6 +8,7 @@ use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Csrf\Contract\CsrfInterface;
 use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
 use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
+use NeoPHP\Component\Http\Exception\HttpException;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
@@ -348,6 +349,12 @@ abstract class AbstractSecurity implements SecurityInterface
 
     protected function handleLogout(Request $request, Firewall $firewall, array $logout): Response
     {
+        $methods = array_map('strtoupper', array_map('strval', (array) $logout['methods']));
+
+        if ($methods !== [] && !in_array($request->getRealMethod(), $methods, true)) {
+            throw new HttpException(405, 'The logout only accepts the {methods} method(s).', ['Allow' => implode(', ', $methods)], ['methods' => implode(', ', $methods)]);
+        }
+
         if ($logout['enable_csrf']) {
             $token = $request->request->get((string) $logout['csrf_parameter']) ?? $request->query->get((string) $logout['csrf_parameter']);
 

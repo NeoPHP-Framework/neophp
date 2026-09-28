@@ -277,13 +277,15 @@ firewalls:
       login_path: app_login
       enable_csrf: true
     logout:
-      path: app_logout
+        path: app_logout
+        enable_csrf: true
+        methods: [POST]
 
 access_control:
   - { path: ^/admin, roles: ROLE_ADMIN }
 ```
 
-In controllers: `$this->getUser()`, `$this->denyAccessUnlessGranted('ROLE_ADMIN')`, `#[IsGranted('ROLE_ADMIN')]`. In templates: `app_user()`, `is_granted('ROLE_ADMIN')`, `logout_path()`. See the Security documentation.
+In controllers: `$this->getUser()`, `$this->denyAccessUnlessGranted('ROLE_ADMIN')`, `#[IsGranted('ROLE_ADMIN')]`. In templates: `app_user()`, `is_granted('ROLE_ADMIN')`, `logout_path()`, `logout_form('Logout')` (the logout is a POST form protected by a CSRF token). See the Security documentation.
 
 ## Styles with Tailwind
 

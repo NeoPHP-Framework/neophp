@@ -33,6 +33,7 @@ class FirewallFactory
         'csrf_parameter' => '_csrf_token',
         'csrf_token_id' => 'logout',
         'clear_cookies' => [],
+        'methods' => ['GET', 'POST'],
     ];
 
     protected array $providers = [];

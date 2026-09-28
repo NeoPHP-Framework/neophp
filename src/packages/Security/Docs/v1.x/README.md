@@ -288,9 +288,21 @@ logout:
   csrf_parameter: _csrf_token
   csrf_token_id: logout
   clear_cookies: []
+  methods: [GET, POST]
 ```
 
 The request on `path` is handled by the firewall (the route needs no code). `logout_path()` in views returns the URL, with the CSRF token when enabled.
+
+`methods` lists the accepted HTTP methods (any other one gets a 405 error). The generated `security.yaml` uses `enable_csrf: true` and `methods: [POST]`: a link or an image of another website cannot log the user out. Use a form instead of a link, `logout_form()` renders it:
+
+```twig
+{{ logout_form('Logout') }}
+{{ logout_form('Déconnexion', 'btn btn-link') }}   {# label, CSS class of the button, firewall #}
+```
+
+```html
+<form method="post" action="/logout?_csrf_token=..." style="display:inline"><button type="submit">Logout</button></form>
+```
 
 ## Access tokens
 
@@ -518,13 +530,14 @@ A voter can also implement `VoterInterface` directly: `vote(TokenInterface $toke
 | `getLastAuthenticationError($clear = true)` | `last_authentication_error($clear = true)` | last login error message |
 | `loginUser($user, $firewall = null, $rememberMe = false)` | | logs a user in (after a registration...) |
 | `logoutUser()` | `logout_path($firewall = null)` | logs out and returns the redirection / URL of the logout (with the CSRF token when enabled, `null` without `logout`) |
+| | `logout_form($label = 'Logout', $class = '', $firewall = null)` | a POST form with a button to the logout (safe HTML, empty without `logout`) |
 
 ```twig
 {% if is_granted('ROLE_ADMIN') %}
     <a href="/admin">Admin</a>
 {% endif %}
 {% if app_user() %}
-    {{ app_user().userIdentifier }} <a href="{{ logout_path() }}">Logout</a>
+    {{ app_user().userIdentifier }} {{ logout_form('Logout') }}
 {% endif %}
 ```
 
@@ -600,6 +613,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v1.31.0 — logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.
 - v1.30.0 — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.
 - v1.25.2 — profiler integration: `SecurityProfiler` toolbar item and panel, opt-in `SecurityTrace` on the access decision manager (decisions, voter votes, access_control, login / logout events), `AbstractSecurity::getAccessMap()`.
 - v1.20.0 — Messages translated through the Translation package (domain security).
