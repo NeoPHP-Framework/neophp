@@ -96,7 +96,6 @@ abstract class AbstractInstaller implements InstallerInterface
 
             if (!is_dir($path)) {
                 $this->makeDirectory($path);
-                file_put_contents($path . '/.gitkeep', '');
                 $report[$directory . '/'] = InstallerInterface::STATUS_CREATED;
             }
         }
