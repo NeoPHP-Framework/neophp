@@ -2,6 +2,8 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.33.1 — Update changelog 
+- v1.33.0 — Generated projects no longer include `.gitkeep` files
 - v1.32.0 — Global `app` template variable, like Symfony: `app.request`, `app.session`, `app.user`, `app.flashes`, `app.locale`, `app.environment`, `app.debug`, `app.current_route`, `app.current_route_parameters`, `app.name`
 - v1.31.3 — Bugfix: `translation:generate` indents the YAML files with 4 spaces
 - v1.31.2 — PHPStan level 5 on every pull request; fixes reported by the analysis: controllers can use `translate()` and `switchLocale()` (the `TranslationController` trait was missing from `AbstractController`), `tailwind:install` reads the response headers without `$http_response_header`, `UserClass::of()` accepts any user object
