@@ -6,10 +6,10 @@ dsn: '%env(MAILER_DSN)%'
 from: '%env(APP_NAME)% <noreply@example.com>'
 
 envelope:
-  # Forces the envelope sender (bounces), ~ = the From address
-  sender: ~
-  # Redirects EVERY email to these addresses (MAILER_RECIPIENTS=me@example.com in development)
-  recipients: '%env(csv:MAILER_RECIPIENTS)%'
+    # Forces the envelope sender (bounces), ~ = the From address
+    sender: ~
+    # Redirects EVERY email to these addresses (MAILER_RECIPIENTS=me@example.com in development)
+    recipients: '%env(csv:MAILER_RECIPIENTS)%'
 
 # Headers added to every email, e.g. { X-App: shop }
-headers: {}
+headers: { }

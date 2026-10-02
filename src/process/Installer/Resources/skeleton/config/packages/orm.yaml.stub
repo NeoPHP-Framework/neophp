@@ -21,4 +21,4 @@ proxy:
     path: '%kernel.cache_path%/orm/proxies'
 
 # Tables never created nor dropped by `make:migration`, e.g. [cache_items, sessions]
-ignore_tables: []
+ignore_tables: [ ]

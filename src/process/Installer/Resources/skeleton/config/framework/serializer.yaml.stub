@@ -16,4 +16,4 @@ allow_extra_attributes: true
 # snake_case (createdAt <-> created_at), camel_case, null or a NameConverterInterface class
 name_converter: null
 # Extra normalizers, e.g. [App\Serializer\MoneyNormalizer] or [{ class: App\Serializer\MoneyNormalizer, priority: 10 }]
-normalizers: []
+normalizers: [ ]
