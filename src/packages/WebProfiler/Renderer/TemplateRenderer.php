@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\WebProfiler\Renderer;
 
 use NeoPHP\Package\WebProfiler\Exception\WebProfilerException;
+use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Util\ValueExporter;
 use Throwable;
 
@@ -80,5 +81,27 @@ class TemplateRenderer
     public function json(mixed $value): string
     {
         return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_PARTIAL_OUTPUT_ON_ERROR);
+    }
+
+    public function siteUrl(?Profile $profile): string
+    {
+        if ($profile === null) {
+            return '/';
+        }
+
+        $url = $profile->getUrl();
+        $parts = parse_url($url);
+
+        if (!is_array($parts) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true) || !isset($parts['host'])) {
+            return '/';
+        }
+
+        $ajax = (bool) ($profile->getData('ajax')['ajax'] ?? false);
+
+        if ($profile->getMethod() === 'GET' && !$ajax && str_contains(strtolower((string) $profile->getContentType()), 'html')) {
+            return $url;
+        }
+
+        return $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '') . '/';
     }
 }

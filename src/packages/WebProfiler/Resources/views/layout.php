@@ -11,6 +11,7 @@
 <header class="neo-header">
     <a class="neo-brand" href="<?= $this->e($profilerPath) ?>"><?= $this->icon('logo', 20) ?> NeoPHP Profiler</a>
     <nav>
+        <a href="<?= $this->e($this->siteUrl($profile)) ?>" title="Back to the profiled page">&larr; Back to the site</a>
         <a href="<?= $this->e($profilerPath) ?>">Last profiles</a>
         <a href="<?= $this->e($profilerPath . '/latest') ?>">Latest</a>
         <?php if ($profile !== null): ?>
