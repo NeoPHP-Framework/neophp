@@ -8,6 +8,7 @@ It ships repositories, query builders, lifecycle events, code generators and mig
 - [Configuration](#configuration)
 - [Entities](#entities)
 - [Relations](#relations)
+- [Inheritance](#inheritance)
 - [Collections](#collections)
 - [Persisting](#persisting)
 - [Repositories](#repositories)
@@ -153,6 +154,50 @@ The type is deduced from the property type when it is not given:
 - Collections (`OneToMany`, `ManyToMany`) are typed `CollectionInterface`: an `ArrayCollection` for a new entity, a lazy `PersistentCollection` loaded on first use for an entity read from the database.
 - `ManyToOne` and `OneToOne` relations are loaded lazily with a proxy (a generated subclass in `var/cache/orm/proxies`) that loads the entity on its first method call; `getId()` does not load it. A `final` class, or a class with `__get()`, is loaded immediately instead. An entity is unique per request: once a proxy exists for an id, `find()` and the queries return that same (initialized) proxy, so compare classes with `instanceof`, not with `$entity::class`.
 
+## Inheritance
+
+The mapped properties (`#[ORM\Column]`, `#[ORM\Id]`, relations), the lifecycle callbacks (even `private`) and the `#[ORM\Index]` of the parent classes are inherited. Mark a shared base class with `#[ORM\MappedSuperclass]`: it has no table and no repository, each entity extending it gets the columns in its own table.
+
+```php
+use NeoPHP\Package\Orm\Mapping as ORM;
+
+#[ORM\MappedSuperclass]
+#[ORM\Index(columns: ['createdAt'])]
+abstract class AbstractEntity
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column]
+    private ?DateTimeImmutable $createdAt = null;
+
+    #[ORM\PrePersist]
+    private function initCreatedAt(): void
+    {
+        $this->createdAt = new DateTimeImmutable();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+}
+
+#[ORM\Entity(repository: PostRepository::class)]
+class Post extends AbstractEntity
+{
+    #[ORM\Column]
+    private string $title = '';
+}
+```
+
+- An abstract class cannot carry `#[ORM\Entity]` (`MappingException`): use `#[ORM\MappedSuperclass]`.
+- A method overridden in the entity runs once (the overriding one); `private` callbacks of each class all run, parents first.
+- The names of inherited indexes are ignored (generated per table) to avoid duplicated index names.
+- An entity can extend another entity: the child has its own table with all the columns, queries on the parent never return children (no single table or joined inheritance).
+
 ## Collections
 
 `NeoPHP\Package\Orm\Contract\CollectionInterface` (implemented by `NeoPHP\Package\Orm\Collection\ArrayCollection` and `PersistentCollection`) is `Countable`, `IteratorAggregate` and `ArrayAccess`:
@@ -172,7 +217,11 @@ The type is deduced from the property type when it is not given:
 ## Persisting
 
 ```php
-$orm = $this->getOrm();
+public function __construct(private EntityManagerInterface $entityManager)
+{
+}
+
+$orm = $this->entityManager;
 
 $post = (new Post())->setTitle('Hello')->setCategory($category);
 $post->addTag($tag);
@@ -201,18 +250,39 @@ $orm->flush();
 | `refresh($entity)`, `detach($entity)`, `clear()`, `contains($entity)` | unit of work |
 | `transactional(fn (OrmInterface $orm) => ...)` | runs the callback and flushes in a transaction |
 
-The same entity is returned for the same row (identity map). In a controller, `getOrm()` and `getRepository(Post::class)` are available; elsewhere, inject `NeoPHP\Package\Orm\Contract\OrmInterface`.
+The same entity is returned for the same row (identity map). Inject `NeoPHP\Package\Orm\Contract\EntityManagerInterface` (or `OrmInterface`, the same service) in a constructor or a controller action; a repository class (`PostRepository $posts`) can be injected the same way.
 
 The `OrmInterface` also gives access to the lower layers: `getConnection()`, `getPlatform()`, `getMetadata($class)`, `getMetadataFactory()`, `getUnitOfWork()`, `getProxyFactory()` and `getEventDispatcher()`.
 
-### In a controller
+### In a controller### In a controller
 
-The `OrmController` trait of `AbstractController` adds (see the Controllers documentation):
+```php
+use NeoPHP\Package\Orm\Contract\EntityManagerInterface;
 
-| Method | Returns |
-|---|---|
-| `getOrm(): OrmInterface` | the ORM |
-| `getRepository(string $entityClass): RepositoryInterface` | the repository of the entity |
+class PostController extends AbstractController
+{
+    public function __construct(private EntityManagerInterface $entityManager)
+    {
+    }
+
+    #[Route('/posts', name: 'post_index')]
+    public function index(PostRepository $posts): Response
+    {
+        return $this->render('post/index', ['posts' => $posts->findAll()]);
+    }
+
+    #[Route('/posts/new', name: 'post_new', methods: ['POST'])]
+    public function new(EntityManagerInterface $entityManager): Response
+    {
+        $entityManager->persist((new Post())->setTitle('Hello'));
+        $entityManager->flush();
+
+        return $this->redirectToRoute('post_index');
+    }
+}
+```
+
+The `OrmController` trait of `AbstractController` still provides `getOrm()` and `getRepository(string $entityClass)` for compatibility: prefer the injection.
 
 ## Repositories
 
@@ -577,7 +647,7 @@ All in `NeoPHP\Package\Orm\Exception\`, extending `OrmException` (itself a `Fram
 
 ## Limits
 
-Composite identifiers, inheritance mapping, readonly properties and changes of the primary key are not supported. The ORM should be cleared (`clear()`) after a failed `flush()`.
+Composite identifiers, single table / joined inheritance, readonly properties and changes of the primary key are not supported. The ORM should be cleared (`clear()`) after a failed `flush()`.
 
 ## Profiler
 
@@ -587,6 +657,7 @@ When the Web Profiler is enabled, the `Helper/Profiler/OrmProfiler` element adds
 
 ## Changelog
 
+- v1.35.0 — `#[ORM\MappedSuperclass]` and inherited mapping (parent callbacks, even private, and indexes), abstract entities refused; `EntityManagerInterface` injectable in constructors and controller actions (alias of `OrmInterface`, service `entity_manager`).
 - v1.31.0 — `make:migration` ignores the framework tables `cache_items` and `remember_me_tokens`; entities in controller arguments (`EntityValueResolver`, `#[MapEntity]`), 404 when not found.
 - v1.30.0 — `findBy()`, `findOneBy()`, `count()` and `findAll()` refuse the criteria and order keys that are not fields or associations of the entity (SQL injection through a user-controlled key).
 - v1.25.1 — profiler integration: `UnitOfWork::getStatistics()` (managed entities, flushes, initialized proxies) and ORM panel of the Web Profiler.
