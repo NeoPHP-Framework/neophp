@@ -20,7 +20,7 @@ use NeoPHP\Package\Orm\Repository\EntityRepository;
 use NeoPHP\Package\Orm\UnitOfWork\UnitOfWork;
 use Throwable;
 
-abstract class AbstractOrm implements OrmInterface
+abstract class AbstractOrm implements EntityManagerInterface
 {
     protected ConnectionInterface $connection;
 
