@@ -558,8 +558,9 @@ class UnitOfWork
 
     public function invokeLifecycle(ClassMetadata $metadata, object $entity, string $event, LifecycleEvent $object): void
     {
-        foreach ($metadata->getCallbacks($event) as $method) {
-            $reflection = new ReflectionMethod($entity, $method);
+        foreach ($metadata->getCallbacks($event) as $callback) {
+            [$class, $method] = str_contains($callback, '::') ? explode('::', $callback, 2) : [$entity::class, $callback];
+            $reflection = new ReflectionMethod($class, $method);
             $reflection->getNumberOfParameters() > 0 ? $reflection->invoke($entity, $object) : $reflection->invoke($entity);
         }
 

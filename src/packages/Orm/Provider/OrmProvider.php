@@ -12,6 +12,7 @@ use NeoPHP\Component\Database\Contract\DatabaseInterface;
 use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
 use NeoPHP\Package\Orm\ArgumentResolver\EntityValueResolver;
 use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\Contract\EntityManagerInterface;
 use NeoPHP\Package\Orm\Maker\EntityMaker;
 use NeoPHP\Package\Orm\Maker\RepositoryMaker;
 use NeoPHP\Package\Orm\Metadata\MetadataFactory;
@@ -79,6 +80,10 @@ class OrmProvider extends AbstractProvider
         });
 
         $container->alias(OrmManager::class, OrmInterface::class);
+
+        $container->alias(EntityManagerInterface::class, OrmInterface::class);
+        $container->alias('entity_manager', OrmInterface::class);
+
         $container->alias('orm', OrmInterface::class);
 
         $container->singleton(EntityValueResolver::class, static fn (ContainerInterface $container): EntityValueResolver => new EntityValueResolver($container));
