@@ -146,19 +146,4 @@ class RequestProfiler extends AbstractProfiler implements ToolbarInterface, Prof
 
         return $values;
     }
-
-    protected function session(): ?array
-    {
-        if (!$this->container->bound(SessionInterface::class)) {
-            return null;
-        }
-
-        try {
-            $session = $this->container->get(SessionInterface::class);
-
-            return $session instanceof SessionInterface && $session->isStarted() ? $this->mask($session->all()) : null;
-        } catch (Throwable) {
-            return null;
-        }
-    }
 }

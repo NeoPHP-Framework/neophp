@@ -41,7 +41,7 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         $name = $this->sessionName();
         $flashKey = $this->flashKey();
         $id = session_id();
-        $opened = is_string($id) && $id !== '' && isset($_SESSION) && is_array($_SESSION);
+        $opened = is_string($id) && $id !== '' && isset($_SESSION);
         $attributes = $opened ? $_SESSION : [];
         $flashes = $attributes[$flashKey] ?? [];
         unset($attributes[$flashKey]);
@@ -60,7 +60,7 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
             ],
             'flashes' => [
                 'key' => $flashKey,
-                'pending' => is_array($flashes) ? $flashes : [],
+                'pending' => $flashes,
             ],
             'cookies' => [
                 'request' => $this->mask($request->cookies->all()),
