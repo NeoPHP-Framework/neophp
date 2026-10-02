@@ -7,10 +7,8 @@ namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Session\Contract\SessionInterface;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
 use NeoPHP\Package\WebProfiler\Block\TabsBlock;
-use NeoPHP\Package\WebProfiler\Block\TextBlock;
 use NeoPHP\Package\WebProfiler\Contract\AbstractProfiler;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerInterface;
 use NeoPHP\Package\WebProfiler\Contract\ToolbarInterface;
@@ -63,11 +61,9 @@ class RequestProfiler extends AbstractProfiler implements ToolbarInterface, Prof
             'query' => $request->query->all(),
             'request' => $this->mask($request->request->all()),
             'attributes' => array_filter($request->attributes->all(), static fn (string|int $key): bool => !str_starts_with((string) $key, '_security'), ARRAY_FILTER_USE_KEY),
-            'cookies' => array_map(static fn (): string => self::HIDDEN, $request->cookies->all()),
             'request_headers' => $this->headers($request->headers->all()),
             'response_headers' => $this->headers($response->headers->all()),
             'server' => $server,
-            'session' => $this->session(),
             'body_size' => strlen($request->getContent()),
             'response_size' => strlen($response->getContent()),
         ];
@@ -114,15 +110,11 @@ class RequestProfiler extends AbstractProfiler implements ToolbarInterface, Prof
                     new KeyValueBlock((array) ($data['query'] ?? []), 'Query parameters (GET)', 'No query parameter.'),
                     new KeyValueBlock((array) ($data['request'] ?? []), 'Request parameters (POST)', 'No request parameter.'),
                     new KeyValueBlock((array) ($data['attributes'] ?? []), 'Attributes', 'No attribute.'),
-                    new KeyValueBlock((array) ($data['cookies'] ?? []), 'Cookies', 'No cookie.'),
                     new KeyValueBlock((array) ($data['request_headers'] ?? []), 'Headers'),
                 ],
                 'Response' => [
                     new KeyValueBlock((array) ($data['response_headers'] ?? []), 'Headers'),
                 ],
-                'Session' => $data['session'] === null
-                    ? [new TextBlock('No session was started during this request.')]
-                    : [new KeyValueBlock((array) $data['session'], 'Session attributes', 'The session is empty.')],
                 'Server' => [new KeyValueBlock((array) ($data['server'] ?? []), 'Server parameters')],
             ]),
         ], $status, Status::fromHttpCode($status));
@@ -153,20 +145,5 @@ class RequestProfiler extends AbstractProfiler implements ToolbarInterface, Prof
         }
 
         return $values;
-    }
-
-    protected function session(): ?array
-    {
-        if (!$this->container->bound(SessionInterface::class)) {
-            return null;
-        }
-
-        try {
-            $session = $this->container->get(SessionInterface::class);
-
-            return $session instanceof SessionInterface && $session->isStarted() ? $this->mask($session->all()) : null;
-        } catch (Throwable) {
-            return null;
-        }
     }
 }

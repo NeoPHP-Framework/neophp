@@ -37,12 +37,44 @@
         render();
     }
 
+    function sameOrigin(url) {
+        try {
+            return new URL(String(url), w.location.href).origin === w.location.origin;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function parentHeaders(input, init) {
+        if (!config.token || !w.Headers) {
+            return init;
+        }
+        try {
+            var options = {};
+            var key;
+            for (key in (init || {})) {
+                if (Object.prototype.hasOwnProperty.call(init, key)) {
+                    options[key] = init[key];
+                }
+            }
+            var headers = new Headers(options.headers || (w.Request && input instanceof Request ? input.headers : undefined));
+            if (!headers.has(config.parentHeader)) {
+                headers.set(config.parentHeader, config.token);
+            }
+            options.headers = headers;
+            return options;
+        } catch (e) {
+            return init;
+        }
+    }
+
     if (nativeFetch) {
         w.fetch = function (input, init) {
             var method = (init && init.method) || (input && typeof input === 'object' && input.method) || 'GET';
             var url = typeof input === 'string' ? input : (input && input.url) || String(input);
             var entry = track(method, url);
-            return nativeFetch.apply(w, arguments).then(function (response) {
+            var request = entry && sameOrigin(url) ? nativeFetch(input, parentHeaders(input, init)) : nativeFetch.apply(w, arguments);
+            return request.then(function (response) {
                 finish(entry, response.status, response.headers.get('X-Debug-Token'));
                 return response;
             }, function (error) {
@@ -64,6 +96,11 @@
             var info = xhr.__neoWdt;
             if (info && !info.internal) {
                 var entry = track(info.method, info.url);
+
+                if (entry && config.token && sameOrigin(info.url)) {
+                    xhr.setRequestHeader(config.parentHeader, config.token);
+                }
+
                 xhr.addEventListener('loadend', function () {
                     var token = null;
                     try {
