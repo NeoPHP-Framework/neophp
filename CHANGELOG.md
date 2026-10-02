@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.33.3 — Generated YAML configuration files use a 4-space indentation and spaced flow collections (`[ a, b ]`, `[ ]`, `{ }`)
 - v1.33.2 — Added the `locales()` Twig function to retrieve available locales
 - v1.33.1 — Update changelog 
 - v1.33.0 — Generated projects no longer include `.gitkeep` files

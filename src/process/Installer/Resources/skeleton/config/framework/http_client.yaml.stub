@@ -14,4 +14,4 @@ default_options:
 #         headers: { Accept: application/vnd.github+json }
 #         retry: { max_retries: 3 }
 #         cache: 300
-clients: {}
+clients: { }

@@ -1,18 +1,18 @@
 # Views (key framework.view): PHP templates (.php) and Twig (.html.twig, `composer require twig/twig`)
 paths:
-  - '%kernel.templates_path%'
+    - '%kernel.templates_path%'
 
 # Named directories, e.g. { admin: '%kernel.templates_path%/admin' } then render('@admin/dashboard')
-namespaces: {}
+namespaces: { }
 
 # Extra helper classes outside of src/ (helpers of src/Helper/View are discovered automatically)
-helpers: []
+helpers: [ ]
 
 twig:
-  # false disables Twig even when it is installed
-  enabled: true
-  cache: '%kernel.root_path%/var/cache/twig'
-  # Recompiles a template when it changes (set false in production for speed)
-  auto_reload: true
-  # Unknown variables throw an error (development)
-  strict_variables: '%kernel.debug%'
+    # false disables Twig even when it is installed
+    enabled: true
+    cache: '%kernel.root_path%/var/cache/twig'
+    # Recompiles a template when it changes (set false in production for speed)
+    auto_reload: true
+    # Unknown variables throw an error (development)
+    strict_variables: '%kernel.debug%'

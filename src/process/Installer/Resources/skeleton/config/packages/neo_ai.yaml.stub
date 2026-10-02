@@ -50,7 +50,7 @@ connections:
         keep_alive: 30m            # keeps the model in memory between two questions
 
 # Custom provider types: my_provider: App\Ai\MyProvider (implements ProviderInterface)
-providers: {}
+providers: { }
 
 # Limits of what is sent to the model
 context:
@@ -62,15 +62,15 @@ context:
 
 # `php bin/neo ai:scan` (audit of the code)
 scan:
-    paths: [src, templates, config]
-    extensions: [php, twig, yaml, yml, js, html, phtml]
+    paths: [ src, templates, config ]
+    extensions: [ php, twig, yaml, yml, js, html, phtml ]
     max_files: 200
     batch_chars: 60000
 
 # Extra paths never readable by the assistant (vendor/, var/, .env* are always excluded), e.g. [config/secrets, storage/private]
-excluded_paths: []
+excluded_paths: [ ]
 # Extra regular expressions of secrets replaced by [REDACTED], e.g. ['/INTERNAL-[A-Z0-9]{16}/']
-redact_patterns: []
+redact_patterns: [ ]
 
 # Chat of the toolbar and of the profiler (only when APP_DEBUG=1)
 web:
