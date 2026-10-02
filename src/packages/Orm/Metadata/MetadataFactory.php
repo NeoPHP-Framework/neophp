@@ -15,6 +15,7 @@ use NeoPHP\Package\Orm\Mapping\Id;
 use NeoPHP\Package\Orm\Mapping\Index;
 use NeoPHP\Package\Orm\Mapping\ManyToMany;
 use NeoPHP\Package\Orm\Mapping\ManyToOne;
+use NeoPHP\Package\Orm\Mapping\MappedSuperclass;
 use NeoPHP\Package\Orm\Mapping\OneToMany;
 use NeoPHP\Package\Orm\Mapping\OneToOne;
 use NeoPHP\Package\Orm\Mapping\PostLoad;
@@ -75,7 +76,17 @@ class MetadataFactory
     {
         $class = self::getRealClass(is_object($class) ? $class::class : ltrim($class, '\\'));
 
-        return isset($this->metadata[$class]) || (class_exists($class) && (new ReflectionClass($class))->getAttributes(Entity::class) !== []);
+        if (isset($this->metadata[$class])) {
+            return true;
+        }
+
+        if (!class_exists($class)) {
+            return false;
+        }
+
+        $reflection = new ReflectionClass($class);
+
+        return !$reflection->isAbstract() && $reflection->getAttributes(Entity::class) !== [];
     }
 
     public function getEntityClasses(): array
@@ -127,6 +138,14 @@ class MetadataFactory
             throw new MappingException('The class "{class}" is not an entity: add the #[ORM\Entity] attribute.', 0, null, ['class' => $class]);
         }
 
+        if ($metadata->reflection->isAbstract()) {
+            throw new MappingException('The entity "{class}" is abstract: replace #[ORM\Entity] by #[ORM\MappedSuperclass] to share its mapping with the entities extending it.', 0, null, ['class' => $class]);
+        }
+
+        if ($metadata->reflection->getAttributes(MappedSuperclass::class) !== []) {
+            throw new MappingException('The class "{class}" cannot be both an entity and a mapped superclass.', 0, null, ['class' => $class]);
+        }
+
         $entity = $attributes[0]->newInstance();
         $metadata->table = $entity->table ?? $this->naming->classToTableName($class);
         $metadata->repository = $entity->repository;
@@ -139,13 +158,7 @@ class MetadataFactory
             throw new MappingException('The entity "{class}" has no identifier: add #[ORM\Id] on a property.', 0, null, ['class' => $class]);
         }
 
-        foreach ($metadata->reflection->getMethods() as $method) {
-            foreach (self::CALLBACKS as $attribute => $event) {
-                if ($method->getAttributes($attribute) !== [] && !$method->isStatic()) {
-                    $metadata->callbacks[$event][] = $method->getName();
-                }
-            }
-        }
+        $metadata->callbacks = $this->collectCallbacks($metadata->reflection);
 
         $this->metadata[$class] = $metadata;
 
@@ -153,13 +166,67 @@ class MetadataFactory
             $metadata->associations[$field] = $this->resolveAssociation($metadata, $association);
         }
 
-        foreach ($metadata->reflection->getAttributes(Index::class) as $attribute) {
+        foreach ($this->collectIndexes($metadata->reflection) as [$attribute, $inherited]) {
             $index = $attribute->newInstance();
+            $index->name = $inherited ? null : $index->name;
             $columns = array_map(fn (string $column): string => $metadata->hasField($column) || $metadata->hasAssociation($column) ? $metadata->getColumnName($column) : $column, $index->columns);
             $metadata->indexes[] = ['name' => $index->name, 'columns' => $columns, 'unique' => $index->unique];
         }
 
         return $metadata;
+    }
+
+    protected function hierarchy(ReflectionClass $reflection): array
+    {
+        $levels = [];
+
+        for ($current = $reflection; $current !== false; $current = $current->getParentClass()) {
+            array_unshift($levels, $current);
+        }
+
+        return $levels;
+    }
+
+    protected function collectCallbacks(ReflectionClass $reflection): array
+    {
+        $methods = [];
+
+        foreach ($this->hierarchy($reflection) as $level) {
+            foreach ($level->getMethods() as $method) {
+                if ($method->isStatic() || $method->getDeclaringClass()->getName() !== $level->getName()) {
+                    continue;
+                }
+
+                $key = $method->isPrivate() ? $level->getName() . '::' . $method->getName() : $method->getName();
+                unset($methods[$key]);
+                $methods[$key] = $method;
+            }
+        }
+
+        $callbacks = [];
+
+        foreach ($methods as $method) {
+            foreach (self::CALLBACKS as $attribute => $event) {
+                if ($method->getAttributes($attribute) !== []) {
+                    $callbacks[$event][] = $method->getDeclaringClass()->getName() . '::' . $method->getName();
+                }
+            }
+        }
+
+        return $callbacks;
+    }
+
+    protected function collectIndexes(ReflectionClass $reflection): array
+    {
+        $indexes = [];
+
+        foreach ($this->hierarchy($reflection) as $level) {
+            foreach ($level->getAttributes(Index::class) as $attribute) {
+                $indexes[] = [$attribute, $level->getName() !== $reflection->getName()];
+            }
+        }
+
+        return $indexes;
     }
 
     protected function collectProperties(ReflectionClass $reflection): array
