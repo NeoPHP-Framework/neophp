@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.35.0 — ORM: `#[ORM\MappedSuperclass]` and inherited mapping (callbacks and indexes of parent classes), injectable `EntityManagerInterface`
 - v1.34.0 — WebProfiler: Session / Cookies / Flash panel, Ajax panel listing the calls of a page, "Back to the site" link in the profiler
 - v1.33.3 — Generated YAML configuration files use a 4-space indentation and spaced flow collections (`[ a, b ]`, `[ ]`, `{ }`)
 - v1.33.2 — Added the `locales()` Twig function to retrieve available locales
