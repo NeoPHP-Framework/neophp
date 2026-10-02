@@ -16,5 +16,5 @@ excluded_paths:
 # ~ = local machine, Docker and private networks; [] = anyone (never in production); or a list: [203.0.113.10, 10.0.0.0/8]
 allowed_ips: ~
 # Extra panels (classes extending AbstractProfiler outside of src/) and block renderers
-panels: []
-block_renderers: []
+panels: [ ]
+block_renderers: [ ]

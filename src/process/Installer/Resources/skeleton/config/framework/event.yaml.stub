@@ -4,8 +4,8 @@
 #     App\Event\UserRegisteredEvent:
 #         - App\Listener\SendWelcomeMail
 #         - { listener: App\Listener\Audit, method: onRegistered, priority: 10 }
-listeners: {}
+listeners: { }
 
 # subscribers:
 #     - App\Subscriber\UserSubscriber
-subscribers: []
+subscribers: [ ]

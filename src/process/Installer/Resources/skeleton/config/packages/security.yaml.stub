@@ -8,7 +8,7 @@ providers:
     users:
         memory:
             # e.g. admin: { password: '<hash from `php bin/neo security:hash-password`>', roles: [ROLE_ADMIN] }
-            users: {}
+            users: { }
 
 password_hashers:
     # auto = best algorithm available (bcrypt / argon2), rehashed automatically on login
@@ -33,7 +33,7 @@ firewalls:
             # A CSRF token is required and only POST is accepted: another site cannot log your users out.
             # In the templates: {{ logout_form('Logout') }} (a small form with a button)
             enable_csrf: true
-            methods: [POST]
+            methods: [ POST ]
         remember_me:
             # "Remember me" checkbox (_remember_me): 604800 s = 7 days
             lifetime: 604800
@@ -45,10 +45,10 @@ firewalls:
             interval: 60
 
 role_hierarchy:
-    ROLE_ADMIN: [ROLE_USER]
+    ROLE_ADMIN: [ ROLE_USER ]
 
 # Access rules, the first matching one is used, e.g.
 # access_control:
 #     - { path: ^/admin, roles: ROLE_ADMIN }
 #     - { path: ^/account, roles: ROLE_USER }
-access_control: []
+access_control: [ ]

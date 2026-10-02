@@ -17,41 +17,41 @@ trusted_hosts: '%env(TRUSTED_HOSTS)%'
 
 # Security headers added to every response (pages, errors, API) that does not set them itself
 security_headers:
-  enabled: true
-  headers:
-    X-Content-Type-Options: nosniff
-    # DENY = never displayed in a frame, SAMEORIGIN = only by this site
-    X-Frame-Options: SAMEORIGIN
-    Referrer-Policy: strict-origin-when-cross-origin
-    Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
-    # Content Security Policy: test it before enabling it (inline scripts and external CDNs must be allowed)
-    # Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
-  # HTTPS only: seconds the browser must use HTTPS for this domain (31536000 = 1 year), ~ = disabled
-  hsts: ~
-  # Paths without these headers (regular expressions)
-  excluded_paths: ['^/_profiler', '^/_wdt']
+    enabled: true
+    headers:
+        X-Content-Type-Options: nosniff
+        # DENY = never displayed in a frame, SAMEORIGIN = only by this site
+        X-Frame-Options: SAMEORIGIN
+        Referrer-Policy: strict-origin-when-cross-origin
+        Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+        # Content Security Policy: test it before enabling it (inline scripts and external CDNs must be allowed)
+        # Content-Security-Policy: "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    # HTTPS only: seconds the browser must use HTTPS for this domain (31536000 = 1 year), ~ = disabled
+    hsts: ~
+    # Paths without these headers (regular expressions)
+    excluded_paths: [ '^/_profiler', '^/_wdt' ]
 
 session:
-  name: NEOSESSID
-  # Lifetime of the session cookie in seconds, 0 = until the browser is closed
-  lifetime: 0
-  # Seconds of inactivity after which the session data can be deleted by the garbage collector
-  gc_maxlifetime: 1440
-  save_path: '%kernel.root_path%/var/sessions'
+    name: NEOSESSID
+    # Lifetime of the session cookie in seconds, 0 = until the browser is closed
+    lifetime: 0
+    # Seconds of inactivity after which the session data can be deleted by the garbage collector
+    gc_maxlifetime: 1440
+    save_path: '%kernel.root_path%/var/sessions'
 
 # Default options of the cookies (session cookie included)
 cookie:
-  lifetime: 0
-  path: /
-  # ~ = current host only; .example.com = shared with the sub-domains
-  domain: ~
-  # auto = secure on HTTPS (see trusted_proxies behind a proxy), true = always, false = never
-  secure: auto
-  # true = not readable from JavaScript
-  httponly: true
-  # Lax (recommended), Strict or None (None requires secure: true)
-  samesite: Lax
+    lifetime: 0
+    path: /
+    # ~ = current host only; .example.com = shared with the sub-domains
+    domain: ~
+    # auto = secure on HTTPS (see trusted_proxies behind a proxy), true = always, false = never
+    secure: auto
+    # true = not readable from JavaScript
+    httponly: true
+    # Lax (recommended), Strict or None (None requires secure: true)
+    samesite: Lax
 
 flash:
-  # Session key holding the flash messages
-  key: _flashes
+    # Session key holding the flash messages
+    key: _flashes
