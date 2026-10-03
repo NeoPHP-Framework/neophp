@@ -11,6 +11,7 @@ class Icons
         'request' => '<path d="M4 12h12M12 6l6 6-6 6"/>',
         'response' => '<path d="M20 12H8M12 6l-6 6 6 6"/>',
         'time' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'theme' => '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
         'memory' => '<rect x="4" y="7" width="16" height="10" rx="1"/><path d="M8 7V4M12 7V4M16 7V4M8 20v-3M12 20v-3M16 20v-3"/>',
         'exception' => '<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/>',
         'config' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',

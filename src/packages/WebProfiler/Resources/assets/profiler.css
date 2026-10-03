@@ -19,7 +19,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-neo-theme="light"]) {
         --bg: #020617;
         --surface: #0f172a;
         --fg: #e2e8f0;
@@ -38,6 +38,26 @@
         --danger-soft: #450a0a;
         color-scheme: dark
     }
+}
+
+:root[data-neo-theme="dark"] {
+    --bg: #020617;
+    --surface: #0f172a;
+    --fg: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #1e293b;
+    --accent: #818cf8;
+    --accent-soft: #1e1b4b;
+    --code: #0b1222;
+    --success: #4ade80;
+    --info: #60a5fa;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --success-soft: #052e16;
+    --info-soft: #172554;
+    --warning-soft: #422006;
+    --danger-soft: #450a0a;
+    color-scheme: dark
 }
 
 * {
@@ -574,4 +594,20 @@ a {
     .neo-main {
         padding: 12px
     }
+}
+
+.neo-theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer
+}
+
+.neo-theme-switch:hover {
+    color: var(--fg)
 }
