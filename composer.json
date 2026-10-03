@@ -37,10 +37,12 @@
         "ext-fileinfo": "Required to detect the mime type of uploaded files (File and Image constraints) and of email attachments",
         "ext-mbstring": "Required by the Markdown package (heading anchors) and recommended for UTF-8 text",
         "ext-openssl": "Required to send emails over SSL/TLS (smtps:// or STARTTLS) and to download the Tailwind CLI (tailwind:install)",
+        "ext-pcntl": "Recommended by the Queue package (graceful stop of queue:work on SIGTERM / SIGINT) and the Scheduler package (schedule:work)",
         "ext-pdo": "Required to use the Database component",
         "ext-pdo_mysql": "Required to connect to MySQL / MariaDB databases",
         "ext-pdo_pgsql": "Required to connect to PostgreSQL databases",
         "ext-pdo_sqlite": "Required to connect to SQLite databases",
+        "ext-redis": "Required by the redis transport of the Queue package (redis://)",
         "ext-zip": "Required to archive log files as .zip",
         "twig/twig": "Required to render .twig templates (^3.0)"
     },

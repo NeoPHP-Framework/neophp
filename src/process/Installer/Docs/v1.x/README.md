@@ -95,6 +95,8 @@ config/framework/view.yaml
 config/packages/debug.yaml
 config/packages/neo_ai.yaml
 config/packages/orm.yaml
+config/packages/queue.yaml
+config/packages/scheduler.yaml
 config/packages/security.yaml
 config/packages/translation.yaml
 public/.htaccess
@@ -105,7 +107,7 @@ templates/base.php
 templates/home/index.php
 ```
 
-Directories: `assets/`, `config/packages/`, `migrations/`, `public/builds/`, `src/Command/`, `src/Entity/`, `src/Event/`, `src/Form/`, `src/Listener/`, `src/Middleware/`, `src/Repository/`, `src/Security/`, `src/Service/`, `tests/`, `translations/`, `var/cache/`, `var/log/`, `var/sessions/`.
+Directories: `assets/`, `config/packages/`, `migrations/`, `public/builds/`, `src/Command/`, `src/Entity/`, `src/Event/`, `src/Form/`, `src/Listener/`, `src/Message/`, `src/MessageHandler/` `src/Middleware/`, `src/Repository/`, `src/Security/`, `src/Service/`, `src/Task/`, `tests/`, `translations/`, `var/cache/`, `var/log/`, `var/sessions/`.
 
 `bin/neo` is made executable. It boots the kernel with the environment given by `--env` and runs the console (see the Console documentation).
 
@@ -138,6 +140,10 @@ GEMINI_API_KEY=
 MISTRAL_API_KEY=
 OLLAMA_URL=http://localhost:11434
 ###< neo_ai ###
+
+###> queue ###
+QUEUE_DSN="database://default"
+###< queue ###
 ```
 
 The `neo_ai` block configures the NeoAI development assistant (see the NeoAI documentation). Every variable must exist, even empty, because `config/packages/neo_ai.yaml` references them with `%env(...)%`. Put the real API keys in `.env.local`, never in `.env`. By default the assistant uses a local Ollama server, so no data leaves the machine.
@@ -186,6 +192,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v1.37.0 — `config/packages/queue.yaml` and `config/packages/scheduler.yaml` are generated, `QUEUE_DSN` is added to `.env`, directories `src/Message/`, `src/MessageHandler/` and `src/Task/`.
 - v1.26.0 — `config/packages/neo_ai.yaml` is generated (NeoAI connections, context, scan and web options) and the `NEO_AI_*`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY` and `OLLAMA_URL` variables are added to `.env`.
 - v1.24.0 — `config/framework/api.yaml` is generated (CORS, rate limiter, pagination, problem details, OpenAPI).
 - v1.23.0 — `config/framework/serializer.yaml` is generated.
