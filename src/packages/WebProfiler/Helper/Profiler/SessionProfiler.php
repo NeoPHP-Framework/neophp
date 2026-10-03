@@ -43,7 +43,7 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         $name = $this->sessionName();
         $flashKey = $this->flashKey();
         $id = session_id();
-        $opened = is_string($id) && $id !== '' && isset($_SESSION) && is_array($_SESSION);
+        $opened = is_string($id) && $id !== '' && isset($_SESSION);
         $attributes = $opened ? $_SESSION : [];
         $flashes = $attributes[$flashKey] ?? [];
         unset($attributes[$flashKey]);
