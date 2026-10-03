@@ -32,6 +32,7 @@
 </div>
 <div class="neo-wdt-actions">
     <a href="<?= $this->e($profilerPath . '/' . rawurlencode($profile->getToken())) ?>" title="Open the profiler"><?= $this->icon('list') ?></a>
+    <button type="button" data-neo-theme-switch title="Theme: Auto"><?= $this->icon('theme') ?></button>
     <button type="button" data-neo-wdt-hide title="Hide the toolbar"><?= $this->icon('close') ?></button>
 </div>
 </div>

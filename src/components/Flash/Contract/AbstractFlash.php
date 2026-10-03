@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Flash\Contract;
 
+use NeoPHP\Component\Flash\Trace\FlashTrace;
 use NeoPHP\Component\Session\Contract\SessionInterface;
 
 abstract class AbstractFlash implements FlashInterface
@@ -12,11 +13,26 @@ abstract class AbstractFlash implements FlashInterface
 
     protected string $key = '_flashes';
 
+    protected ?FlashTrace $trace = null;
+
+    public function setTrace(?FlashTrace $trace): static
+    {
+        $this->trace = $trace;
+
+        return $this;
+    }
+
+    public function getTrace(): ?FlashTrace
+    {
+        return $this->trace;
+    }
+
     public function add(string $type, string $message): static
     {
         $flashes = $this->peekAll();
         $flashes[$type][] = $message;
         $this->session->set($this->key, $flashes);
+        $this->trace?->add($type, $message);
 
         return $this;
     }
@@ -29,6 +45,7 @@ abstract class AbstractFlash implements FlashInterface
         if ($messages !== []) {
             unset($flashes[$type]);
             $this->store($flashes);
+            $this->trace?->read([$type => $messages], 'get');
         }
 
         return $messages;
@@ -45,6 +62,7 @@ abstract class AbstractFlash implements FlashInterface
 
         if ($flashes !== []) {
             $this->store([]);
+            $this->trace?->read($flashes, 'all');
         }
 
         return $flashes;

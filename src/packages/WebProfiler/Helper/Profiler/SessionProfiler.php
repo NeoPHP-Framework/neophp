@@ -6,6 +6,8 @@ namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
 
 use NeoPHP\Component\Config\Contract\ConfigInterface;
 use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Flash\Contract\AbstractFlash;
+use NeoPHP\Component\Flash\Contract\FlashInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Component\Session\Contract\SessionInterface;
@@ -60,7 +62,8 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
             ],
             'flashes' => [
                 'key' => $flashKey,
-                'pending' => $flashes,
+                'pending' => is_array($flashes) ? $flashes : [],
+                ...$this->flashTrace(),
             ],
             'cookies' => [
                 'request' => $this->mask($request->cookies->all()),
@@ -76,13 +79,14 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         $cookies = (array) ($data['cookies'] ?? []);
         $pending = (array) ($flashes['pending'] ?? []);
         $flashCount = array_sum(array_map(static fn (mixed $messages): int => is_array($messages) ? count($messages) : 1, $pending));
+        $flashCount += count((array) ($flashes['added'] ?? [])) + count((array) ($flashes['read'] ?? []));
         $requestCookies = (array) ($cookies['request'] ?? []);
         $responseCookies = (array) ($cookies['response'] ?? []);
 
         return new Panel('Session / Cookies / Flash', 'user', [
             new TabsBlock([
                 'Session' => $this->sessionBlocks($session),
-                'Flash messages (' . $flashCount . ')' => $this->flashBlocks($pending, (string) ($flashes['key'] ?? self::DEFAULT_FLASH_KEY)),
+                'Flash messages (' . $flashCount . ')' => $this->flashBlocks($pending, (string) ($flashes['key'] ?? self::DEFAULT_FLASH_KEY), $flashes),
                 'Cookies (' . (count($requestCookies) + count($responseCookies)) . ')' => [
                     new KeyValueBlock($requestCookies, 'Request cookies (sent by the browser)', 'The browser sent no cookie.'),
                     new TableBlock(['Name', 'Value', 'Expires', 'Path', 'Domain', 'Secure', 'HttpOnly', 'SameSite'], array_map(static fn (array $cookie): array => array_values($cookie), $responseCookies), 'Response cookies (Set-Cookie)', 'The response sets no cookie.'),
@@ -124,7 +128,7 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         ];
     }
 
-    protected function flashBlocks(array $pending, string $key): array
+    protected function flashBlocks(array $pending, string $key, array $flashes = []): array
     {
         $rows = [];
 
@@ -134,10 +138,17 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
             }
         }
 
-        return [
-            new TableBlock(['Type', 'Message'], $rows, 'Pending flash messages', 'No pending flash message: they were displayed (read) during this request, or none was added.'),
-            new AlertBlock(sprintf('Messages still stored in the session (key "%s") at the end of the request: they will be displayed by the next page that reads them. After a redirection, open the profile of the previous request to see the messages added before it.', $key), Status::INFO),
-        ];
+        $blocks = [];
+
+        if (($flashes['traced'] ?? false) === true) {
+            $blocks[] = new TableBlock(['Type', 'Message'], array_map(static fn (mixed $flash): array => is_array($flash) ? [(string) ($flash['type'] ?? ''), (string) ($flash['message'] ?? '')] : [], (array) ($flashes['added'] ?? [])), 'Added during this request', 'No flash message added during this request.');
+            $blocks[] = new TableBlock(['Type', 'Message', 'Read with'], array_map(static fn (mixed $flash): array => is_array($flash) ? [(string) ($flash['type'] ?? ''), (string) ($flash['message'] ?? ''), (string) ($flash['method'] ?? '') . '()'] : [], (array) ($flashes['read'] ?? [])), 'Read (displayed) during this request', 'No flash message read during this request.');
+        }
+
+        $blocks[] = new TableBlock(['Type', 'Message'], $rows, 'Pending at the end of the request', 'No pending flash message.');
+        $blocks[] = new AlertBlock(sprintf('Pending messages are still stored in the session (key "%s"): they will be displayed by the next page that reads them.', $key), Status::INFO);
+
+        return $blocks;
     }
 
     protected function responseCookies(Response $response): array
@@ -189,6 +200,30 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         }
 
         return $values;
+    }
+
+    protected function flashTrace(): array
+    {
+        try {
+            if (!$this->container->resolved(FlashInterface::class)) {
+                return ['traced' => true, 'added' => [], 'read' => []];
+            }
+
+            $flash = $this->container->get(FlashInterface::class);
+        } catch (Throwable) {
+            return ['traced' => false];
+        }
+
+        $trace = $flash instanceof AbstractFlash ? $flash->getTrace() : null;
+
+        if ($trace === null) {
+            return ['traced' => false];
+        }
+
+        $data = ['traced' => true, 'added' => $trace->getAdded(), 'read' => $trace->getRead()];
+        $trace->reset();
+
+        return $data;
     }
 
     protected function sessionName(): string

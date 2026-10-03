@@ -241,9 +241,10 @@ Two elements cannot share the same `getName()` (`InvalidElementException`). An e
 | `panel` | `?string` | panel opened on click; default: the element name when it implements `ProfilerInterface` |
 | `linked` | `bool` | `false` for an item without link |
 
-Built-in icon keys: `info`, `request`, `response`, `time`, `memory`, `exception`, `config`, `database`, `route`, `user`, `mail`, `cache`, `event`, `log`, `view`, `form`, `security`, `ajax`, `php`, `logo`, `close`, `list` (`Renderer\Icons`).
+Built-in icon keys: `info`, `request`, `response`, `time`, `memory`, `exception`, `config`, `database`, `route`, `user`, `mail`, `cache`, `event`, `log`, `view`, `form`, `security`, `ajax`, `php`, `logo`, `close`, `list`, `theme` (`Renderer\Icons`).
 
 The toolbar also shows an **Ajax** item listing the `fetch()` and `XMLHttpRequest` calls made by the page (method, status, URL, duration and a link to their profile read from the `X-Debug-Token` response header). The toolbar can be hidden (state remembered in `localStorage`).
+The theme button of the toolbar and of the profiler header cycles between **Auto** (follows `prefers-color-scheme`), **Light** and **Dark**. The choice is stored in `localStorage` (`neo-wdt-theme`) and shared by the toolbar, the profiler pages and the NeoAI chat of the same domain; it is applied with a `data-neo-theme` attribute on `<html>` (prefixed, so it never conflicts with the theme of the application).
 The toolbar adds an `X-Debug-Parent` header (token of the page) to the same-origin `fetch()` / `XMLHttpRequest` calls: the **Ajax** panel of the page lists them. Requests sent before the toolbar is loaded are attached to their page with the `Referer` header. Cross-origin calls are never modified.
 
 ## Toolbar assets
@@ -400,7 +401,7 @@ In `src/packages/WebProfiler/Helper/Profiler/`:
 | Element | Name | Toolbar | Panel |
 |---|---|---|---|
 | `RequestProfiler` | `request` | status code and route | request / response headers, query, body, attributes, server |
-| `SessionProfiler` | `session` | | session (name, ID, size, cookie options, attributes at the end of the request), pending flash messages, request cookies and `Set-Cookie` of the response |
+| `SessionProfiler` | `session` | | session (name, ID, size, cookie options, attributes at the end of the request), flash messages added, read and still pending, request cookies and `Set-Cookie` of the response |
 | `AjaxProfiler` | `ajax` | | Ajax calls made by the page (links to their profiles) or, for an Ajax request, a link to its page |
 | `ExceptionProfiler` | `exception` | red item with the class (only on exception) | message, source excerpt, stack trace, previous exceptions |
 | `PerformanceProfiler` | `performance` | duration, memory in the popover | metrics, timeline, stopwatch events |
@@ -420,7 +421,6 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Limitations
 
-- The Session panel shows the flash messages still pending at the end of the request: messages added then read during the same request are not listed. After a redirection, open the profile of the previous request.
 - The Ajax panel is computed when it is displayed: reload it after using the page to see the new calls.
 - The toolbar loader is an inline `<script>`: a strict Content-Security-Policy without `'unsafe-inline'` blocks it.
 - Streamed or binary responses are profiled but never receive the toolbar.
@@ -428,6 +428,8 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Changelog
 
+- v1.39.0 — Theme switcher (Auto / Light / Dark) in the toolbar and the profiler header, `theme` icon.
+- v1.38.0 — Session panel: flash messages added and read during the request (Flash trace).
 - v1.34.0 — Session / Cookies / Flash panel (session read after it is saved, pending flash messages, request and response cookies), Ajax panel (calls of a page and parent page of an Ajax request, `X-Debug-Parent` header), "Back to the site" link; session and cookies removed from the Request panel.
 - v1.30.0 — `allowed_ips` (local and private networks by default): the toolbar and the profiles are only served to these clients, `Profiler::isAllowed()`.
 - v1.26.0 — `ToolbarAssetInterface`: an element can add CSS and JavaScript to the toolbar (executed after the Ajax load), `Profiler::getToolbarAssets()`, `window.__neoWdt.config`.

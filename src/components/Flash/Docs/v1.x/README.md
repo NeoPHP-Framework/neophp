@@ -9,6 +9,7 @@ It requires the Session component.
 - [Displaying messages](#displaying-messages)
 - [FlashInterface](#flashinterface)
 - [Configuration](#configuration)
+- [Profiler](#profiler)
 - [Changelog](#changelog)
 
 ## Adding messages
@@ -71,6 +72,11 @@ flash:
 
 `key` is the session key where the messages are stored.
 
+## Profiler
+
+When the WebProfiler is enabled, `FlashProvider` attaches a `NeoPHP\Component\Flash\Trace\FlashTrace` to the flash manager (`setTrace()` / `getTrace()` of `AbstractFlash`): the messages added with `add()` and read with `get()` / `all()` during the request are listed in the "Flash messages" tab of the Session panel, next to the messages still pending in the session. Without the profiler no trace is attached and nothing is recorded.
+
 ## Changelog
 
+- v1.38.0 — Opt-in `FlashTrace` (`AbstractFlash::setTrace()` / `getTrace()`), attached by `FlashProvider` when the WebProfiler is enabled.
 - v1.6.0 — Flash component: `FlashInterface`, `addFlash()`, `flashes()` view helper.
