@@ -6,6 +6,7 @@ The Controller component resolves the controller of a route, builds its argument
 ## Summary
 
 - [Writing a controller](#writing-a-controller)
+- [Generating a controller](#generating-a-controller)
 - [Controller formats](#controller-formats)
 - [Arguments](#arguments)
 - [Return values](#return-values)
@@ -44,6 +45,25 @@ class UserController extends AbstractController
 ```
 
 Routes are declared with `#[Route]` or in `routes.yaml` (see the Routing documentation). The controller is built by the container, so its constructor is autowired (see the Container documentation).
+
+## Generating a controller
+
+```bash
+php bin/neo make:controller Post                    # src/Controller/PostController.php + templates/post/index.php
+php bin/neo make:controller Admin/BlogPost --twig   # App\Controller\Admin\BlogPostController + templates/admin/blog_post/index.html.twig
+php bin/neo make:controller Api/Product --api       # JSON response, no template
+php bin/neo make:controller Health --no-template    # plain Response
+php bin/neo make:controller                         # asks the name and the response type
+```
+
+| Option | Description |
+|---|---|
+| `--twig` | Twig template (`.html.twig`, extends `base.html.twig` when it exists) |
+| `--api` | `$this->json([...])`, no template |
+| `--no-template` | `new Response(...)`, no template |
+| `--force` | overwrites the existing controller and template |
+
+The controller gets an `index()` action on `/<name>` (kebab-case, e.g. `/admin/blog-post`) named `<name>_index` (`admin_blog_post_index`). Without option, the format is a PHP template (extending `base` when `templates/base.php` exists), or Twig when the project only has `templates/base.html.twig`. Inject the services in the constructor or the action (`public function index(EntityManagerInterface $entityManager): Response`).
 
 ## Controller formats
 
@@ -214,6 +234,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v1.36.0 — `make:controller` (PHP / Twig template, `--api`, `--no-template`, sub-namespaces, `ControllerMaker`).
 - v1.31.0 — entity arguments are loaded by the ORM `EntityValueResolver`.
 - v1.24.0 — `ApiController` trait: `paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()`; `PageRequest` / `#[MapPagination]` controller arguments (see the Api documentation).
 - v1.23.0 — Argument resolvers (`ArgumentResolverInterface`, `controller.argument_resolvers`) used by `#[MapRequestPayload]` / `#[MapQueryString]`; `serialize()` / `deserialize()` in controllers; `json()` accepts a serializer context.
