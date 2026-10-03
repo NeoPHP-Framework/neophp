@@ -30,7 +30,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .neo-ai {
+    html:not([data-neo-theme="light"]) .neo-ai {
         --ai-bg: #0f172a;
         --ai-fg: #e2e8f0;
         --ai-muted: #94a3b8;
@@ -44,6 +44,21 @@
         --ai-del: #f87171;
         --ai-warn: #fbbf24
     }
+}
+
+html[data-neo-theme="dark"] .neo-ai {
+    --ai-bg: #0f172a;
+    --ai-fg: #e2e8f0;
+    --ai-muted: #94a3b8;
+    --ai-border: #1e293b;
+    --ai-soft: #111827;
+    --ai-accent: #818cf8;
+    --ai-accent-fg: #0f172a;
+    --ai-user: #1e1b4b;
+    --ai-code: #020617;
+    --ai-add: #4ade80;
+    --ai-del: #f87171;
+    --ai-warn: #fbbf24
 }
 
 .neo-ai-floating {
