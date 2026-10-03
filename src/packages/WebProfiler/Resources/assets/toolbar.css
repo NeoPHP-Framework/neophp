@@ -39,7 +39,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .neo-wdt, .neo-wdt-mini {
+    html:not([data-neo-theme="light"]) .neo-wdt, html:not([data-neo-theme="light"]) .neo-wdt-mini {
         --wdt-bg: #0f172a;
         --wdt-fg: #e2e8f0;
         --wdt-muted: #94a3b8;
@@ -51,6 +51,19 @@
         --wdt-warning: #fbbf24;
         --wdt-danger: #f87171
     }
+}
+
+html[data-neo-theme="dark"] .neo-wdt, html[data-neo-theme="dark"] .neo-wdt-mini {
+    --wdt-bg: #0f172a;
+    --wdt-fg: #e2e8f0;
+    --wdt-muted: #94a3b8;
+    --wdt-border: #1e293b;
+    --wdt-pop: #111827;
+    --wdt-hover: #1e293b;
+    --wdt-success: #4ade80;
+    --wdt-info: #60a5fa;
+    --wdt-warning: #fbbf24;
+    --wdt-danger: #f87171
 }
 
 .neo-wdt-items {
