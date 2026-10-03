@@ -1,0 +1,28 @@
+# Run the due tasks every minute with the system cron:
+#   * * * * * cd /path/to/project && php bin/neo schedule:run >> /dev/null 2>&1
+# On Windows use the Task Scheduler, or "php bin/neo schedule:work" in development
+
+# Default timezone of the tasks (~: the PHP timezone)
+timezone: ~
+
+# Console script used to run the command tasks in a subprocess
+console: bin/neo
+
+# PHP binary of the command tasks (~: the binary running schedule:run)
+php_binary: ~
+
+# Directory of the history, the locks and the heartbeat (default: var/scheduler)
+storage: ~
+
+# Number of runs kept in var/scheduler/history.jsonl
+history:
+    max: 500
+
+# Tasks: one of command / message / class, then cron or frequency
+#   - { name: 'cache-clear', command: 'cache:clear', cron: '0 3 * * *' }
+#   - { message: App\Message\SendReport, frequency: daily, at: '02:00', without_overlapping: true }
+#   - { class: App\Task\PurgeTokens, frequency: everyFifteenMinutes, timezone: Europe/Paris }
+tasks: [ ]
+
+# Classes implementing NeoPHP\Package\Scheduler\Contract\ScheduleProviderInterface (also discovered in src/)
+providers: [ ]
