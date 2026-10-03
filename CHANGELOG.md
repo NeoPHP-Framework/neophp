@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.38.0 — WebProfiler: flash messages added and read during the request in the Session panel (opt-in `FlashTrace` of the Flash component)
 - v1.37.0 — Queue package (messages, `#[AsMessageHandler]` handlers, `JobInterface` jobs, `sync` / `database` / `filesystem` / `redis` transports, HMAC-signed payloads, delays, priorities, retries with exponential backoff, failed messages, `queue:*` commands, `make:message`, `dispatchMessage()`) and Scheduler package (`CronExpression`, `#[AsScheduledTask]`, `scheduler.yaml` tasks, `ScheduleProviderInterface`, overlap locks, run history, `schedule:run` / `schedule:list` / `schedule:work` / `schedule:test` / `schedule:next`), Queue and Scheduler panels of the WebProfiler
 - v1.36.0 — `make:controller` command: controller and its template (PHP or Twig), JSON or plain response, sub-namespaces (`Admin/Post`)
 - v1.35.0 — ORM: `#[ORM\MappedSuperclass]` and inherited mapping (callbacks and indexes of parent classes), injectable `EntityManagerInterface`
