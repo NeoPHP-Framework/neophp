@@ -55,6 +55,8 @@ use NeoPHP\Package\Dotenv\Provider\DotenvProvider;
 use NeoPHP\Package\Markdown\Provider\MarkdownProvider;
 use NeoPHP\Package\NeoAI\Provider\NeoAiProvider;
 use NeoPHP\Package\Orm\Provider\OrmProvider;
+use NeoPHP\Package\Queue\Provider\QueueProvider;
+use NeoPHP\Package\Scheduler\Provider\SchedulerProvider;
 use NeoPHP\Package\Security\Provider\SecurityProvider;
 use NeoPHP\Package\Tailwind\Provider\TailwindProvider;
 use NeoPHP\Package\Translation\Provider\TranslationProvider;
@@ -378,6 +380,8 @@ abstract class AbstractKernel implements KernelInterface
             FormProvider::class,
             MailerProvider::class,
             HttpClientProvider::class,
+            QueueProvider::class,
+            SchedulerProvider::class,
             SecurityProvider::class,
             DebugProvider::class,
             WebProfilerProvider::class,
