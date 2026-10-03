@@ -1,0 +1,37 @@
+# Transport used when a message has no route (#[AsMessage], routing) and no "transport" option
+default_transport: async
+
+# Transports: name => DSN, or { dsn: ..., options: { queue: default, retry_after: 90 } }
+#   database://default                         table neo_queue_jobs of the "default" connection
+#   filesystem://%kernel.root_path%/var/queue  JSON files (one directory per queue)
+#   redis://localhost:6379/0                   requires ext-redis
+#   sync://                                    handled immediately, during the dispatch
+transports:
+    async: '%env(QUEUE_DSN)%'
+    sync: 'sync://'
+
+# Message class (or parent class / interface) => transport name
+routing: { }
+
+# Explicit handlers, in addition to the #[AsMessageHandler] classes of src/
+#   App\Message\SendNewsletter: App\MessageHandler\SendNewsletterHandler
+handlers: { }
+
+# Retries with exponential backoff: delay * multiplier ^ (attempt - 1), capped by max_delay (seconds)
+retry:
+    max_attempts: 3
+    delay: 1
+    multiplier: 2
+    max_delay: 3600
+
+# Creates the tables (database) or directories (filesystem) on first use; otherwise run php bin/neo queue:setup
+auto_setup: true
+
+# Seconds after which a reserved message whose worker died is delivered again
+retry_after: 90
+
+# Classes implementing NeoPHP\Package\Queue\Contract\TransportFactoryInterface (custom DSN schemes)
+transports_factories: [ ]
+
+# Shows the counters of every transport in the WebProfiler "Queue" panel
+profiler_stats: true
