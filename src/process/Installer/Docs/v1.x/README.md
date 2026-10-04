@@ -91,6 +91,7 @@ config/framework/logger.yaml
 config/framework/mailer.yaml
 config/framework/middleware.yaml
 config/framework/serializer.yaml
+config/framework/upload.yaml
 config/framework/view.yaml
 config/packages/debug.yaml
 config/packages/neo_ai.yaml
@@ -192,6 +193,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v1.40.0 — `config/framework/upload.yaml` is generated, `/public/uploads/` is added to `.gitignore`.
 - v1.37.0 — `config/packages/queue.yaml` and `config/packages/scheduler.yaml` are generated, `QUEUE_DSN` is added to `.env`, directories `src/Message/`, `src/MessageHandler/` and `src/Task/`.
 - v1.26.0 — `config/packages/neo_ai.yaml` is generated (NeoAI connections, context, scan and web options) and the `NEO_AI_*`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY` and `OLLAMA_URL` variables are added to `.env`.
 - v1.24.0 — `config/framework/api.yaml` is generated (CORS, rate limiter, pagination, problem details, OpenAPI).
