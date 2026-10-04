@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.40.0 — Upload component: files stored in `public/uploads/` with a random name and a MIME type detected from the content, size limit, `upload()` view function, `storeUpload()` / `deleteUpload()` / `uploadUrl()` controller helpers, `config/framework/upload.yaml`
 - v1.39.2 — Bugfix: `make:migration` ignores the queue tables (`neo_queue_jobs`, `neo_queue_failed`) instead of dropping them
 - v1.39.1 — Bugfix: `createNamed()` adds the CSRF field like `create()` (forms created with a custom or empty name were posted without a token)
 - v1.39.0 — WebProfiler: Auto / Light / Dark theme switcher shared by the toolbar, the profiler and the NeoAI chat
