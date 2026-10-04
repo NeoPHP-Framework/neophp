@@ -41,7 +41,7 @@ abstract class AbstractFormManager implements FormManagerInterface
 
     public function createNamed(string $name, string $type = FormType::class, mixed $data = null, array $options = []): FormInterface
     {
-        return $this->createNamedBuilder($name, $type, $data, $options)->getForm();
+        return $this->createRootBuilder($name, $type, $data, $options)->getForm();
     }
 
     public function createBuilder(string $type = FormType::class, mixed $data = null, array $options = []): FormBuilder
