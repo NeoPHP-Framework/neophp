@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
 
+- v1.39.1 — Bugfix: `createNamed()` adds the CSRF field like `create()` (forms created with a custom or empty name were posted without a token)
 - v1.39.0 — WebProfiler: Auto / Light / Dark theme switcher shared by the toolbar, the profiler and the NeoAI chat
 - v1.38.0 — WebProfiler: flash messages added and read during the request in the Session panel (opt-in `FlashTrace` of the Flash component)
 - v1.37.0 — Queue package (messages, `#[AsMessageHandler]` handlers, `JobInterface` jobs, `sync` / `database` / `filesystem` / `redis` transports, HMAC-signed payloads, delays, priorities, retries with exponential backoff, failed messages, `queue:*` commands, `make:message`, `dispatchMessage()`) and Scheduler package (`CronExpression`, `#[AsScheduledTask]`, `scheduler.yaml` tasks, `ScheduleProviderInterface`, overlap locks, run history, `schedule:run` / `schedule:list` / `schedule:work` / `schedule:test` / `schedule:next`), Queue and Scheduler panels of the WebProfiler
