@@ -18,6 +18,7 @@ use NeoPHP\Component\Mailer\Helper\Controller\MailerController;
 use NeoPHP\Component\Routing\Helper\Controller\RoutingController;
 use NeoPHP\Component\Serializer\Helper\Controller\SerializerController;
 use NeoPHP\Component\Session\Helper\Controller\SessionController;
+use NeoPHP\Component\Upload\Helper\Controller\UploadController;
 use NeoPHP\Component\Validator\Helper\Controller\ValidatorController;
 use NeoPHP\Component\View\Helper\Controller\ViewController;
 use NeoPHP\Component\HttpClient\Helper\Controller\HttpClientController;
@@ -46,6 +47,7 @@ abstract class AbstractController implements ControllerInterface
     use SecurityController;
     use SessionController;
     use TranslationController;
+    use UploadController;
     use ValidatorController;
     use ViewController;
     use SerializerController;
