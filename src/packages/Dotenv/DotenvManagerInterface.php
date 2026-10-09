@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Dotenv\Contract;
+namespace NeoPHP\Package\Dotenv;
 
-interface DotenvInterface
+interface DotenvManagerInterface
 {
     public function parse(string $content, ?string $path = null): array;
 
