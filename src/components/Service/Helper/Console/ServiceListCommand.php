@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Service\Helper\Console;
 
-use NeoPHP\Component\Service\Contract\ServiceInterface;
+use NeoPHP\Component\Service\ServiceManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'service:list', description: 'Lists the services of config/services.yaml, the aliases and the interfaces bound automatically')]
 class ServiceListCommand extends AbstractConsole
 {
-    public function __construct(protected ServiceInterface $services)
+    public function __construct(protected ServiceManagerInterface $services)
     {
     }
 

@@ -7,7 +7,7 @@ namespace NeoPHP\Component\Service\Loader;
 use NeoPHP\Component\Container\Attribute\Autowire;
 use NeoPHP\Component\Kernel\Discovery\ClassFinder;
 use NeoPHP\Component\Service\Exception\ServiceException;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 use ReflectionClass;
 
 class YamlServiceLoader
@@ -20,7 +20,7 @@ class YamlServiceLoader
 
     protected array $resources = [];
 
-    public function __construct(protected YamlInterface $yaml)
+    public function __construct(protected YamlManagerInterface $yaml)
     {
     }
 

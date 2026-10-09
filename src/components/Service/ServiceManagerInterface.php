@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Service\Contract;
+namespace NeoPHP\Component\Service;
 
-interface ServiceInterface
+interface ServiceManagerInterface
 {
     public function register(array $definitions): static;
 
