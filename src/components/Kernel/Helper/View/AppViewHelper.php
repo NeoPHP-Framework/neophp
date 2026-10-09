@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Kernel\Helper\View;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Kernel\AppVariable;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\View\Contract\ViewGlobalInterface;
 
+/**
+ * @internal
+ */
 class AppViewHelper implements ViewGlobalInterface
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

@@ -2,36 +2,39 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Kernel;
+namespace NeoPHP\Component\Kernel\Helper\View;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Flash\Contract\FlashInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Flash\FlashManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
-use NeoPHP\Component\Session\Contract\SessionInterface;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
+use NeoPHP\Package\Security\SecurityManagerInterface;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
+/**
+ * @internal
+ */
 class AppVariable
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     public function getName(): string
     {
-        return $this->container->has(ConfigInterface::class) ? (string) $this->container->get(ConfigInterface::class)->get('framework.app.name', '') : '';
+        return $this->container->has(ConfigManagerInterface::class) ? (string) $this->container->get(ConfigManagerInterface::class)->get('framework.app.name', '') : '';
     }
 
     public function getEnvironment(): string
     {
-        return $this->container->get(KernelInterface::class)->getEnvironment();
+        return $this->container->get(KernelManagerInterface::class)->getEnvironment();
     }
 
     public function getDebug(): bool
     {
-        return $this->container->get(KernelInterface::class)->isDebug();
+        return $this->container->get(KernelManagerInterface::class)->isDebug();
     }
 
     public function getRequest(): ?Request
@@ -39,30 +42,30 @@ class AppVariable
         return $this->container->has(Request::class) ? $this->container->get(Request::class) : null;
     }
 
-    public function getSession(): ?SessionInterface
+    public function getSession(): ?SessionManagerInterface
     {
-        return $this->container->has(SessionInterface::class) ? $this->container->get(SessionInterface::class) : null;
+        return $this->container->has(SessionManagerInterface::class) ? $this->container->get(SessionManagerInterface::class) : null;
     }
 
     public function getUser(): ?object
     {
-        return $this->container->has(SecurityInterface::class) ? $this->container->get(SecurityInterface::class)->getUser() : null;
+        return $this->container->has(SecurityManagerInterface::class) ? $this->container->get(SecurityManagerInterface::class)->getUser() : null;
     }
 
     public function getFlashes(?string $type = null): array
     {
-        if (!$this->container->has(FlashInterface::class)) {
+        if (!$this->container->has(FlashManagerInterface::class)) {
             return [];
         }
 
-        $flash = $this->container->get(FlashInterface::class);
+        $flash = $this->container->get(FlashManagerInterface::class);
 
         return $type === null ? $flash->all() : $flash->get($type);
     }
 
     public function getLocale(): string
     {
-        return $this->container->has(TranslatorInterface::class) ? $this->container->get(TranslatorInterface::class)->getLocale() : 'en';
+        return $this->container->has(TranslationManagerInterface::class) ? $this->container->get(TranslationManagerInterface::class)->getLocale() : 'en';
     }
 
     public function getCurrentRoute(): ?string

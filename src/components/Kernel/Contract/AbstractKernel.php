@@ -6,73 +6,41 @@ namespace NeoPHP\Component\Kernel\Contract;
 
 use Composer\InstalledVersions;
 use ErrorException;
-use NeoPHP\Component\Api\Provider\ApiProvider;
-use NeoPHP\Component\Asset\Provider\AssetProvider;
-use NeoPHP\Component\Cache\Provider\CacheProvider;
 use NeoPHP\Component\Config\Provider\ConfigProvider;
 use NeoPHP\Component\Container\ContainerManager;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\ProviderInterface;
-use NeoPHP\Component\Container\Provider\ContainerProvider;
-use NeoPHP\Component\Controller\Contract\ControllerResolverInterface;
-use NeoPHP\Component\Controller\Provider\ControllerProvider;
-use NeoPHP\Component\Cookie\Provider\CookieProvider;
-use NeoPHP\Component\Csrf\Provider\CsrfProvider;
-use NeoPHP\Component\Database\Provider\DatabaseProvider;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
-use NeoPHP\Component\Event\Provider\EventProvider;
+use NeoPHP\Component\Controller\ControllerManagerInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Component\Exception\ExceptionManager;
-use NeoPHP\Component\Exception\Provider\ExceptionProvider;
-use NeoPHP\Component\Flash\Provider\FlashProvider;
-use NeoPHP\Component\Form\Provider\FormProvider;
-use NeoPHP\Component\Http\Provider\HttpProvider;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\Event\ControllerEvent;
 use NeoPHP\Component\Kernel\Event\ExceptionEvent;
 use NeoPHP\Component\Kernel\Event\RequestEvent;
 use NeoPHP\Component\Kernel\Event\ResponseEvent;
 use NeoPHP\Component\Kernel\Event\TerminateEvent;
 use NeoPHP\Component\Kernel\Exception\KernelException;
-use NeoPHP\Component\Kernel\Provider\KernelProvider;
-use NeoPHP\Component\Logger\Contract\LoggerManagerInterface;
-use NeoPHP\Component\Logger\Provider\LoggerProvider;
-use NeoPHP\Component\Mailer\Provider\MailerProvider;
-use NeoPHP\Component\Middleware\Contract\MiddlewareManagerInterface;
-use NeoPHP\Component\Middleware\Provider\MiddlewareProvider;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
-use NeoPHP\Component\Routing\Provider\RoutingProvider;
-use NeoPHP\Component\Serializer\Provider\SerializerProvider;
-use NeoPHP\Component\Service\Provider\ServiceProvider;
-use NeoPHP\Component\Session\Provider\SessionProvider;
-use NeoPHP\Component\Upload\Provider\UploadProvider;
-use NeoPHP\Component\Validator\Provider\ValidatorProvider;
-use NeoPHP\Component\View\Provider\ViewProvider;
-use NeoPHP\Component\HttpClient\Provider\HttpClientProvider;
-use NeoPHP\Package\Debug\Provider\DebugProvider;
+use NeoPHP\Component\Kernel\KernelManager;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Kernel\Module\ModuleDiscovery;
+use NeoPHP\Component\Kernel\Module\ModuleResolver;
+use NeoPHP\Component\Logger\LoggerManagerInterface;
+use NeoPHP\Component\Middleware\MiddlewareManagerInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Package\Dotenv\DotenvManager;
-use NeoPHP\Package\Dotenv\Provider\DotenvProvider;
-use NeoPHP\Package\Markdown\Provider\MarkdownProvider;
-use NeoPHP\Package\NeoAI\Provider\NeoAiProvider;
-use NeoPHP\Package\Orm\Provider\OrmProvider;
-use NeoPHP\Package\Queue\Provider\QueueProvider;
-use NeoPHP\Package\Scheduler\Provider\SchedulerProvider;
-use NeoPHP\Package\Security\Provider\SecurityProvider;
-use NeoPHP\Package\Tailwind\Provider\TailwindProvider;
-use NeoPHP\Package\Translation\Provider\TranslationProvider;
-use NeoPHP\Package\WebProfiler\Provider\WebProfilerProvider;
-use NeoPHP\Package\Yaml\Provider\YamlProvider;
-use NeoPHP\Process\Console\Provider\ConsoleProvider;
-use NeoPHP\Process\Installer\Provider\InstallerProvider;
 use ReflectionObject;
 use Throwable;
 
-abstract class AbstractKernel implements KernelInterface
+abstract class AbstractKernel implements KernelManagerInterface
 {
     public const VERSION = 'dev';
 
     public const PACKAGE = 'neophp/framework';
+
+    public const MODULES_FILE = 'config.php';
 
     protected string $rootPath;
 
@@ -80,9 +48,13 @@ abstract class AbstractKernel implements KernelInterface
 
     protected bool $debug;
 
-    protected ?ContainerInterface $container = null;
+    protected ?ContainerManagerInterface $container = null;
 
     protected bool $booted = false;
+
+    protected ?array $modules = null;
+
+    protected array $disabledNamespaces = [];
 
     public function __construct(?string $environment = null, ?bool $debug = null, ?string $rootPath = null)
     {
@@ -109,7 +81,7 @@ abstract class AbstractKernel implements KernelInterface
         $this->registerErrorHandler();
 
         $container = $this->createContainer();
-        $container->instance(KernelInterface::class, $this);
+        $container->instance(KernelManagerInterface::class, $this);
         $container->instance(static::class, $this);
         $container->instance(ConfigProvider::PARAMETERS_ID, $this->getParameters());
 
@@ -119,7 +91,7 @@ abstract class AbstractKernel implements KernelInterface
 
         $providers = [];
 
-        foreach ([...$this->coreProviders(), ...$this->providers()] as $provider) {
+        foreach ([...array_column($this->getModules(), 'provider'), ...$this->providers()] as $provider) {
             $provider = is_string($provider) ? new $provider() : $provider;
 
             if (!$provider instanceof ProviderInterface) {
@@ -190,7 +162,7 @@ abstract class AbstractKernel implements KernelInterface
         }
     }
 
-    public function getContainer(): ContainerInterface
+    public function getContainer(): ContainerManagerInterface
     {
         if ($this->container === null) {
             throw new KernelException('The kernel is not booted: call boot() first.');
@@ -257,12 +229,38 @@ abstract class AbstractKernel implements KernelInterface
         ];
     }
 
+    public function getModules(): array
+    {
+        $this->loadModules();
+
+        return (array) $this->modules;
+    }
+
+    public function isEnabled(string $class): bool
+    {
+        $class = ltrim($class, '\\');
+
+        foreach ($this->getModules() as $module) {
+            if ($module['namespace'] !== '' && str_starts_with($class, $module['namespace'] . '\\')) {
+                return true;
+            }
+        }
+
+        foreach ($this->disabledNamespaces as $namespace) {
+            if ($namespace !== '' && str_starts_with($class, $namespace . '\\')) {
+                return false;
+            }
+        }
+
+        return preg_match('/^NeoPHP\\\\(Component|Package|Process)\\\\/', $class) !== 1;
+    }
+
     protected function dispatch(Request $request): Response
     {
         $container = $this->getContainer();
         $container->instance(Request::class, $request);
 
-        $match = $container->get(RoutingInterface::class)->match($request->getMethod(), $request->getPath());
+        $match = $container->get(RoutingManagerInterface::class)->match($request->getMethod(), $request->getPath());
 
         $request->attributes->add($match->parameters);
         $request->attributes->set('_route', $match->getName());
@@ -275,7 +273,7 @@ abstract class AbstractKernel implements KernelInterface
             $container->instance(Request::class, $request);
             $event = $this->events()->dispatch(new ControllerEvent($this, $request, $match->getController(), $match->parameters));
 
-            return $container->get(ControllerResolverInterface::class)->dispatch($event->getController(), $request, $event->getParameters());
+            return $container->get(ControllerManagerInterface::class)->dispatch($event->getController(), $request, $event->getParameters());
         });
     }
 
@@ -288,9 +286,9 @@ abstract class AbstractKernel implements KernelInterface
         return $this->events()->dispatch(new ResponseEvent($this, $request, $response))->getResponse();
     }
 
-    protected function events(): EventDispatcherInterface
+    protected function events(): EventManagerInterface
     {
-        return $this->getContainer()->get(EventDispatcherInterface::class);
+        return $this->getContainer()->get(EventManagerInterface::class);
     }
 
     protected function handleException(Throwable $exception, Request $request, bool $dispatch = true): Response
@@ -353,53 +351,49 @@ abstract class AbstractKernel implements KernelInterface
         return [];
     }
 
-    protected function coreProviders(): array
+    protected function loadModules(): void
     {
-        return [
-            ContainerProvider::class,
-            KernelProvider::class,
-            ExceptionProvider::class,
-            YamlProvider::class,
-            DotenvProvider::class,
-            ConfigProvider::class,
-            LoggerProvider::class,
-            HttpProvider::class,
-            EventProvider::class,
-            MiddlewareProvider::class,
-            RoutingProvider::class,
-            CookieProvider::class,
-            SessionProvider::class,
-            FlashProvider::class,
-            TranslationProvider::class,
-            ValidatorProvider::class,
-            DatabaseProvider::class,
-            SerializerProvider::class,
-            ApiProvider::class,
-            OrmProvider::class,
-            CacheProvider::class,
-            CsrfProvider::class,
-            FormProvider::class,
-            MailerProvider::class,
-            HttpClientProvider::class,
-            QueueProvider::class,
-            SchedulerProvider::class,
-            SecurityProvider::class,
-            DebugProvider::class,
-            WebProfilerProvider::class,
-            AssetProvider::class,
-            UploadProvider::class,
-            TailwindProvider::class,
-            MarkdownProvider::class,
-            NeoAiProvider::class,
-            ViewProvider::class,
-            ControllerProvider::class,
-            InstallerProvider::class,
-            ConsoleProvider::class,
-            ServiceProvider::class,
-        ];
+        if ($this->modules !== null) {
+            return;
+        }
+
+        $file = $this->getConfigPath() . DIRECTORY_SEPARATOR . static::MODULES_FILE;
+
+        $builder = function () use ($file): array {
+            $discovery = new ModuleDiscovery(dirname(__DIR__, 3), $this->rootPath);
+            $modules = $discovery->discover();
+            $config = is_file($file) ? $this->readModules($file) : [];
+            $data = (new ModuleResolver($this->environment))->resolve($modules, $config, $file, [KernelManager::class]);
+            $resources = $discovery->getResources();
+
+            foreach ([$this->getConfigPath(), $file] as $path) {
+                if (file_exists($path)) {
+                    $resources[$path] = (int) filemtime($path);
+                }
+            }
+
+            return [$data, $resources];
+        };
+
+        $cache = $this->getCachePath() . DIRECTORY_SEPARATOR . 'kernel' . DIRECTORY_SEPARATOR . 'modules.' . $this->environment . '.php';
+        $data = (new ResourceCache($cache, $this->debug))->load($builder);
+
+        $this->modules = (array) ($data['modules'] ?? []);
+        $this->disabledNamespaces = (array) ($data['disabled'] ?? []);
     }
 
-    protected function createContainer(): ContainerInterface
+    protected function readModules(string $file): array
+    {
+        $modules = (static fn (string $__file): mixed => require $__file)($file);
+
+        if (!is_array($modules)) {
+            throw new KernelException('"{file}" must return an array of module class => enabled.', 0, null, ['file' => $file]);
+        }
+
+        return $modules;
+    }
+
+    protected function createContainer(): ContainerManagerInterface
     {
         return new ContainerManager();
     }

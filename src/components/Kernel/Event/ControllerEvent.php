@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Kernel\Event;
 
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 
 class ControllerEvent extends KernelEvent
 {
-    public function __construct(KernelInterface $kernel, Request $request, protected mixed $controller, protected array $parameters = [])
+    public function __construct(KernelManagerInterface $kernel, Request $request, protected mixed $controller, protected array $parameters = [])
     {
         parent::__construct($kernel, $request);
     }

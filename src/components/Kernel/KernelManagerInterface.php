@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Kernel\Contract;
+namespace NeoPHP\Component\Kernel;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 
-interface KernelInterface
+interface KernelManagerInterface
 {
     public function boot(): void;
 
@@ -18,7 +18,7 @@ interface KernelInterface
 
     public function terminate(Request $request, Response $response): void;
 
-    public function getContainer(): ContainerInterface;
+    public function getContainer(): ContainerManagerInterface;
 
     public function getRootPath(): string;
 
@@ -37,4 +37,8 @@ interface KernelInterface
     public function getVersion(): string;
 
     public function getParameters(): array;
+
+    public function getModules(): array;
+
+    public function isEnabled(string $class): bool;
 }

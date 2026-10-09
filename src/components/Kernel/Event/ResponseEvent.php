@@ -6,11 +6,11 @@ namespace NeoPHP\Component\Kernel\Event;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 
 class ResponseEvent extends KernelEvent
 {
-    public function __construct(KernelInterface $kernel, Request $request, protected Response $response)
+    public function __construct(KernelManagerInterface $kernel, Request $request, protected Response $response)
     {
         parent::__construct($kernel, $request);
     }
