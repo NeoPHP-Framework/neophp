@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\HttpClient\Contract;
+namespace NeoPHP\Component\HttpClient;
 
-interface HttpClientInterface
+use NeoPHP\Component\HttpClient\Contract\ResponseInterface;
+use NeoPHP\Component\HttpClient\Contract\TransportInterface;
+
+interface HttpClientManagerInterface
 {
     public function request(string $method, string $url, array $options = []): ResponseInterface;
 
@@ -26,7 +29,7 @@ interface HttpClientInterface
 
     public function withOptions(array $options): static;
 
-    public function client(string $name): HttpClientInterface;
+    public function client(string $name): HttpClientManagerInterface;
 
     public function hasClient(string $name): bool;
 

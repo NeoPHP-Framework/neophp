@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace NeoPHP\Component\HttpClient\Helper\Console;
 
 use JsonException;
-use NeoPHP\Component\HttpClient\Contract\HttpClientInterface;
 use NeoPHP\Component\HttpClient\Contract\ResponseInterface;
 use NeoPHP\Component\HttpClient\Exception\HttpClientException;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -16,10 +16,13 @@ use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'http:request', description: 'Sends an HTTP request with the HttpClient and displays the response')]
 class HttpRequestCommand extends AbstractConsole
 {
-    public function __construct(protected HttpClientInterface $client)
+    public function __construct(protected HttpClientManagerInterface $client)
     {
     }
 
