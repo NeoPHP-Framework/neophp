@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Cache\Helper\Console;
 
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'cache:pool:list', description: 'Lists the cache pools configured in config/framework/cache.yaml')]
 class CachePoolListCommand extends AbstractConsole
 {

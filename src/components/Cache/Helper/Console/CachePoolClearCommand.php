@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Cache\Helper\Console;
 
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Component\Cache\Exception\CacheException;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -13,6 +13,9 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'cache:pool:clear', description: 'Clears one or more cache pools')]
 class CachePoolClearCommand extends AbstractConsole
 {

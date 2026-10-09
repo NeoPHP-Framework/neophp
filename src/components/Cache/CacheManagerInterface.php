@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Cache\Contract;
+namespace NeoPHP\Component\Cache;
+
+use NeoPHP\Component\Cache\Contract\CacheInterface;
 
 interface CacheManagerInterface extends CacheInterface
 {

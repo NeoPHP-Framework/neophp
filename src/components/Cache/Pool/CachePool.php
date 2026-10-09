@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Cache;
+namespace NeoPHP\Component\Cache\Pool;
 
 use NeoPHP\Component\Cache\Contract\AbstractCache;
 use NeoPHP\Component\Cache\Contract\AdapterInterface;
