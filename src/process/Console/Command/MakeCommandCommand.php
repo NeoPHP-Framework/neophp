@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Process\Console\Command;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -14,10 +14,13 @@ use NeoPHP\Process\Console\Exception\InvalidInputException;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\Maker\CommandMaker;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:command', description: 'Generates a console command in src/Command/')]
 class MakeCommandCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

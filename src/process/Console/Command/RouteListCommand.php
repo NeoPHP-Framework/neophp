@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace NeoPHP\Process\Console\Command;
 
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'route:list', description: 'Lists the application routes', aliases: ['routes'])]
 class RouteListCommand extends AbstractConsole
 {
-    public function __construct(protected RoutingInterface $routing)
+    public function __construct(protected RoutingManagerInterface $routing)
     {
     }
 

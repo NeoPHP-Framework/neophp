@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace NeoPHP\Process\Console\Command;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
-use NeoPHP\Process\Installer\Contract\InstallerInterface;
+use NeoPHP\Process\Installer\InstallerManagerInterface;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'install', description: 'Generates the project files (public/, src/Kernel.php, config/, templates/...)')]
 class InstallCommand extends AbstractConsole
 {
-    public function __construct(protected InstallerInterface $installer, protected ContainerInterface $container)
+    public function __construct(protected InstallerManagerInterface $installer, protected ContainerManagerInterface $container)
     {
     }
 
@@ -34,15 +37,15 @@ class InstallCommand extends AbstractConsole
 
         foreach ($report as $path => $status) {
             $style = match ($status) {
-                InstallerInterface::STATUS_CREATED => 'success',
-                InstallerInterface::STATUS_OVERWRITTEN, InstallerInterface::STATUS_UPDATED => 'comment',
+                InstallerManagerInterface::STATUS_CREATED => 'success',
+                InstallerManagerInterface::STATUS_OVERWRITTEN, InstallerManagerInterface::STATUS_UPDATED => 'comment',
                 default => 'muted',
             };
 
-            $output->writeln(sprintf('  <%1$s>%2$s</%1$s>  %3$s', $style, str_pad($status, 11), $path), $status === InstallerInterface::STATUS_SKIPPED ? OutputInterface::VERBOSITY_VERBOSE : OutputInterface::VERBOSITY_NORMAL);
+            $output->writeln(sprintf('  <%1$s>%2$s</%1$s>  %3$s', $style, str_pad($status, 11), $path), $status === InstallerManagerInterface::STATUS_SKIPPED ? OutputInterface::VERBOSITY_VERBOSE : OutputInterface::VERBOSITY_NORMAL);
         }
 
-        if (($report['composer.json'] ?? null) === InstallerInterface::STATUS_UPDATED) {
+        if (($report['composer.json'] ?? null) === InstallerManagerInterface::STATUS_UPDATED) {
             $output->warning('composer.json was updated: run "composer dump-autoload".');
         }
 

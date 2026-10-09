@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Process\Console\Contract;
+namespace NeoPHP\Process\Console;
 
-interface ConsoleInterface
+use NeoPHP\Process\Console\Contract\CommandInterface;
+use NeoPHP\Process\Console\Contract\OutputInterface;
+
+interface ConsoleManagerInterface
 {
     public function add(CommandInterface|string $command): static;
 
