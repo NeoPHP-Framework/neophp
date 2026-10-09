@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Validator\Helper\Listener;
+namespace NeoPHP\Component\Validator\Helper\Event;
 
 use NeoPHP\Component\Event\Attribute\AsListener;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Kernel\Event\ExceptionEvent;
 use NeoPHP\Component\Validator\Exception\ValidationFailedException;
 
+/**
+ * @internal
+ */
 #[AsListener]
 class ValidationFailedListener
 {
