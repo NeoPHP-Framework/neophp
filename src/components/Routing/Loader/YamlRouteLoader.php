@@ -7,18 +7,21 @@ namespace NeoPHP\Component\Routing\Loader;
 use NeoPHP\Component\Routing\Exception\RoutingException;
 use NeoPHP\Component\Routing\Route\Route;
 use NeoPHP\Component\Routing\Route\RouteCollection;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 
 class YamlRouteLoader
 {
-    private const ROUTE_KEYS = ['path', 'controller', 'methods', 'requirements', 'defaults', 'options'];
-    private const IMPORT_KEYS = ['resource', 'prefix', 'name_prefix', 'requirements', 'defaults', 'options', 'methods'];
+    private const ROUTE_KEYS = ['path', 'controller', 'methods', 'requirements', 'defaults', 'options', 'middlewares'];
+    private const IMPORT_KEYS = ['resource', 'type', 'prefix', 'name_prefix', 'requirements', 'defaults', 'options', 'methods', 'middlewares'];
+    private const TYPES = ['yaml', 'attribute'];
 
     private array $loading = [];
 
+    protected array $resources = [];
+
     protected mixed $resolver;
 
-    public function __construct(protected YamlInterface $yaml, ?callable $resolver = null)
+    public function __construct(protected YamlManagerInterface $yaml, ?callable $resolver = null)
     {
         $this->resolver = $resolver;
     }
@@ -36,6 +39,7 @@ class YamlRouteLoader
         }
 
         $this->loading[$real] = true;
+        $this->resources[$real] = (int) filemtime($real);
 
         try {
             $definitions = $this->yaml->parseFile($real) ?? [];
@@ -58,9 +62,11 @@ class YamlRouteLoader
                 }
 
                 if (isset($definition['resource'])) {
-                    $collection->addCollection($this->import($name, $definition, $real));
+                    foreach ($this->import($name, $definition, $real) as $route) {
+                        $this->append($collection, $route);
+                    }
                 } else {
-                    $collection->add($this->createRoute($name, $definition, $real));
+                    $this->append($collection, $this->createRoute($name, $definition, $real));
                 }
             }
 
@@ -68,6 +74,22 @@ class YamlRouteLoader
         } finally {
             unset($this->loading[$real]);
         }
+    }
+
+    public function getResources(): array
+    {
+        return $this->resources;
+    }
+
+    private function append(RouteCollection $collection, Route $route): void
+    {
+        $existing = $collection->get($route->getName());
+
+        if ($existing !== null) {
+            throw new RoutingException(sprintf('The route "%s" is defined twice: in "%s" and in "%s".', $route->getName(), $existing->getSource(), $route->getSource()));
+        }
+
+        $collection->add($route);
     }
 
     private function createRoute(string $name, array $definition, string $file): Route
@@ -82,15 +104,17 @@ class YamlRouteLoader
             throw new RoutingException(sprintf('The route "%s" in "%s" must define a "controller".', $name, $file));
         }
 
-        return new Route(
+        $route = new Route(
             $name,
             $definition['path'],
             $definition['controller'],
             $this->methods($definition['methods'] ?? []),
             $this->map($definition['requirements'] ?? [], 'requirements', $name, $file),
             $this->map($definition['defaults'] ?? [], 'defaults', $name, $file),
-            $this->map($definition['options'] ?? [], 'options', $name, $file),
+            $this->withMiddlewares($this->map($definition['options'] ?? [], 'options', $name, $file), $this->middlewares($definition['middlewares'] ?? [])),
         );
+
+        return $route->setSource($file . ' (' . $name . ')');
     }
 
     private function import(string $name, array $definition, string $file): RouteCollection
@@ -99,7 +123,7 @@ class YamlRouteLoader
 
         $resource = (string) $definition['resource'];
         $path = preg_match('#^([a-zA-Z]:)?[/\\\\]#', $resource) === 1 ? $resource : dirname($file) . DIRECTORY_SEPARATOR . $resource;
-        $imported = $this->load($path);
+        $imported = $this->loadResource($name, $path, $definition['type'] ?? null, $file);
 
         $prefix = trim((string) ($definition['prefix'] ?? ''), '/');
         $namePrefix = (string) ($definition['name_prefix'] ?? '');
@@ -107,22 +131,63 @@ class YamlRouteLoader
         $defaults = $this->map($definition['defaults'] ?? [], 'defaults', $name, $file);
         $options = $this->map($definition['options'] ?? [], 'options', $name, $file);
         $methods = $this->methods($definition['methods'] ?? []);
+        $middlewares = $this->middlewares($definition['middlewares'] ?? []);
 
         $collection = new RouteCollection();
 
         foreach ($imported as $route) {
-            $collection->add(new Route(
+            $collection->add((new Route(
                 $namePrefix . $route->getName(),
                 ($prefix !== '' ? '/' . $prefix : '') . $route->getPath(),
                 $route->getController(),
                 $route->getMethods() !== [] ? $route->getMethods() : $methods,
                 $route->getRequirements() + $requirements,
                 $route->getDefaults() + $defaults,
-                $route->getOptions() + $options,
-            ));
+                $this->withMiddlewares($route->getOptions() + $options, $middlewares, true),
+            ))->setSource($route->getSource()));
         }
 
         return $collection;
+    }
+
+    private function loadResource(string $name, string $path, mixed $type, string $file): RouteCollection
+    {
+        $type ??= is_dir($path) || str_ends_with(strtolower($path), '.php') ? 'attribute' : 'yaml';
+
+        if (!in_array($type, self::TYPES, true)) {
+            throw new RoutingException(sprintf('Unknown type "%s" for the import "%s" in "%s". Allowed types: "%s".', (string) $type, $name, $file, implode('", "', self::TYPES)));
+        }
+
+        if ($type === 'yaml') {
+            return $this->load($path);
+        }
+
+        $loader = new AttributeRouteLoader();
+        $routes = $loader->load($path);
+        $this->resources += $loader->getResources();
+
+        return $routes;
+    }
+
+    private function middlewares(mixed $middlewares): array
+    {
+        if (is_string($middlewares)) {
+            $middlewares = preg_split('/\s*[|,]\s*/', trim($middlewares), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        }
+
+        return array_values(array_map('strval', (array) $middlewares));
+    }
+
+    private function withMiddlewares(array $options, array $middlewares, bool $prepend = false): array
+    {
+        if ($middlewares === []) {
+            return $options;
+        }
+
+        $current = (array) ($options['middlewares'] ?? []);
+        $options['middlewares'] = array_values(array_unique($prepend ? [...$middlewares, ...$current] : [...$current, ...$middlewares]));
+
+        return $options;
     }
 
     private function methods(mixed $methods): array

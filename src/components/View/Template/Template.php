@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\View\Template;
 
-use NeoPHP\Component\View\Contract\ViewInterface;
 use NeoPHP\Component\View\Exception\ViewException;
+use NeoPHP\Component\View\ViewManagerInterface;
 
 class Template
 {
@@ -16,10 +16,11 @@ class Template
     private array $openSections = [];
 
     public function __construct(
-        private ViewInterface $view,
-        private Sections $sections,
-        private array $helpers,
-        private array $parameters = [],
+        protected ViewManagerInterface $view,
+        protected Sections $sections,
+        protected array $functions = [],
+        protected array $filters = [],
+        protected array $parameters = [],
     ) {
     }
 
@@ -29,9 +30,10 @@ class Template
         ob_start();
 
         try {
-            (function (): void {
-                extract(array_diff_key(func_get_arg(1), ['this' => true]), EXTR_SKIP);
-                include func_get_arg(0);
+            (function (string $__template, array $__parameters): void {
+                extract(array_diff_key($__parameters, ['this' => true, '__template' => true, '__parameters' => true]), EXTR_SKIP);
+                unset($__parameters);
+                include $__template;
             })->call($this, $file, $parameters);
 
             if ($this->openSections !== []) {
@@ -119,12 +121,21 @@ class Template
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    public function __call(string $name, array $arguments): mixed
+    public function filter(string $name, mixed $value, mixed ...$arguments): mixed
     {
-        if (!isset($this->helpers[$name])) {
-            throw new ViewException(sprintf('Unknown view helper "%s()". Register it with ViewInterface::addHelper().', $name));
+        if (!isset($this->filters[$name])) {
+            throw new ViewException(sprintf('Unknown view filter "%s". Register it with ViewManagerInterface::addFilter() or a ViewFilterInterface helper.', $name));
         }
 
-        return ($this->helpers[$name])(...$arguments);
+        return ($this->filters[$name])($value, ...$arguments);
+    }
+
+    public function __call(string $name, array $arguments): mixed
+    {
+        if (!isset($this->functions[$name])) {
+            throw new ViewException(sprintf('Unknown view function "%s()". Register it with ViewManagerInterface::addHelper() or a ViewFunctionInterface helper.', $name));
+        }
+
+        return ($this->functions[$name])(...$arguments);
     }
 }

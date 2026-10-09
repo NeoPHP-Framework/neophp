@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Exception;
 
+use Closure;
 use NeoPHP\Component\Exception\Contract\ExceptionInterface;
+use NeoPHP\Component\Exception\Provider\ExceptionProvider;
+use NeoPHP\Component\Kernel\Attribute\Component;
 use Throwable;
 
-class ExceptionManager
+#[Component(provider: ExceptionProvider::class)]
+final class ExceptionManager implements ExceptionManagerInterface
 {
     public const PHRASES = [
         400 => 'Bad Request',
@@ -19,8 +23,22 @@ class ExceptionManager
         503 => 'Service Unavailable',
     ];
 
+    protected ?Closure $dumper = null;
+
     public function __construct(protected bool $debug = false)
     {
+    }
+
+    public function setDumper(?Closure $dumper): static
+    {
+        $this->dumper = $dumper;
+
+        return $this;
+    }
+
+    public function getDumper(): ?Closure
+    {
+        return $this->dumper;
     }
 
     public function isDebug(): bool
@@ -108,19 +126,25 @@ class ExceptionManager
 
         while ($current !== null) {
             $frames = '';
+            $trace = $current->getTrace();
 
             foreach ($this->framesOf($current) as $frame) {
                 $location = $frame['file'] !== null ? $frame['file'] . ':' . ($frame['line'] ?? '?') : '[internal]';
-                $frames .= sprintf('<li><code>#%d %s</code><span>%s</span></li>', $frame['index'], $this->escape($frame['call']), $this->escape($location));
+                $arguments = $trace[$frame['index']]['args'] ?? [];
+                $dump = $this->dumper !== null && $arguments !== [] ? '<details><summary>arguments (' . count($arguments) . ')</summary>' . ($this->dumper)($arguments) . '</details>' : '';
+                $frames .= sprintf('<li><code>#%d %s</code><span>%s</span>%s</li>', $frame['index'], $this->escape($frame['call']), $this->escape($location), $dump);
             }
 
+            $context = $current instanceof ExceptionInterface ? $current->getContext() : [];
+
             $blocks .= sprintf(
-                '<section><p class="class">%s</p><h2>%s</h2><p class="where">%s:%d</p>%s<ol>%s</ol></section>',
+                '<section><p class="class">%s</p><h2>%s</h2><p class="where">%s:%d</p>%s%s<ol>%s</ol></section>',
                 $this->escape($current::class),
                 $this->escape($current->getMessage()),
                 $this->escape($current->getFile()),
                 $current->getLine(),
                 $this->excerpt($current->getFile(), $current->getLine()),
+                $this->dumper !== null && $context !== [] ? '<h3>Context</h3>' . ($this->dumper)($context) : '',
                 $frames,
             );
 
@@ -146,6 +170,7 @@ class ExceptionManager
             li span{color:#5b6475;font-family:monospace;word-break:break-all}
             pre{background:#1d2433;color:#e6e9ef;padding:1rem;border-radius:6px;overflow-x:auto;font-size:.8rem}
             pre b{background:#7a3fd155;display:block}
+            h3{font-size:.95rem;margin:1rem 0 .3rem}details summary{cursor:pointer;color:#7a3fd1;font-size:.8rem}
             </style>
             </head>
             <body><header>NeoPHP &middot; {$title}</header>{$blocks}</body>
@@ -166,7 +191,7 @@ class ExceptionManager
                 'index' => $index,
                 'file' => $frame['file'] ?? null,
                 'line' => $frame['line'] ?? null,
-                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '') . '()',
+                'call' => ($frame['class'] ?? '') . ($frame['type'] ?? '') . $frame['function'] . '()',
             ];
         }
 

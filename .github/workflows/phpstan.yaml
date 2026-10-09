@@ -1,0 +1,42 @@
+name: PHPStan
+
+on:
+    pull_request:
+    push:
+        branches:
+            - dev
+            - main
+            - 'v[0-9]+.x'
+
+permissions:
+    contents: read
+
+concurrency:
+    group: phpstan-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    phpstan:
+        name: PHPStan
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.2'
+                  coverage: none
+                  tools: composer:v2
+            
+            - name: Cache Composer packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.composer/cache/files
+                  key: composer-${{ hashFiles('composer.json') }}
+                  restore-keys: composer-
+            
+            - name: Install dependencies
+              run: composer update --no-interaction --no-progress --prefer-dist
+            
+            - name: Run PHPStan
+              run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G --error-format=github

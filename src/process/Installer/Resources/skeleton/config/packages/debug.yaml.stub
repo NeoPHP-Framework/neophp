@@ -1,0 +1,10 @@
+# dump() / dd() (key packages.debug), disabled when APP_DEBUG=0
+enabled: '%kernel.debug%'
+# Nested levels dumped
+max_depth: 10
+# Items per array / properties per object
+max_items: 250
+# Characters per string
+max_string: 1000
+# Levels open in the HTML dump
+expand_depth: 1

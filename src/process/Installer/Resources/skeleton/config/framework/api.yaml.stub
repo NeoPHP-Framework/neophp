@@ -1,0 +1,70 @@
+# Api component (key framework.api): CORS, rate limiting, pagination, problem details and OpenAPI.
+
+# CORS: lets JavaScript of OTHER domains call the API (not needed when the front is served by this application)
+cors:
+    enabled: false
+    defaults:
+        # Allowed origins: exact values, '*' (any site) or regular expressions, e.g.
+        # allow_origin: ['https://app.example.com', '#^https://[a-z0-9-]+\.example\.com$#']
+        allow_origin: [ ]
+        allow_methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS ]
+        allow_headers: [ Content-Type, Authorization, X-Requested-With ]
+        expose_headers: [ Link, X-Total-Count, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After ]
+        # true = cookies / Authorization sent by the browser; the origins must then be listed ('*' is refused)
+        allow_credentials: false
+        # Seconds the browser keeps the answer of a preflight request
+        max_age: 3600
+    # Paths where CORS applies (regular expression when it starts with ^), with their own options if needed, e.g.
+    # '^/api/public': { allow_origin: ['*'], max_age: 86400 }
+    paths:
+        '^/api': ~
+
+# Rate limiting: #[RateLimit('api')] on a controller or $this->rateLimit('api') in an action
+rate_limiter:
+    # Cache pool storing the counters (cache.yaml), null = default pool
+    cache_pool: null
+    # Adds X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+    headers: true
+    limiters:
+        api:
+            policy: sliding_window     # fixed_window, sliding_window, token_bucket or no_limit
+            limit: 100
+            interval: '1 minute'
+        login:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        uploads:
+            policy: token_bucket       # bursts of 10, then 1 request every 30 seconds
+            limit: 10
+            rate: { amount: 1, interval: '30 seconds' }
+
+# Pagination: $this->paginate($query) / PageRequest arguments (?page=2&limit=50)
+pagination:
+    page_parameter: page
+    limit_parameter: limit
+    default_limit: 20
+    max_limit: 100
+    # true = absolute URLs in the Link header
+    absolute_links: false
+
+# Errors as RFC 7807 JSON (application/problem+json)
+problem_details:
+    enabled: true
+    paths: [ '^/api' ]
+    # Also for requests sending Accept: application/json
+    json_requests: true
+    # Base of the "type" URL of the errors, e.g. https://example.com/errors/
+    type_base_uri: null
+
+# OpenAPI 3.1 documentation: `php bin/neo openapi:dump`, or the /api/doc page when route.enabled is true
+openapi:
+    title: '%env(APP_NAME)%'
+    version: '1.0.0'
+    description: null
+    # e.g. servers: [ { url: 'https://api.example.com', description: Production } ]
+    servers: [ ]
+    paths: [ '^/api' ]
+    route:
+        enabled: false
+        path: /api/doc

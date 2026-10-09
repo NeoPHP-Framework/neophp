@@ -1,5 +1,7 @@
 /vendor/
 /public/builds/
+/public/uploads/
+/var/
 .env.local
 .env.*.local
 .idea/

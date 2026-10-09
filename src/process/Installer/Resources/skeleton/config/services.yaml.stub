@@ -1,0 +1,19 @@
+# Services. Every class of src/ is a service, autowired by the types of its constructor.
+services:
+    _defaults:
+        # true = one instance shared by the whole request
+        shared: true
+
+    App\:
+        resource: ../src/
+        exclude:
+            - ../src/Kernel.php
+            - ../src/Entity/
+
+    # Explicit arguments (the others are autowired), e.g.
+    # App\Service\Newsletter:
+    #     arguments:
+    #         $sender: '%env(NEWSLETTER_SENDER)%'
+    #
+    # Interface implemented by several classes: choose one
+    # App\Payment\PaymentGatewayInterface: '@App\Payment\StripeGateway'

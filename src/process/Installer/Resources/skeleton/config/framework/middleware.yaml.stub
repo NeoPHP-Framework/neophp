@@ -1,0 +1,13 @@
+# Middlewares (key framework.middleware). #[AsMiddleware] classes of src/ are discovered automatically.
+# Run on every request, in this order, e.g. [App\Middleware\MaintenanceMiddleware]
+global: [ ]
+
+# Short names usable in #[Route(middlewares: ['auth'])] or #[Middleware('auth')], e.g.
+# aliases:
+#     auth: App\Middleware\AuthMiddleware
+aliases: { }
+
+# Named lists of middlewares, e.g.
+# groups:
+#     admin: [auth, App\Middleware\AdminMiddleware]
+groups: { }

@@ -1,0 +1,11 @@
+# Events (key framework.event). Listeners of src/ with #[AsListener] are discovered automatically:
+# declare here only classes outside of src/ or listeners you want to order explicitly.
+# listeners:
+#     App\Event\UserRegisteredEvent:
+#         - App\Listener\SendWelcomeMail
+#         - { listener: App\Listener\Audit, method: onRegistered, priority: 10 }
+listeners: { }
+
+# subscribers:
+#     - App\Subscriber\UserSubscriber
+subscribers: [ ]

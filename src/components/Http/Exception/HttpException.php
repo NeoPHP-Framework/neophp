@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Http\Exception;
 
-use NeoPHP\Component\Exception\FrameworkException;
+use NeoPHP\Component\Exception\Exception\FrameworkException;
 use Throwable;
 
 class HttpException extends FrameworkException

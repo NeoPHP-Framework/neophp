@@ -19,6 +19,8 @@ class Route
 
     private array $variables = [];
 
+    private string $source = '';
+
     public function __construct(
         private string $name,
         string $path,
@@ -37,6 +39,18 @@ class Route
         $path = '/' . trim($path, '/');
 
         return (string) preg_replace('#/{2,}#', '/', $path);
+    }
+
+    public function getSource(): string
+    {
+        return $this->source;
+    }
+
+    public function setSource(string $source): static
+    {
+        $this->source = $source;
+
+        return $this;
     }
 
     public function getName(): string

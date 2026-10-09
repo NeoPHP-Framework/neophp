@@ -1,0 +1,20 @@
+# Web profiler (key packages.web_profiler): toolbar at the bottom of the pages and /_profiler, only when APP_DEBUG=1
+enabled: '%kernel.debug%'
+toolbar: true
+path: /_profiler
+toolbar_path: /_wdt
+storage: var/profiler
+# Profiles kept, and their lifetime in seconds (0 = unlimited)
+max_profiles: 200
+lifetime: 86400
+# Requests listed in the Ajax item of the toolbar
+ajax_limit: 50
+# Paths never profiled (regular expressions)
+excluded_paths:
+    - '^/(favicon\.ico|robots\.txt|build|builds|assets)(/|$)'
+# Clients allowed to see the toolbar and the profiles:
+# ~ = local machine, Docker and private networks; [] = anyone (never in production); or a list: [203.0.113.10, 10.0.0.0/8]
+allowed_ips: ~
+# Extra panels (classes extending AbstractProfiler outside of src/) and block renderers
+panels: [ ]
+block_renderers: [ ]

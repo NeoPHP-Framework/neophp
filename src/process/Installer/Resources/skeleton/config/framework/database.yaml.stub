@@ -1,0 +1,12 @@
+# Database connections (key framework.database), used by the ORM and `php bin/neo db:*`
+default: default
+
+connections:
+    default:
+        # mysql://user:password@127.0.0.1:3306/app?charset=utf8mb4, postgresql://..., sqlite:///%kernel.root_path%/var/data.db
+        url: '%env(DATABASE_URL)%'
+    # A second connection, e.g. a read-only replica or a legacy database:
+    # legacy:
+    #     url: '%env(LEGACY_DATABASE_URL)%'
+    #     options:
+    #         ATTR_TIMEOUT: 5

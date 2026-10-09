@@ -1,4 +1,17 @@
-home:
-  path: /
-  controller: App\Controller\HomeController::index
-  methods: [GET]
+# Routes. Controllers of src/Controller/ declare their routes with #[Route('/path', name: 'route_name')].
+controllers:
+    resource: ../src/Controller/
+    type: attribute
+
+# A route declared in YAML:
+# home:
+#     path: /
+#     controller: App\Controller\HomeController::index
+#     methods: [GET]
+#
+# Controllers of another directory with a prefix:
+# admin:
+#     resource: ../src/Admin/Controller/
+#     type: attribute
+#     prefix: /admin
+#     name_prefix: admin_

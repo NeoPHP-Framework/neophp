@@ -8,17 +8,56 @@
         "neophp",
         "yaml",
         "routing",
-        "http"
+        "http",
+        "twig",
+        "database",
+        "orm",
+        "form",
+        "security",
+        "debug",
+        "mailer",
+        "http-client",
+        "api",
+        "openapi"
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "ext-ctype": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-tokenizer": "*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.2",
+        "twig/twig": "^3.0"
+    },
+    "conflict": {
+        "twig/twig": "<3.0"
+    },
+    "suggest": {
+        "ext-dom": "Required by the Serializer XML encoder, to convert HTML to Markdown (Markdown package: parse() and convert()) and to read XLIFF translation files (Translation package)",
+        "ext-apcu": "Required by the \"apcu\" adapter of the Cache component (in-memory shared cache pools; set apc.enable_cli=1 to use it from the console)",
+        "ext-curl": "Recommended by the HttpClient component (faster transport, parallel requests with requestMany()); the stream transport is used without it",
+        "ext-fileinfo": "Required to detect the mime type of uploaded files (File and Image constraints) and of email attachments",
+        "ext-openssl": "Required to send emails over SSL/TLS (smtps:// or STARTTLS) and to download the Tailwind CLI (tailwind:install)",
+        "ext-pcntl": "Recommended by the Queue package (graceful stop of queue:work on SIGTERM / SIGINT) and the Scheduler package (schedule:work)",
+        "ext-pdo": "Required to use the Database component",
+        "ext-pdo_mysql": "Required to connect to MySQL / MariaDB databases",
+        "ext-pdo_pgsql": "Required to connect to PostgreSQL databases",
+        "ext-pdo_sqlite": "Required to connect to SQLite databases",
+        "ext-redis": "Required by the redis transport of the Queue package (redis://)",
+        "ext-zip": "Required to archive log files as .zip",
+        "twig/twig": "Required to render .twig templates (^3.0)"
     },
     "autoload": {
         "psr-4": {
             "NeoPHP\\Component\\": "src/components/",
             "NeoPHP\\Package\\": "src/packages/",
             "NeoPHP\\Process\\": "src/process/"
-        }
+        },
+        "files": [
+            "src/packages/Debug/Resources/Functions.php"
+        ]
     },
     "bin": [
         "bin/neo"
@@ -26,5 +65,9 @@
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "phpstan": "phpstan analyse --memory-limit=1G"
+    }
 }

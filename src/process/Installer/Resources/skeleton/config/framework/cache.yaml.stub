@@ -1,0 +1,17 @@
+# Cache (key framework.cache): $cache->get('key', fn () => compute(), 3600) or the cache.<pool> services
+default_pool: app
+
+pools:
+    app:
+        # filesystem (var/cache/pools/app), apcu (shared memory, ext-apcu), database (table cache_items) or array (current request only)
+        adapter: filesystem
+        # Seconds, ~ = no expiration
+        default_ttl: 3600
+    # Other examples:
+    # rate_limiter:
+    #     adapter: apcu
+    # shared:
+    #     adapter: database
+    #     connection: default
+    #     table: cache_items
+    #     default_ttl: 86400

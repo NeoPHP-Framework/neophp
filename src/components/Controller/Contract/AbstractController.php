@@ -4,82 +4,51 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Controller\Contract;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Controller\Exception\ControllerException;
-use NeoPHP\Component\Http\Contract\HttpInterface;
-use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
-use NeoPHP\Component\Http\Exception\NotFoundHttpException;
-use NeoPHP\Component\Http\Response\JsonResponse;
-use NeoPHP\Component\Http\Response\RedirectResponse;
-use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
-use NeoPHP\Component\View\Contract\ViewInterface;
+use NeoPHP\Component\Api\Helper\Controller\ApiController;
+use NeoPHP\Component\Cache\Helper\Controller\CacheController;
+use NeoPHP\Component\Container\Helper\Controller\ContainerController;
+use NeoPHP\Component\Cookie\Helper\Controller\CookieController;
+use NeoPHP\Component\Csrf\Helper\Controller\CsrfController;
+use NeoPHP\Component\Database\Helper\Controller\DatabaseController;
+use NeoPHP\Component\Event\Helper\Controller\EventController;
+use NeoPHP\Component\Flash\Helper\Controller\FlashController;
+use NeoPHP\Component\Form\Helper\Controller\FormController;
+use NeoPHP\Component\Http\Helper\Controller\HttpController;
+use NeoPHP\Component\Mailer\Helper\Controller\MailerController;
+use NeoPHP\Component\Routing\Helper\Controller\RoutingController;
+use NeoPHP\Component\Serializer\Helper\Controller\SerializerController;
+use NeoPHP\Component\Session\Helper\Controller\SessionController;
+use NeoPHP\Component\Upload\Helper\Controller\UploadController;
+use NeoPHP\Component\Validator\Helper\Controller\ValidatorController;
+use NeoPHP\Component\View\Helper\Controller\ViewController;
+use NeoPHP\Component\HttpClient\Helper\Controller\HttpClientController;
+use NeoPHP\Package\Orm\Helper\Controller\OrmController;
+use NeoPHP\Package\Queue\Helper\Controller\QueueController;
+use NeoPHP\Package\Security\Helper\Controller\SecurityController;
+use NeoPHP\Package\Translation\Helper\Controller\TranslationController;
 
 abstract class AbstractController implements ControllerInterface
 {
-    protected ?ContainerInterface $container = null;
-
-    public function setContainer(ContainerInterface $container): void
-    {
-        $this->container = $container;
-    }
-
-    protected function render(string $template, array $parameters = [], int $status = 200, array $headers = []): Response
-    {
-        return $this->http()->createResponse($this->renderView($template, $parameters), $status, $headers);
-    }
-
-    protected function renderView(string $template, array $parameters = []): string
-    {
-        return $this->get(ViewInterface::class)->render($template, $parameters);
-    }
-
-    protected function json(mixed $data, int $status = 200, array $headers = []): JsonResponse
-    {
-        return $this->http()->json($data, $status, $headers);
-    }
-
-    protected function redirect(string $url, int $status = 302): RedirectResponse
-    {
-        return $this->http()->redirect($url, $status);
-    }
-
-    protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
-    {
-        return $this->redirect($this->generateUrl($route, $parameters), $status);
-    }
-
-    protected function generateUrl(string $route, array $parameters = []): string
-    {
-        return $this->get(RoutingInterface::class)->generate($route, $parameters);
-    }
-
-    protected function createNotFoundException(string $message = 'Not Found', array $context = []): NotFoundHttpException
-    {
-        return new NotFoundHttpException($message, $context);
-    }
-
-    protected function createAccessDeniedException(string $message = 'Forbidden', array $context = []): AccessDeniedHttpException
-    {
-        return new AccessDeniedHttpException($message, $context);
-    }
-
-    protected function get(string $id): mixed
-    {
-        if ($this->container === null) {
-            throw new ControllerException('The container is not set on "{controller}".', 0, null, ['controller' => static::class]);
-        }
-
-        return $this->container->get($id);
-    }
-
-    protected function has(string $id): bool
-    {
-        return $this->container !== null && $this->container->has($id);
-    }
-
-    private function http(): HttpInterface
-    {
-        return $this->get(HttpInterface::class);
-    }
+    use ApiController;
+    use CacheController;
+    use ContainerController;
+    use CookieController;
+    use CsrfController;
+    use DatabaseController;
+    use EventController;
+    use FlashController;
+    use FormController;
+    use HttpController;
+    use MailerController;
+    use HttpClientController;
+    use OrmController;
+    use QueueController;
+    use RoutingController;
+    use SecurityController;
+    use SessionController;
+    use TranslationController;
+    use UploadController;
+    use ValidatorController;
+    use ViewController;
+    use SerializerController;
 }

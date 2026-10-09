@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    phpVersion:
+        min: 80200
+        max: 80599
+    paths:
+        - src
+    excludePaths:
+        - src/*/*/Resources/*
+    tmpDir: var/phpstan
+    ignoreErrors:
+        -
+            identifier: new.static

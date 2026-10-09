@@ -1,0 +1,14 @@
+# Uploaded files (key framework.upload): stored in public/uploads/ and displayed with upload() in the templates
+path: '%kernel.public_path%/uploads'
+public_url: /uploads
+
+# Maximum size in bytes (5 MB), 0 = no limit
+max_size: 5242880
+
+# Allowed MIME types (detected from the content of the file) and the extension given to the stored file
+mime_types:
+    image/jpeg: jpg
+    image/png: png
+    image/gif: gif
+    image/webp: webp
+    image/avif: avif
