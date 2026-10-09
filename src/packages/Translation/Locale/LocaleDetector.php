@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Translation;
+namespace NeoPHP\Package\Translation\Locale;
 
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Session\Contract\SessionInterface;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
 class LocaleDetector
 {
-    public function __construct(protected TranslatorInterface $translator)
+    public function __construct(protected TranslationManagerInterface $translator)
     {
     }
 
-    public function detect(Request $request, ?array $routeParameters = null, ?SessionInterface $session = null): ?array
+    public function detect(Request $request, ?array $routeParameters = null, ?SessionManagerInterface $session = null): ?array
     {
         $detection = (array) ($this->translator->getConfig()['detection'] ?? []);
 
         foreach ((array) ($detection['order'] ?? []) as $source) {
             $locale = match ($source) {
-                'route' => $routeParameters !== null ? $this->match($routeParameters[TranslatorInterface::ATTRIBUTE] ?? null) : null,
+                'route' => $routeParameters !== null ? $this->match($routeParameters[TranslationManagerInterface::ATTRIBUTE] ?? null) : null,
                 'query' => $this->match($request->query->get((string) ($detection['query_parameter'] ?? 'lang'))),
                 'session' => $this->fromSession($request, $session, (string) ($detection['session_key'] ?? '_locale')),
                 'cookie' => $this->match($request->cookies->get((string) ($detection['cookie_name'] ?? 'locale'))),
@@ -71,7 +71,7 @@ class LocaleDetector
         return null;
     }
 
-    protected function fromSession(Request $request, ?SessionInterface $session, string $key): ?string
+    protected function fromSession(Request $request, ?SessionManagerInterface $session, string $key): ?string
     {
         if ($session === null || (!$session->isStarted() && !$request->cookies->has($session->getName()))) {
             return null;

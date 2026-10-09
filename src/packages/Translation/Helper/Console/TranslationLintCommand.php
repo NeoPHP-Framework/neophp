@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Translation\Helper\Console;
 
-use NeoPHP\Package\Translation\Contract\AbstractTranslator;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
 use NeoPHP\Package\Translation\Exception\TranslationException;
+use NeoPHP\Package\Translation\TranslationManager;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'translation:lint', description: 'Checks that every translation file can be parsed and that every message has a valid syntax')]
 class TranslationLintCommand extends AbstractConsole
 {
-    public function __construct(protected TranslatorInterface $translator)
+    public function __construct(protected TranslationManagerInterface $translator)
     {
     }
 
@@ -61,7 +64,7 @@ class TranslationLintCommand extends AbstractConsole
         $path = $this->translator->getPath();
 
         foreach (is_dir($path) ? (scandir($path) ?: []) : [] as $name) {
-            if ($name[0] !== '.' && is_file($path . '/' . $name) && AbstractTranslator::describe($path . '/' . $name) === null) {
+            if ($name[0] !== '.' && is_file($path . '/' . $name) && TranslationManager::describe($path . '/' . $name) === null) {
                 $warnings[] = sprintf('The file %s is ignored: name it {domain}.{locale}.{yaml|yml|xlf|xliff}.', $this->relative($path . '/' . $name));
             }
         }

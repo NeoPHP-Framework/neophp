@@ -29,6 +29,11 @@ class YamlDumper implements DumperInterface
         return 'yaml';
     }
 
+    public static function quote(string $value): string
+    {
+        return '"' . strtr($value, ['\\' => '\\\\', '"' => '\\"', "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']) . '"';
+    }
+
     protected static function segments(string $key): ?array
     {
         if (!str_contains($key, '.')) {
@@ -92,10 +97,5 @@ class YamlDumper implements DumperInterface
         return preg_match('/^[A-Za-z0-9_\-]+$/', $key) === 1 && !in_array(strtolower($key), ['true', 'false', 'null', 'yes', 'no', 'on', 'off', '~'], true) && !is_numeric($key)
             ? $key
             : self::quote($key);
-    }
-
-    public static function quote(string $value): string
-    {
-        return '"' . strtr($value, ['\\' => '\\\\', '"' => '\\"', "\n" => '\\n', "\r" => '\\r', "\t" => '\\t']) . '"';
     }
 }

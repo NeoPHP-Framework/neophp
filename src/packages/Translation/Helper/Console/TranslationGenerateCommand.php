@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Translation\Helper\Console;
 
-use NeoPHP\Package\Translation\Contract\AbstractTranslator;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
 use NeoPHP\Package\Translation\Dumper\XliffDumper;
 use NeoPHP\Package\Translation\Dumper\YamlDumper;
 use NeoPHP\Package\Translation\Exception\TranslationException;
 use NeoPHP\Package\Translation\Extractor\TranslationExtractor;
+use NeoPHP\Package\Translation\TranslationManager;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'translation:generate', description: 'Extracts the translation keys of the templates and the code and adds the missing ones to the translation files')]
 class TranslationGenerateCommand extends AbstractConsole
 {
-    public function __construct(protected TranslatorInterface $translator)
+    public function __construct(protected TranslationManagerInterface $translator)
     {
     }
 
@@ -46,7 +49,7 @@ class TranslationGenerateCommand extends AbstractConsole
     {
         $config = $this->translator->getConfig();
         $format = strtolower((string) ($input->getOption('format') ?? $config['format']));
-        $format = AbstractTranslator::FORMATS[$format] ?? null;
+        $format = TranslationManager::FORMATS[$format] ?? null;
 
         if ($format === null) {
             $output->error('The format must be "yaml" or "xliff".');
@@ -57,7 +60,7 @@ class TranslationGenerateCommand extends AbstractConsole
         $locales = [];
 
         foreach ((array) ($input->getOption('locale') ?: $this->translator->getLocales()) as $locale) {
-            $normalized = AbstractTranslator::normalizeLocale((string) $locale);
+            $normalized = TranslationManager::normalizeLocale((string) $locale);
 
             if ($normalized === null) {
                 $output->error(sprintf('The locale "%s" is invalid.', (string) $locale));

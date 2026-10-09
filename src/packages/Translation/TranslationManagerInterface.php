@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Translation\Contract;
+namespace NeoPHP\Package\Translation;
 
 use NeoPHP\Package\Translation\Formatter\MessageFormatter;
 
-interface TranslatorInterface
+interface TranslationManagerInterface
 {
     public const DEFAULT_DOMAIN = 'messages';
 

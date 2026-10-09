@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Translation\Helper\Profiler;
+namespace NeoPHP\Package\Translation\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\Translation\Contract\AbstractTranslator;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
-use NeoPHP\Package\Translation\Helper\Listener\LocaleListener;
+use NeoPHP\Package\Translation\Helper\Event\LocaleListener;
 use NeoPHP\Package\Translation\Trace\TranslationTrace;
+use NeoPHP\Package\Translation\TranslationManager;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
 use NeoPHP\Package\WebProfiler\Block\MetricBlock;
@@ -26,23 +26,26 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class TranslationProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 60;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     public function collect(Request $request, Response $response, ?Throwable $exception = null): array
     {
-        if (!$this->container->bound(TranslatorInterface::class) || !$this->container->resolved(TranslatorInterface::class)) {
+        if (!$this->container->bound(TranslationManagerInterface::class) || !$this->container->resolved(TranslationManagerInterface::class)) {
             return [];
         }
 
-        $translator = $this->container->get(TranslatorInterface::class);
+        $translator = $this->container->get(TranslationManagerInterface::class);
 
-        if (!$translator instanceof TranslatorInterface) {
+        if (!$translator instanceof TranslationManagerInterface) {
             return [];
         }
 
@@ -63,7 +66,7 @@ class TranslationProfiler extends AbstractProfiler implements ToolbarInterface, 
             'tracing' => false,
         ];
 
-        if (!$translator instanceof AbstractTranslator) {
+        if (!$translator instanceof TranslationManager) {
             return $data;
         }
 
@@ -161,7 +164,7 @@ class TranslationProfiler extends AbstractProfiler implements ToolbarInterface, 
         return new Panel('Translation', 'info', $blocks, $missing > 0 ? $missing : null);
     }
 
-    protected function catalogues(AbstractTranslator $translator): array
+    protected function catalogues(TranslationManager $translator): array
     {
         $catalogues = [];
 
