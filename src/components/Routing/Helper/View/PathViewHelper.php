@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Routing\Helper\View;
 
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 
+/**
+ * @internal
+ */
 class PathViewHelper implements ViewFunctionInterface
 {
-    public function __construct(protected RoutingInterface $routing)
+    public function __construct(protected RoutingManagerInterface $routing)
     {
     }
 

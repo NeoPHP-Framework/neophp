@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Routing\Contract;
+namespace NeoPHP\Component\Routing;
 
 use Closure;
 use NeoPHP\Component\Routing\Route\Route;
 use NeoPHP\Component\Routing\Route\RouteCollection;
 use NeoPHP\Component\Routing\Route\RouteMatch;
 
-interface RoutingInterface
+interface RoutingManagerInterface
 {
     public function match(string $method, string $path): RouteMatch;
 

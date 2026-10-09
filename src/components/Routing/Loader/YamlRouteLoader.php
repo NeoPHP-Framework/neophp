@@ -7,7 +7,7 @@ namespace NeoPHP\Component\Routing\Loader;
 use NeoPHP\Component\Routing\Exception\RoutingException;
 use NeoPHP\Component\Routing\Route\Route;
 use NeoPHP\Component\Routing\Route\RouteCollection;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 
 class YamlRouteLoader
 {
@@ -21,7 +21,7 @@ class YamlRouteLoader
 
     protected mixed $resolver;
 
-    public function __construct(protected YamlInterface $yaml, ?callable $resolver = null)
+    public function __construct(protected YamlManagerInterface $yaml, ?callable $resolver = null)
     {
         $this->resolver = $resolver;
     }

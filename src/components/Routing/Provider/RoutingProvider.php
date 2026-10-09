@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Routing\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Routing\Cache\RouteCache;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
 use NeoPHP\Component\Routing\Loader\YamlRouteLoader;
 use NeoPHP\Component\Routing\RoutingManager;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 
+/**
+ * @internal
+ */
 class RoutingProvider extends AbstractProvider
 {
     public const ROUTE_FILES = ['routes.yaml', 'routes.yml'];
@@ -22,17 +25,17 @@ class RoutingProvider extends AbstractProvider
 
     public const URL_KEY = 'framework.app.url';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(RoutingInterface::class, static function (ContainerInterface $container): RoutingInterface {
+        $container->singleton(RoutingManagerInterface::class, static function (ContainerManagerInterface $container): RoutingManagerInterface {
             $resolver = null;
 
-            if ($container->has(ConfigInterface::class)) {
-                $config = $container->get(ConfigInterface::class);
+            if ($container->has(ConfigManagerInterface::class)) {
+                $config = $container->get(ConfigManagerInterface::class);
                 $resolver = static fn (array $definitions): array => $config->resolve($definitions);
             }
 
-            $yaml = $container->get(YamlInterface::class);
+            $yaml = $container->get(YamlManagerInterface::class);
             $routing = new RoutingManager($yaml, null, $resolver);
             $routing->setBaseUrl(static fn (): ?string => self::baseUrl($container));
             $routing->setBasePath(static fn (): string => self::basePath($container));
@@ -72,17 +75,17 @@ class RoutingProvider extends AbstractProvider
             return $routing;
         });
 
-        $container->alias(RoutingManager::class, RoutingInterface::class);
+        $container->alias(RoutingManager::class, RoutingManagerInterface::class);
     }
 
-    protected static function basePath(ContainerInterface $container): string
+    protected static function basePath(ContainerManagerInterface $container): string
     {
         $request = $container->has(Request::class) ? $container->get(Request::class) : null;
 
         return $request instanceof Request ? $request->getBasePath() : '';
     }
 
-    protected static function baseUrl(ContainerInterface $container): ?string
+    protected static function baseUrl(ContainerManagerInterface $container): ?string
     {
         if ($container->has(Request::class)) {
             $request = $container->get(Request::class);
@@ -92,16 +95,16 @@ class RoutingProvider extends AbstractProvider
             }
         }
 
-        if (!$container->has(ConfigInterface::class)) {
+        if (!$container->has(ConfigManagerInterface::class)) {
             return null;
         }
 
-        $url = $container->get(ConfigInterface::class)->get(self::URL_KEY);
+        $url = $container->get(ConfigManagerInterface::class)->get(self::URL_KEY);
 
         return is_string($url) && $url !== '' ? $url : null;
     }
 
-    protected static function routesFile(ContainerInterface $container): ?string
+    protected static function routesFile(ContainerManagerInterface $container): ?string
     {
         $configPath = $container->has('kernel.config_path') ? (string) $container->get('kernel.config_path') : '';
 
