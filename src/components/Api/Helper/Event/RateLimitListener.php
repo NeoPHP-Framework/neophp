@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Api\Helper\Listener;
+namespace NeoPHP\Component\Api\Helper\Event;
 
 use NeoPHP\Component\Api\Attribute\RateLimit as RateLimitAttribute;
 use NeoPHP\Component\Api\Provider\ApiProvider;
@@ -10,16 +10,19 @@ use NeoPHP\Component\Api\RateLimiter\RateLimit;
 use NeoPHP\Component\Api\RateLimiter\RateLimiterFactory;
 use NeoPHP\Component\Api\RateLimiter\RequestKeyResolver;
 use NeoPHP\Component\Api\Reflection\ControllerReflector;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Event\Attribute\AsListener;
 use NeoPHP\Component\Kernel\Event\ControllerEvent;
 use NeoPHP\Component\Kernel\Event\ResponseEvent;
 
+/**
+ * @internal
+ */
 class RateLimitListener
 {
     public const ATTRIBUTE = '_rate_limit';
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

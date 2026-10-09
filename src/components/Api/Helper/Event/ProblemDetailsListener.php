@@ -2,16 +2,19 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Api\Helper\Listener;
+namespace NeoPHP\Component\Api\Helper\Event;
 
 use NeoPHP\Component\Api\ProblemDetails\ProblemDetailsFactory;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Event\Attribute\AsListener;
 use NeoPHP\Component\Kernel\Event\ExceptionEvent;
 
+/**
+ * @internal
+ */
 class ProblemDetailsListener
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

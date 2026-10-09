@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Api\Helper\Listener;
+namespace NeoPHP\Component\Api\Helper\Event;
 
 use NeoPHP\Component\Api\Cors\CorsManager;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Event\Attribute\AsListener;
 use NeoPHP\Component\Kernel\Event\RequestEvent;
 use NeoPHP\Component\Kernel\Event\ResponseEvent;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 class CorsListener
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -61,12 +64,12 @@ class CorsListener
 
     protected function controller(string $path, string $method): mixed
     {
-        if ($method === '' || !$this->container->has(RoutingInterface::class)) {
+        if ($method === '' || !$this->container->has(RoutingManagerInterface::class)) {
             return null;
         }
 
         try {
-            return $this->container->get(RoutingInterface::class)->match($method, $path)->getController();
+            return $this->container->get(RoutingManagerInterface::class)->match($method, $path)->getController();
         } catch (Throwable) {
             return null;
         }

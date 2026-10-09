@@ -6,13 +6,13 @@ namespace NeoPHP\Component\Api\RateLimiter;
 
 use NeoPHP\Component\Api\Exception\RateLimiterException;
 use NeoPHP\Component\Api\RateLimiter\Contract\KeyResolverInterface;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 
 class RequestKeyResolver
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -37,11 +37,11 @@ class RequestKeyResolver
 
     protected function user(): ?string
     {
-        if (!$this->container->has(SecurityInterface::class)) {
+        if (!$this->container->has(SecurityManagerInterface::class)) {
             return null;
         }
 
-        $user = $this->container->get(SecurityInterface::class)->getUser();
+        $user = $this->container->get(SecurityManagerInterface::class)->getUser();
 
         return $user === null ? null : 'user:' . $user->getUserIdentifier();
     }

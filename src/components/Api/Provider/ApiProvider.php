@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Api\Provider;
 
+use NeoPHP\Component\Api\ApiManager;
+use NeoPHP\Component\Api\ApiManagerInterface;
 use NeoPHP\Component\Api\ArgumentResolver\PageRequestResolver;
 use NeoPHP\Component\Api\Cors\CorsManager;
 use NeoPHP\Component\Api\OpenApi\OpenApiGenerator;
@@ -13,19 +15,22 @@ use NeoPHP\Component\Api\ProblemDetails\ProblemDetailsFactory;
 use NeoPHP\Component\Api\RateLimiter\RateLimiterFactory;
 use NeoPHP\Component\Api\RateLimiter\RequestKeyResolver;
 use NeoPHP\Component\Cache\Adapter\ArrayAdapter;
-use NeoPHP\Component\Cache\CachePool;
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Component\Cache\Contract\CacheInterface;
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Cache\Pool\CachePool;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Component\Serializer\Mapping\MetadataFactory;
 use NeoPHP\Component\Serializer\SerializerManager;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
 
+/**
+ * @internal
+ */
 class ApiProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.api';
@@ -40,38 +45,41 @@ class ApiProvider extends AbstractProvider
         'openapi' => OpenApiGenerator::DEFAULTS,
     ];
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::config($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::config($container));
 
-        $container->singleton(CorsManager::class, static fn (ContainerInterface $container): CorsManager => new CorsManager($container->get(self::CONFIG_ID)['cors']));
+        $container->singleton(ApiManagerInterface::class, static fn (ContainerManagerInterface $container): ApiManagerInterface => new ApiManager($container));
+        $container->alias(ApiManager::class, ApiManagerInterface::class);
 
-        $container->singleton(RateLimiterFactory::class, static function (ContainerInterface $container): RateLimiterFactory {
+        $container->singleton(CorsManager::class, static fn (ContainerManagerInterface $container): CorsManager => new CorsManager($container->get(self::CONFIG_ID)['cors']));
+
+        $container->singleton(RateLimiterFactory::class, static function (ContainerManagerInterface $container): RateLimiterFactory {
             $config = $container->get(self::CONFIG_ID)['rate_limiter'];
 
             return new RateLimiterFactory((array) $config['limiters'], static fn (): CacheInterface => self::storage($container, $config['cache_pool']));
         });
 
-        $container->singleton(RequestKeyResolver::class, static fn (ContainerInterface $container): RequestKeyResolver => new RequestKeyResolver($container));
+        $container->singleton(RequestKeyResolver::class, static fn (ContainerManagerInterface $container): RequestKeyResolver => new RequestKeyResolver($container));
 
-        $container->singleton(PaginatorInterface::class, static fn (ContainerInterface $container): PaginatorInterface => new Paginator(
+        $container->singleton(PaginatorInterface::class, static fn (ContainerManagerInterface $container): PaginatorInterface => new Paginator(
             $container->get(self::CONFIG_ID)['pagination'],
             static fn (): ?Request => $container->has(Request::class) ? $container->get(Request::class) : null,
         ));
         $container->alias(Paginator::class, PaginatorInterface::class);
 
-        $container->singleton(ProblemDetailsFactory::class, static fn (ContainerInterface $container): ProblemDetailsFactory => new ProblemDetailsFactory(
+        $container->singleton(ProblemDetailsFactory::class, static fn (ContainerManagerInterface $container): ProblemDetailsFactory => new ProblemDetailsFactory(
             $container->get(self::CONFIG_ID)['problem_details'],
             $container->has('kernel.debug') && (bool) $container->get('kernel.debug'),
         ));
 
-        $container->singleton(OpenApiGenerator::class, static function (ContainerInterface $container): OpenApiGenerator {
+        $container->singleton(OpenApiGenerator::class, static function (ContainerManagerInterface $container): OpenApiGenerator {
             $config = $container->get(self::CONFIG_ID);
-            $serializer = $container->has(SerializerInterface::class) ? $container->get(SerializerInterface::class) : null;
+            $serializer = $container->has(SerializerManagerInterface::class) ? $container->get(SerializerManagerInterface::class) : null;
             $manager = $serializer instanceof SerializerManager ? $serializer : null;
 
             return new OpenApiGenerator(
-                $container->get(RoutingInterface::class),
+                $container->get(RoutingManagerInterface::class),
                 $config['openapi'],
                 $manager?->getMetadataFactory() ?? new MetadataFactory(),
                 $manager?->getNameConverter(),
@@ -79,15 +87,15 @@ class ApiProvider extends AbstractProvider
             );
         });
 
-        $container->singleton(PageRequestResolver::class, static fn (ContainerInterface $container): PageRequestResolver => new PageRequestResolver($container));
+        $container->singleton(PageRequestResolver::class, static fn (ContainerManagerInterface $container): PageRequestResolver => new PageRequestResolver($container));
 
         $resolvers = $container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $container->get(ArgumentResolverInterface::SERVICES_ID) : [];
         $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, PageRequestResolver::class]);
     }
 
-    public static function config(ContainerInterface $container): array
+    public static function config(ContainerManagerInterface $container): array
     {
-        $config = $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
 
         return self::merge(self::DEFAULT_CONFIG, $config);
     }
@@ -109,7 +117,7 @@ class ApiProvider extends AbstractProvider
         return $defaults;
     }
 
-    protected static function storage(ContainerInterface $container, mixed $pool): CacheInterface
+    protected static function storage(ContainerManagerInterface $container, mixed $pool): CacheInterface
     {
         if (!$container->has(CacheManagerInterface::class)) {
             return new CachePool('rate_limiter', new ArrayAdapter());
