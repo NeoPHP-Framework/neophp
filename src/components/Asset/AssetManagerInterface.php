@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Asset\Contract;
+namespace NeoPHP\Component\Asset;
 
 use NeoPHP\Component\Asset\Compiler\CompilerInterface;
 use NeoPHP\Component\Asset\Manifest\Manifest;
 
-interface AssetInterface
+interface AssetManagerInterface
 {
     public function url(string $path): string;
 

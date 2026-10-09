@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Asset\Helper\Console;
 
-use NeoPHP\Component\Asset\Contract\AssetInterface;
+use NeoPHP\Component\Asset\AssetManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'asset:reload', description: 'Compiles assets/ into public/builds/ and rebuilds the manifest')]
 class AssetReloadCommand extends AbstractConsole
 {
-    public function __construct(protected AssetInterface $asset)
+    public function __construct(protected AssetManagerInterface $asset)
     {
     }
 
