@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Http\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Http\Contract\HttpInterface;
 use NeoPHP\Component\Http\HttpManager;
+use NeoPHP\Component\Http\HttpManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 
+/**
+ * @internal
+ */
 class HttpProvider extends AbstractProvider
 {
     public const TRUSTED_PROXIES_KEY = 'framework.app.trusted_proxies';
 
     public const TRUSTED_HOSTS_KEY = 'framework.app.trusted_hosts';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(HttpInterface::class, HttpManager::class);
-        $container->alias(HttpManager::class, HttpInterface::class);
+        $container->singleton(HttpManagerInterface::class, HttpManager::class);
+        $container->alias(HttpManager::class, HttpManagerInterface::class);
     }
 
-    public function boot(ContainerInterface $container): void
+    public function boot(ContainerManagerInterface $container): void
     {
-        $config = $container->has(ConfigInterface::class) ? $container->get(ConfigInterface::class) : null;
+        $config = $container->has(ConfigManagerInterface::class) ? $container->get(ConfigManagerInterface::class) : null;
 
         if ($config === null) {
             return;

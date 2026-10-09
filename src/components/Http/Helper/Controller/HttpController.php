@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Http\Helper\Controller;
 
-use NeoPHP\Component\Http\Contract\HttpInterface;
 use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
 use NeoPHP\Component\Http\Exception\NotFoundHttpException;
+use NeoPHP\Component\Http\HttpManagerInterface;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
 
 trait HttpController
 {
@@ -19,16 +19,16 @@ trait HttpController
 
     protected function json(mixed $data, int $status = 200, array $headers = [], array $context = []): JsonResponse
     {
-        if (($context !== [] || $this->jsonContainsObjects($data)) && $this->has(SerializerInterface::class)) {
-            $data = $this->get(SerializerInterface::class)->normalize($data, 'json', $context);
+        if (($context !== [] || $this->jsonContainsObjects($data)) && $this->has(SerializerManagerInterface::class)) {
+            $data = $this->get(SerializerManagerInterface::class)->normalize($data, 'json', $context);
         }
 
-        return $this->get(HttpInterface::class)->json($data, $status, $headers);
+        return $this->get(HttpManagerInterface::class)->json($data, $status, $headers);
     }
 
     protected function redirect(string $url, int $status = 302): RedirectResponse
     {
-        return $this->get(HttpInterface::class)->redirect($url, $status);
+        return $this->get(HttpManagerInterface::class)->redirect($url, $status);
     }
 
     protected function createNotFoundException(string $message = 'Not Found', array $context = []): NotFoundHttpException

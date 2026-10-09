@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Http\Contract;
+namespace NeoPHP\Component\Http;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
 use NeoPHP\Component\Http\Response\Response;
 
-interface HttpInterface
+interface HttpManagerInterface
 {
     public function createRequestFromGlobals(): Request;
 
