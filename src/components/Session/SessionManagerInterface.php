@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Session\Contract;
+namespace NeoPHP\Component\Session;
 
-interface SessionInterface
+interface SessionManagerInterface
 {
     public function start(): void;
 
