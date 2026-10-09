@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Csrf\Helper\View;
 
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 use NeoPHP\Component\View\Contract\ViewSafeHtmlInterface;
 
+/**
+ * @internal
+ */
 class CsrfFieldViewHelper implements ViewFunctionInterface, ViewSafeHtmlInterface
 {
-    public function __construct(protected CsrfInterface $csrf)
+    public function __construct(protected CsrfManagerInterface $csrf)
     {
     }
 

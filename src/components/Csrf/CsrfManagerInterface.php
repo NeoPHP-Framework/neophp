@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Csrf\Contract;
+namespace NeoPHP\Component\Csrf;
 
-interface CsrfInterface
+interface CsrfManagerInterface
 {
     public function getToken(string $id): string;
 
