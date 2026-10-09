@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Markdown;
+namespace NeoPHP\Package\Markdown\Converter;
 
-use NeoPHP\Package\Markdown\Contract\MarkdownParserInterface;
 use NeoPHP\Package\Markdown\Document\MarkdownDocument;
 use NeoPHP\Package\Markdown\Exception\MarkdownException;
+use NeoPHP\Package\Markdown\MarkdownManagerInterface;
 use Stringable;
 
 class MarkdownConversion implements Stringable
 {
     protected ?MarkdownDocument $document = null;
 
-    public function __construct(protected string $markdown, protected string $source, protected string $rootPath, protected MarkdownParserInterface $parser)
+    public function __construct(protected string $markdown, protected string $source, protected string $rootPath, protected MarkdownManagerInterface $parser)
     {
     }
 

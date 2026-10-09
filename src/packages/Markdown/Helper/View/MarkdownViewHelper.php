@@ -6,11 +6,14 @@ namespace NeoPHP\Package\Markdown\Helper\View;
 
 use NeoPHP\Component\View\Contract\ViewFilterInterface;
 use NeoPHP\Component\View\Contract\ViewSafeHtmlInterface;
-use NeoPHP\Package\Markdown\Contract\MarkdownParserInterface;
+use NeoPHP\Package\Markdown\MarkdownManagerInterface;
 
+/**
+ * @internal
+ */
 class MarkdownViewHelper implements ViewFilterInterface, ViewSafeHtmlInterface
 {
-    public function __construct(protected MarkdownParserInterface $markdown)
+    public function __construct(protected MarkdownManagerInterface $markdown)
     {
     }
 

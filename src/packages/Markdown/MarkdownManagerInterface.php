@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Markdown\Contract;
+namespace NeoPHP\Package\Markdown;
 
+use NeoPHP\Package\Markdown\Converter\MarkdownConversion;
 use NeoPHP\Package\Markdown\Document\MarkdownDocument;
-use NeoPHP\Package\Markdown\MarkdownConversion;
 
-interface MarkdownParserInterface
+interface MarkdownManagerInterface
 {
     public function get(string $file): MarkdownDocument;
 
