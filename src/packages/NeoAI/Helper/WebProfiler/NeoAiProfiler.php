@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\NeoAI\Helper\Profiler;
+namespace NeoPHP\Package\NeoAI\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\NeoAI\NeoAiManager;
@@ -22,6 +22,9 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class NeoAiProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface, ToolbarAssetInterface
 {
     public const PRIORITY = -200;
@@ -36,7 +39,7 @@ class NeoAiProfiler extends AbstractProfiler implements ToolbarInterface, Profil
         'Why is this request slow? Any N+1 queries?',
     ];
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

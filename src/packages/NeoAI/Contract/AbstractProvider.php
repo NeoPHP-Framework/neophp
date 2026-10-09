@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NeoPHP\Package\NeoAI\Contract;
 
 use JsonException;
-use NeoPHP\Component\HttpClient\Contract\HttpClientInterface;
 use NeoPHP\Component\HttpClient\Exception\HttpClientException;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
 use NeoPHP\Package\NeoAI\Exception\AuthenticationException;
 use NeoPHP\Package\NeoAI\Exception\ConfigurationException;
 use NeoPHP\Package\NeoAI\Exception\NetworkException;
@@ -41,7 +41,7 @@ abstract class AbstractProvider implements ProviderInterface
 
     protected array $config;
 
-    public function __construct(array $config = [], protected ?HttpClientInterface $http = null)
+    public function __construct(array $config = [], protected ?HttpClientManagerInterface $http = null)
     {
         $this->config = array_replace(self::DEFAULTS, array_filter($config, static fn (mixed $value): bool => $value !== null));
     }

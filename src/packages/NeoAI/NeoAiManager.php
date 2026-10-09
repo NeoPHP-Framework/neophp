@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\NeoAI;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\HttpClient\Contract\HttpClientInterface;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
+use NeoPHP\Component\Kernel\Attribute\Package;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Package\NeoAI\Agent\Assistant;
 use NeoPHP\Package\NeoAI\Agent\PromptBuilder;
 use NeoPHP\Package\NeoAI\Contract\ProviderInterface;
@@ -20,6 +21,7 @@ use NeoPHP\Package\NeoAI\Llm\GeminiProvider;
 use NeoPHP\Package\NeoAI\Llm\OllamaProvider;
 use NeoPHP\Package\NeoAI\Llm\OpenAiProvider;
 use NeoPHP\Package\NeoAI\Patch\PatchApplier;
+use NeoPHP\Package\NeoAI\Provider\NeoAiProvider;
 use NeoPHP\Package\NeoAI\Scan\Scanner;
 use NeoPHP\Package\NeoAI\Security\Redactor;
 use NeoPHP\Package\NeoAI\Security\RequestGuard;
@@ -35,7 +37,8 @@ use NeoPHP\Package\NeoAI\Tool\ToolRunner;
 use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use Throwable;
 
-class NeoAiManager
+#[Package(provider: NeoAiProvider::class)]
+final class NeoAiManager implements NeoAiManagerInterface
 {
     public const PROVIDERS = [
         'openai' => OpenAiProvider::class,
@@ -86,7 +89,7 @@ class NeoAiManager
 
     protected ?Sandbox $sandbox = null;
 
-    public function __construct(protected array $config = [], protected ?ContainerInterface $container = null, protected ?HttpClientInterface $http = null)
+    public function __construct(protected array $config = [], protected ?ContainerManagerInterface $container = null, protected ?HttpClientManagerInterface $http = null)
     {
         $this->config = self::normalize($config);
     }
@@ -309,8 +312,8 @@ class NeoAiManager
 
         $container = $this->container;
 
-        if ($container !== null && $container->has(KernelInterface::class)) {
-            $kernel = $container->get(KernelInterface::class);
+        if ($container !== null && $container->has(KernelManagerInterface::class)) {
+            $kernel = $container->get(KernelManagerInterface::class);
             $info['framework_version'] = $kernel->getVersion();
             $info['environment'] = $kernel->getEnvironment();
         }
@@ -321,8 +324,8 @@ class NeoAiManager
             $info['top_directories'] = [];
         }
 
-        if ($container !== null && $container->has(RoutingInterface::class)) {
-            foreach (array_slice($container->get(RoutingInterface::class)->getRoutes()->all(), 0, 150) as $route) {
+        if ($container !== null && $container->has(RoutingManagerInterface::class)) {
+            foreach (array_slice($container->get(RoutingManagerInterface::class)->getRoutes()->all(), 0, 150) as $route) {
                 $controller = $route->getController();
                 $info['routes'][] = [
                     'name' => $route->getName(),
@@ -333,8 +336,8 @@ class NeoAiManager
             }
         }
 
-        if ($container !== null && $container->has(ConfigInterface::class)) {
-            $info['config'] = $this->summarize((array) $container->get(ConfigInterface::class)->all(), 0);
+        if ($container !== null && $container->has(ConfigManagerInterface::class)) {
+            $info['config'] = $this->summarize((array) $container->get(ConfigManagerInterface::class)->all(), 0);
         }
 
         return $info;
