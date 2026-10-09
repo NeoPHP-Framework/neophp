@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Queue\Helper\Profiler;
+namespace NeoPHP\Package\Queue\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\Queue\Contract\QueueInterface;
 use NeoPHP\Package\Queue\Provider\QueueProvider;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Package\Queue\Trace\QueueTrace;
 use NeoPHP\Package\Queue\Transport\SyncTransport;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
@@ -23,11 +23,14 @@ use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Model\Status;
 use Throwable;
 
+/**
+ * @internal
+ */
 class QueueProfiler extends AbstractProfiler implements ProfilerInterface
 {
     public const PRIORITY = 40;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -120,12 +123,12 @@ class QueueProfiler extends AbstractProfiler implements ProfilerInterface
         $stats = [];
 
         try {
-            $queue = $this->container->get(QueueInterface::class);
+            $queue = $this->container->get(QueueManagerInterface::class);
         } catch (Throwable $exception) {
             return ['-' => ['status' => $exception->getMessage()]];
         }
 
-        if (!$queue instanceof QueueInterface) {
+        if (!$queue instanceof QueueManagerInterface) {
             return [];
         }
 

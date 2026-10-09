@@ -12,6 +12,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:message', description: 'Generates a message in src/Message/ and its handler in src/MessageHandler/')]
 class MakeMessageCommand extends AbstractConsole
 {

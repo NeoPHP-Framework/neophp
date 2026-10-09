@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Helper\Console;
 
-use NeoPHP\Package\Queue\Contract\QueueInterface;
 use NeoPHP\Package\Queue\Contract\SetupableTransportInterface;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -13,10 +13,13 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'queue:setup', description: 'Creates the tables or directories of the queue transports')]
 class QueueSetupCommand extends AbstractConsole
 {
-    public function __construct(protected QueueInterface $queue)
+    public function __construct(protected QueueManagerInterface $queue)
     {
     }
 

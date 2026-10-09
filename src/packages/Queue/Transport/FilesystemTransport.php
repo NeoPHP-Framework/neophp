@@ -6,8 +6,8 @@ namespace NeoPHP\Package\Queue\Transport;
 
 use NeoPHP\Package\Queue\Contract\AbstractTransport;
 use NeoPHP\Package\Queue\Contract\SetupableTransportInterface;
-use NeoPHP\Package\Queue\Envelope;
 use NeoPHP\Package\Queue\Exception\TransportException;
+use NeoPHP\Package\Queue\Message\Envelope;
 use NeoPHP\Package\Queue\Serializer\MessageSerializer;
 
 class FilesystemTransport extends AbstractTransport implements SetupableTransportInterface

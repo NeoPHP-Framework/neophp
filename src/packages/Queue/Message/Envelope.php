@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Queue;
+namespace NeoPHP\Package\Queue\Message;
 
 class Envelope
 {
