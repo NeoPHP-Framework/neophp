@@ -6,15 +6,16 @@ namespace NeoPHP\Component\Controller;
 
 use Closure;
 use JsonSerializable;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Controller\Contract\ControllerInterface;
-use NeoPHP\Component\Controller\Contract\ControllerResolverInterface;
 use NeoPHP\Component\Controller\Exception\ControllerException;
-use NeoPHP\Component\Http\Contract\HttpInterface;
+use NeoPHP\Component\Controller\Provider\ControllerProvider;
 use NeoPHP\Component\Http\Exception\NotFoundHttpException;
+use NeoPHP\Component\Http\HttpManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Component\Kernel\Attribute\Component;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -22,11 +23,12 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use Stringable;
 
-class ControllerManager implements ControllerResolverInterface
+#[Component(provider: ControllerProvider::class)]
+final class ControllerManager implements ControllerManagerInterface
 {
     protected ?array $argumentResolvers = null;
 
-    public function __construct(protected ContainerInterface $container, protected HttpInterface $http)
+    public function __construct(protected ContainerManagerInterface $container, protected HttpManagerInterface $http)
     {
     }
 
