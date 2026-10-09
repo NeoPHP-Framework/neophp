@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Container\Contract;
+namespace NeoPHP\Component\Container;
 
-interface ContainerInterface
+interface ContainerManagerInterface
 {
     public function get(string $id): mixed;
 

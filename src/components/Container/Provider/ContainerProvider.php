@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Container\Provider;
 
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 
+/**
+ * @internal
+ */
 class ContainerProvider extends AbstractProvider
 {
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        if (!$container->bound(ContainerInterface::class)) {
-            $container->instance(ContainerInterface::class, $container);
+        if (!$container->bound(ContainerManagerInterface::class)) {
+            $container->instance(ContainerManagerInterface::class, $container);
         }
     }
 }
