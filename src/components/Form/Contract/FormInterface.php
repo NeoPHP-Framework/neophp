@@ -7,9 +7,9 @@ namespace NeoPHP\Component\Form\Contract;
 use ArrayAccess;
 use Countable;
 use IteratorAggregate;
-use NeoPHP\Component\Form\FormError;
-use NeoPHP\Component\Form\FormView;
-use NeoPHP\Component\Form\ResolvedType;
+use NeoPHP\Component\Form\Model\FormError;
+use NeoPHP\Component\Form\Model\FormView;
+use NeoPHP\Component\Form\Type\ResolvedType;
 use NeoPHP\Component\Http\Request\Request;
 
 interface FormInterface extends ArrayAccess, IteratorAggregate, Countable

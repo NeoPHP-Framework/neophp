@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form;
+namespace NeoPHP\Component\Form\Model;
 
 use ArrayIterator;
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\Contract\FormManagerInterface;
 use NeoPHP\Component\Form\Exception\FormException;
 use NeoPHP\Component\Form\Exception\TransformationFailedException;
+use NeoPHP\Component\Form\FormManagerInterface;
 use NeoPHP\Component\Form\Type\HiddenType;
+use NeoPHP\Component\Form\Type\ResolvedType;
+use NeoPHP\Component\Form\Type\TextType;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Validator\Contract\AbstractConstraint;
 use Traversable;
@@ -98,7 +100,7 @@ class Form implements FormInterface
 
     public function add(string $name, ?string $type = null, array $options = []): static
     {
-        $child = $this->manager->createNamedBuilder($name, $type ?? Type\TextType::class, null, $options)->getForm();
+        $child = $this->manager->createNamedBuilder($name, $type ?? TextType::class, null, $options)->getForm();
         $this->addChild($child);
 
         if (!$child->hasExplicitData() && $this->isCompound() && $child->isMapped() && !$child->isButton()) {

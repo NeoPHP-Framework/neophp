@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form;
+namespace NeoPHP\Component\Form\Model;
 
 use ArrayAccess;
 use ArrayIterator;

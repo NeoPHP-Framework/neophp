@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Form\Theme;
 
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 use NeoPHP\Component\Form\Renderer\FormRenderer;
 
 class Bootstrap5Theme extends DefaultTheme

@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form;
+namespace NeoPHP\Component\Form\Type;
 
 use NeoPHP\Component\Form\Contract\AbstractForm;
 use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Contract\FormTypeInterface;
 use NeoPHP\Component\Form\Exception\FormException;
+use NeoPHP\Component\Form\Model\FormBuilder;
+use NeoPHP\Component\Form\Model\FormView;
 use ReflectionMethod;
 
 class ResolvedType

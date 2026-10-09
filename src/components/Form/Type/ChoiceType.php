@@ -9,7 +9,7 @@ use NeoPHP\Component\Form\Accessor\PropertyAccessor;
 use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Exception\TransformationFailedException;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 use Stringable;
 use UnitEnum;
 

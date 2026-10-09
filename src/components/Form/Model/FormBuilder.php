@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form;
+namespace NeoPHP\Component\Form\Model;
 
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\Contract\FormManagerInterface;
 use NeoPHP\Component\Form\Exception\FormException;
+use NeoPHP\Component\Form\FormManagerInterface;
+use NeoPHP\Component\Form\Type\ResolvedType;
 use NeoPHP\Component\Form\Type\TextType;
 
 class FormBuilder

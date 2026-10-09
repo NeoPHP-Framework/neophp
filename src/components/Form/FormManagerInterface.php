@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form\Contract;
+namespace NeoPHP\Component\Form;
 
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
-use NeoPHP\Component\Form\FormBuilder;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
+use NeoPHP\Component\Form\Contract\FormInterface;
+use NeoPHP\Component\Form\Model\FormBuilder;
 use NeoPHP\Component\Form\Renderer\FormRenderer;
-use NeoPHP\Component\Form\ResolvedType;
 use NeoPHP\Component\Form\Type\FormType;
-use NeoPHP\Component\Validator\Contract\ValidatorInterface;
+use NeoPHP\Component\Form\Type\ResolvedType;
+use NeoPHP\Component\Validator\ValidatorManagerInterface;
 
 interface FormManagerInterface
 {
@@ -23,9 +24,9 @@ interface FormManagerInterface
 
     public function getType(string $type): ResolvedType;
 
-    public function getValidator(): ?ValidatorInterface;
+    public function getValidator(): ?ValidatorManagerInterface;
 
-    public function getCsrf(): ?CsrfInterface;
+    public function getCsrf(): ?CsrfManagerInterface;
 
     public function getRenderer(): FormRenderer;
 

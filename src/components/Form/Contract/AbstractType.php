@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Form\Contract;
 
-use NeoPHP\Component\Form\FormBuilder;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormBuilder;
+use NeoPHP\Component\Form\Model\FormView;
 use NeoPHP\Component\Form\Type\FormType;
 
 abstract class AbstractType implements FormTypeInterface

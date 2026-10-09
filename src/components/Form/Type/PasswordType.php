@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Form\Type;
 
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 
 class PasswordType extends TextType
 {

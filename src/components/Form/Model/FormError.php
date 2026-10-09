@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Form;
+namespace NeoPHP\Component\Form\Model;
 
 use NeoPHP\Component\Form\Contract\FormInterface;
 use Stringable;

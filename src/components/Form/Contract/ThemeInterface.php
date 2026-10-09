@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Form\Contract;
 
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 use NeoPHP\Component\Form\Renderer\FormRenderer;
 
 interface ThemeInterface
