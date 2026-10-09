@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Middleware\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
-use NeoPHP\Component\Middleware\Contract\MiddlewareManagerInterface;
 use NeoPHP\Component\Middleware\Discovery\MiddlewareDiscovery;
 use NeoPHP\Component\Middleware\MiddlewareManager;
+use NeoPHP\Component\Middleware\MiddlewareManagerInterface;
 
+/**
+ * @internal
+ */
 class MiddlewareProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.middleware';
 
     public const CACHE_DIRECTORY = 'middleware';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(MiddlewareManagerInterface::class, static function (ContainerInterface $container): MiddlewareManagerInterface {
-            $config = $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        $container->singleton(MiddlewareManagerInterface::class, static function (ContainerManagerInterface $container): MiddlewareManagerInterface {
+            $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
             $discovered = self::discover($container);
 
             return new MiddlewareManager(
@@ -35,7 +38,7 @@ class MiddlewareProvider extends AbstractProvider
         $container->alias(MiddlewareManager::class, MiddlewareManagerInterface::class);
     }
 
-    protected static function discover(ContainerInterface $container): array
+    protected static function discover(ContainerManagerInterface $container): array
     {
         if (!$container->has('kernel.root_path')) {
             return ['aliases' => [], 'global' => []];
