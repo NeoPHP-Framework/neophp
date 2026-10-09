@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Upload\Contract;
+namespace NeoPHP\Component\Upload;
 
 use NeoPHP\Component\Http\Request\UploadedFile;
 
-interface UploaderInterface
+interface UploadManagerInterface
 {
     public function store(UploadedFile $file, string $directory = '', array $options = []): string;
 

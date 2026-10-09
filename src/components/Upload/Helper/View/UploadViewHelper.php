@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Upload\Helper\View;
 
-use NeoPHP\Component\Upload\Contract\UploaderInterface;
+use NeoPHP\Component\Upload\UploadManagerInterface;
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 
+/**
+ * @internal
+ */
 class UploadViewHelper implements ViewFunctionInterface
 {
-    public function __construct(protected UploaderInterface $uploader)
+    public function __construct(protected UploadManagerInterface $uploader)
     {
     }
 
