@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Cookie\Contract;
+namespace NeoPHP\Component\Cookie;
 
 use NeoPHP\Component\Http\Response\Response;
 
-interface CookieInterface
+interface CookieManagerInterface
 {
     public function get(string $name, mixed $default = null): mixed;
 
