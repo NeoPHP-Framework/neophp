@@ -11,15 +11,15 @@ use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Component\Middleware\Contract\MiddlewareInterface;
 use NeoPHP\Component\Middleware\Contract\RequestHandlerInterface;
 use NeoPHP\Package\Security\Attribute\IsGranted;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
 use NeoPHP\Package\Security\Exception\AccessDeniedException;
 use NeoPHP\Package\Security\Exception\SecurityException;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 
 class IsGrantedMiddleware implements MiddlewareInterface
 {
-    public function __construct(protected SecurityInterface $security)
+    public function __construct(protected SecurityManagerInterface $security)
     {
     }
 

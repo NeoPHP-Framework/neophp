@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Firewall;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Cookie\Contract\CookieInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Cookie\CookieManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\RedirectResponse;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
 use NeoPHP\Component\Routing\Route\Route;
-use NeoPHP\Component\Session\Contract\SessionInterface;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
 
 class HttpUtils
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -28,7 +28,7 @@ class HttpUtils
             return $this->getBasePath() . ($path === '' ? '/' : $path);
         }
 
-        return $this->container->get(RoutingInterface::class)->generate($path, $parameters);
+        return $this->container->get(RoutingManagerInterface::class)->generate($path, $parameters);
     }
 
     public function getBasePath(): string
@@ -78,17 +78,17 @@ class HttpUtils
         return $request->getBasePath() . $request->getPath() . ($query !== null && $query !== '' ? '?' . $query : '');
     }
 
-    public function getSession(): SessionInterface
+    public function getSession(): SessionManagerInterface
     {
-        return $this->container->get(SessionInterface::class);
+        return $this->container->get(SessionManagerInterface::class);
     }
 
-    public function getCookies(): CookieInterface
+    public function getCookies(): CookieManagerInterface
     {
-        return $this->container->get(CookieInterface::class);
+        return $this->container->get(CookieManagerInterface::class);
     }
 
-    public function getContainer(): ContainerInterface
+    public function getContainer(): ContainerManagerInterface
     {
         return $this->container;
     }

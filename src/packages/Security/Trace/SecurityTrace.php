@@ -14,6 +14,9 @@ use ReflectionClass;
 use Stringable;
 use UnitEnum;
 
+/**
+ * @internal
+ */
 class SecurityTrace
 {
     public const MAX_DECISIONS = 500;

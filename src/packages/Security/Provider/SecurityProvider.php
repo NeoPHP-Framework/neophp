@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
 use NeoPHP\Package\Security\Authorization\AccessDecisionManager;
 use NeoPHP\Package\Security\Authorization\AccessMap;
 use NeoPHP\Package\Security\Authorization\RoleHierarchy;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
 use NeoPHP\Package\Security\Contract\VoterInterface;
 use NeoPHP\Package\Security\Discovery\VoterDiscovery;
 use NeoPHP\Package\Security\Exception\SecurityException;
@@ -22,11 +21,15 @@ use NeoPHP\Package\Security\Firewall\FirewallMap;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
 use NeoPHP\Package\Security\SecurityManager;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 use NeoPHP\Package\Security\Token\TokenStorage;
 use NeoPHP\Package\Security\Trace\SecurityTrace;
 use NeoPHP\Package\Security\Voter\AuthenticatedVoter;
 use NeoPHP\Package\Security\Voter\RoleVoter;
 
+/**
+ * @internal
+ */
 class SecurityProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.security';
@@ -39,17 +42,17 @@ class SecurityProvider extends AbstractProvider
 
     public const PROFILER_CONFIG_ID = 'web_profiler.config';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::configure($container));
         $container->singleton(TokenStorage::class, static fn (): TokenStorage => new TokenStorage());
-        $container->singleton(HttpUtils::class, static fn (ContainerInterface $container): HttpUtils => new HttpUtils($container));
+        $container->singleton(HttpUtils::class, static fn (ContainerManagerInterface $container): HttpUtils => new HttpUtils($container));
 
-        $container->singleton(UserPasswordHasher::class, static fn (ContainerInterface $container): UserPasswordHasher => new UserPasswordHasher($container->get(self::CONFIG_ID)['password_hashers']));
+        $container->singleton(UserPasswordHasher::class, static fn (ContainerManagerInterface $container): UserPasswordHasher => new UserPasswordHasher($container->get(self::CONFIG_ID)['password_hashers']));
 
-        $container->singleton(RoleHierarchy::class, static fn (ContainerInterface $container): RoleHierarchy => new RoleHierarchy($container->get(self::CONFIG_ID)['role_hierarchy']));
+        $container->singleton(RoleHierarchy::class, static fn (ContainerManagerInterface $container): RoleHierarchy => new RoleHierarchy($container->get(self::CONFIG_ID)['role_hierarchy']));
 
-        $container->singleton(AccessDecisionManager::class, static function (ContainerInterface $container): AccessDecisionManager {
+        $container->singleton(AccessDecisionManager::class, static function (ContainerManagerInterface $container): AccessDecisionManager {
             $config = $container->get(self::CONFIG_ID);
             $decision = $config['access_decision_manager'];
 
@@ -77,20 +80,20 @@ class SecurityProvider extends AbstractProvider
             return self::profilingEnabled($container) ? $manager->setTrace(new SecurityTrace()) : $manager;
         });
 
-        $container->singleton(FirewallMap::class, static fn (ContainerInterface $container): FirewallMap => new FirewallMap($container->get(self::CONFIG_ID)['firewalls']));
+        $container->singleton(FirewallMap::class, static fn (ContainerManagerInterface $container): FirewallMap => new FirewallMap($container->get(self::CONFIG_ID)['firewalls']));
 
-        $container->singleton(FirewallFactory::class, static function (ContainerInterface $container): FirewallFactory {
+        $container->singleton(FirewallFactory::class, static function (ContainerManagerInterface $container): FirewallFactory {
             $config = $container->get(self::CONFIG_ID);
 
             return new FirewallFactory($container, $container->get(HttpUtils::class), $container->get(TokenStorage::class), $config, $config['throttling_path'], $config['secret']);
         });
 
-        $container->singleton(AuthenticationManager::class, static fn (ContainerInterface $container): AuthenticationManager => new AuthenticationManager(
+        $container->singleton(AuthenticationManager::class, static fn (ContainerManagerInterface $container): AuthenticationManager => new AuthenticationManager(
             $container->get(UserPasswordHasher::class),
-            static fn (): ?CsrfInterface => $container->has(CsrfInterface::class) ? $container->get(CsrfInterface::class) : null,
+            static fn (): ?CsrfManagerInterface => $container->has(CsrfManagerInterface::class) ? $container->get(CsrfManagerInterface::class) : null,
         ));
 
-        $container->singleton(SecurityInterface::class, static function (ContainerInterface $container): SecurityInterface {
+        $container->singleton(SecurityManagerInterface::class, static function (ContainerManagerInterface $container): SecurityManagerInterface {
             $config = $container->get(self::CONFIG_ID);
 
             return new SecurityManager(
@@ -106,13 +109,13 @@ class SecurityProvider extends AbstractProvider
             );
         });
 
-        $container->alias(SecurityManager::class, SecurityInterface::class);
-        $container->alias('security', SecurityInterface::class);
+        $container->alias(SecurityManager::class, SecurityManagerInterface::class);
+        $container->alias('security', SecurityManagerInterface::class);
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $configuration = $container->has(ConfigInterface::class) ? $container->get(ConfigInterface::class) : null;
+        $configuration = $container->has(ConfigManagerInterface::class) ? $container->get(ConfigManagerInterface::class) : null;
         $config = (array) ($configuration?->get(self::CONFIG_KEY, []) ?? []);
         $cache = $container->has('kernel.cache_path') ? (string) $container->get('kernel.cache_path') : (string) getcwd() . '/var/cache';
         $secret = $configuration?->get(self::SECRET_KEY) ?? ($_SERVER['APP_SECRET'] ?? $_ENV['APP_SECRET'] ?? '');
@@ -136,7 +139,7 @@ class SecurityProvider extends AbstractProvider
         ];
     }
 
-    protected static function profilingEnabled(ContainerInterface $container): bool
+    protected static function profilingEnabled(ContainerManagerInterface $container): bool
     {
         if (!$container->bound(self::PROFILER_CONFIG_ID) && !$container->has(self::PROFILER_CONFIG_ID)) {
             return false;
@@ -147,7 +150,7 @@ class SecurityProvider extends AbstractProvider
         return is_array($config) && (bool) ($config['enabled'] ?? false);
     }
 
-    protected static function discover(ContainerInterface $container): array
+    protected static function discover(ContainerManagerInterface $container): array
     {
         if (!$container->has('kernel.root_path')) {
             return [];

@@ -13,6 +13,9 @@ use NeoPHP\Process\Console\Exception\InvalidInputException;
 use NeoPHP\Process\Console\IO\InputArgument;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'security:hash-password', description: 'Hashes a password with the configured hasher')]
 class SecurityHashPasswordCommand extends AbstractConsole
 {

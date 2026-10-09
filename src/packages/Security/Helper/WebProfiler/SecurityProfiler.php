@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Security\Helper\Profiler;
+namespace NeoPHP\Package\Security\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Security\Authorization\RoleHierarchy;
-use NeoPHP\Package\Security\Contract\AbstractSecurity;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
 use NeoPHP\Package\Security\Contract\TokenInterface;
 use NeoPHP\Package\Security\Firewall\Firewall;
 use NeoPHP\Package\Security\Firewall\FirewallMap;
+use NeoPHP\Package\Security\SecurityManager;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 use NeoPHP\Package\Security\User\UserClass;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
@@ -29,6 +29,9 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class SecurityProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 70;
@@ -37,19 +40,19 @@ class SecurityProfiler extends AbstractProfiler implements ToolbarInterface, Pro
 
     public const SECRET_PATTERN = '/pass(word)?|secret|(^|_)token$|api_?key|private/i';
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     public function collect(Request $request, Response $response, ?Throwable $exception = null): array
     {
-        if (!$this->container->bound(SecurityInterface::class) || !$this->container->resolved(SecurityInterface::class)) {
+        if (!$this->container->bound(SecurityManagerInterface::class) || !$this->container->resolved(SecurityManagerInterface::class)) {
             return [];
         }
 
-        $security = $this->container->get(SecurityInterface::class);
+        $security = $this->container->get(SecurityManagerInterface::class);
 
-        if (!$security instanceof SecurityInterface) {
+        if (!$security instanceof SecurityManagerInterface) {
             return [];
         }
 
@@ -75,7 +78,7 @@ class SecurityProfiler extends AbstractProfiler implements ToolbarInterface, Pro
             'tracing' => false,
         ];
 
-        if (!$security instanceof AbstractSecurity) {
+        if (!$security instanceof SecurityManager) {
             return $data;
         }
 
@@ -252,7 +255,7 @@ class SecurityProfiler extends AbstractProfiler implements ToolbarInterface, Pro
         return $hierarchy instanceof RoleHierarchy ? $hierarchy->getReachableRoleNames($roles) : $roles;
     }
 
-    protected function firewall(SecurityInterface $security, Request $request): array
+    protected function firewall(SecurityManagerInterface $security, Request $request): array
     {
         try {
             $firewall = $security->getFirewall();

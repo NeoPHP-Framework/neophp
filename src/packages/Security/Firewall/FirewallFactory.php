@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Firewall;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Security\Authenticator\AccessTokenAuthenticator;
 use NeoPHP\Package\Security\Authenticator\FormLoginAuthenticator;
 use NeoPHP\Package\Security\Authenticator\HttpBasicAuthenticator;
@@ -44,7 +44,7 @@ class FirewallFactory
     protected array $firewalls = [];
 
     public function __construct(
-        protected ContainerInterface $container,
+        protected ContainerManagerInterface $container,
         protected HttpUtils $http,
         protected TokenStorage $tokens,
         protected array $config,
@@ -132,7 +132,7 @@ class FirewallFactory
 
         return $this->providers[$name] = match (true) {
             isset($config['entity']) => new EntityUserProvider(
-                $this->container->get(OrmInterface::class),
+                $this->container->get(OrmManagerInterface::class),
                 (string) ($config['entity']['class'] ?? throw new SecurityException('The entity user provider "{provider}" needs a "class" option.', 0, null, ['provider' => $name])),
                 isset($config['entity']['property']) ? (string) $config['entity']['property'] : null,
             ),
@@ -198,11 +198,11 @@ class FirewallFactory
             return $this->service($storage, TokenProviderInterface::class);
         }
 
-        if (!$this->container->has(DatabaseInterface::class)) {
+        if (!$this->container->has(DatabaseManagerInterface::class)) {
             throw new SecurityException('The remember-me "storage: database" option of the firewall "{firewall}" needs the Database component (DATABASE_URL).', 0, null, ['firewall' => $firewall]);
         }
 
-        $connection = $this->container->get(DatabaseInterface::class)->connection(isset($options['connection']) ? (string) $options['connection'] : null);
+        $connection = $this->container->get(DatabaseManagerInterface::class)->connection(isset($options['connection']) ? (string) $options['connection'] : null);
 
         return new DatabaseTokenProvider($connection, (string) ($options['table'] ?? DatabaseTokenProvider::DEFAULT_TABLE));
     }

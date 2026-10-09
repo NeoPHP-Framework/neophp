@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Security\Authentication;
 
 use Closure;
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Package\Security\Contract\AuthenticatorInterface;
 use NeoPHP\Package\Security\Contract\PasswordAuthenticatedUserInterface;
@@ -136,7 +136,7 @@ class AuthenticationManager
 
         $manager = $this->csrf !== null ? ($this->csrf)() : null;
 
-        if (!$manager instanceof CsrfInterface || !$manager->isTokenValid((string) $csrf['id'], is_string($csrf['token'] ?? null) ? $csrf['token'] : null)) {
+        if (!$manager instanceof CsrfManagerInterface || !$manager->isTokenValid((string) $csrf['id'], is_string($csrf['token'] ?? null) ? $csrf['token'] : null)) {
             throw new InvalidCsrfTokenException('Invalid CSRF token.');
         }
     }

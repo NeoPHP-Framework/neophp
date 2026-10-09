@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Security\Contract;
+namespace NeoPHP\Package\Security;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Package\Security\Contract\TokenInterface;
+use NeoPHP\Package\Security\Contract\UserInterface;
 use NeoPHP\Package\Security\Firewall\Firewall;
 use Throwable;
 
-interface SecurityInterface
+interface SecurityManagerInterface
 {
     public const LAST_USERNAME = '_security.last_username';
 
