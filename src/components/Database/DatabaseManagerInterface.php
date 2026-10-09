@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Database\Contract;
+namespace NeoPHP\Component\Database;
 
 use Closure;
+use NeoPHP\Component\Database\Contract\ConnectionInterface;
+use NeoPHP\Component\Database\Contract\DriverInterface;
+use NeoPHP\Component\Database\Contract\QueryLoggerInterface;
 
-interface DatabaseInterface
+interface DatabaseManagerInterface
 {
     public function connection(?string $name = null): ConnectionInterface;
 

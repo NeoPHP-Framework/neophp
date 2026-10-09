@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Helper\Console;
 
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Database\Exception\DatabaseException;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -14,12 +14,15 @@ use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'database:query', description: 'Executes a SQL query and displays the result', aliases: ['db:query'])]
 class DatabaseQueryCommand extends AbstractConsole
 {
     public const MAX_WIDTH = 60;
 
-    public function __construct(protected DatabaseInterface $database)
+    public function __construct(protected DatabaseManagerInterface $database)
     {
     }
 

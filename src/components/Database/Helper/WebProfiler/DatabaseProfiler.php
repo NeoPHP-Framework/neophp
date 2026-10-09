@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Database\Helper\Profiler;
+namespace NeoPHP\Component\Database\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Database\Contract\QueryLoggerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
@@ -22,6 +22,9 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class DatabaseProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 80;
@@ -30,7 +33,7 @@ class DatabaseProfiler extends AbstractProfiler implements ToolbarInterface, Pro
 
     public const MANY_QUERIES = 50;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

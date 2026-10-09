@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Database\Connection\Connection;
 use NeoPHP\Component\Database\Contract\ConnectionInterface;
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
 use NeoPHP\Component\Database\Contract\QueryLoggerInterface;
 use NeoPHP\Component\Database\DatabaseManager;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Database\Logger\QueryLogger;
 
+/**
+ * @internal
+ */
 class DatabaseProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.database';
@@ -28,9 +31,9 @@ class DatabaseProvider extends AbstractProvider
 
     public const STOPWATCH_SQL_LENGTH = 60;
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(DatabaseInterface::class, static function (ContainerInterface $container): DatabaseInterface {
+        $container->singleton(DatabaseManagerInterface::class, static function (ContainerManagerInterface $container): DatabaseManagerInterface {
             $config = self::config($container);
             $connections = [];
 
@@ -46,7 +49,7 @@ class DatabaseProvider extends AbstractProvider
             return $manager->setQueryLoggerResolver(static fn (): ?QueryLoggerInterface => self::profilingEnabled($container) ? $container->get(QueryLoggerInterface::class) : null);
         });
 
-        $container->singleton(QueryLoggerInterface::class, static function (ContainerInterface $container): QueryLoggerInterface {
+        $container->singleton(QueryLoggerInterface::class, static function (ContainerManagerInterface $container): QueryLoggerInterface {
             $logger = new QueryLogger();
 
             if ($container->bound(self::STOPWATCH_ID) || $container->has(self::STOPWATCH_ID)) {
@@ -63,28 +66,28 @@ class DatabaseProvider extends AbstractProvider
         $container->alias(QueryLogger::class, QueryLoggerInterface::class);
         $container->alias('database.query_logger', QueryLoggerInterface::class);
 
-        $container->singleton(ConnectionInterface::class, static fn (ContainerInterface $container): ConnectionInterface => $container->get(DatabaseInterface::class)->connection());
+        $container->singleton(ConnectionInterface::class, static fn (ContainerManagerInterface $container): ConnectionInterface => $container->get(DatabaseManagerInterface::class)->connection());
 
-        $container->alias(DatabaseManager::class, DatabaseInterface::class);
+        $container->alias(DatabaseManager::class, DatabaseManagerInterface::class);
         $container->alias(Connection::class, ConnectionInterface::class);
-        $container->alias('database', DatabaseInterface::class);
+        $container->alias('database', DatabaseManagerInterface::class);
         $container->alias('database.connection', ConnectionInterface::class);
     }
 
-    public function boot(ContainerInterface $container): void
+    public function boot(ContainerManagerInterface $container): void
     {
         foreach (array_keys((array) (self::config($container)['connections'] ?? [])) as $name) {
             $name = (string) $name;
-            $container->singleton(self::CONNECTION_PREFIX . $name, static fn (ContainerInterface $container): ConnectionInterface => $container->get(DatabaseInterface::class)->connection($name));
+            $container->singleton(self::CONNECTION_PREFIX . $name, static fn (ContainerManagerInterface $container): ConnectionInterface => $container->get(DatabaseManagerInterface::class)->connection($name));
         }
     }
 
-    protected static function config(ContainerInterface $container): array
+    protected static function config(ContainerManagerInterface $container): array
     {
-        return $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        return $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
     }
 
-    protected static function profilingEnabled(ContainerInterface $container): bool
+    protected static function profilingEnabled(ContainerManagerInterface $container): bool
     {
         if (!$container->bound(self::PROFILER_CONFIG_ID) && !$container->has(self::PROFILER_CONFIG_ID)) {
             return false;
@@ -95,7 +98,7 @@ class DatabaseProvider extends AbstractProvider
         return is_array($config) && (bool) ($config['enabled'] ?? false);
     }
 
-    protected static function resolveKernelParameters(ContainerInterface $container, array $params): array
+    protected static function resolveKernelParameters(ContainerManagerInterface $container, array $params): array
     {
         foreach (['url', 'path'] as $key) {
             if (!isset($params[$key]) || !is_string($params[$key])) {
