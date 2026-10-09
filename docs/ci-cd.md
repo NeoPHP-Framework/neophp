@@ -32,13 +32,13 @@ The version type is detected from the pull request title and its commits:
 
 | Pull request content | Version |
 |---|---|
-| at least one `feat(...)` | minor: `v1.0.3` → `v1.1.0` |
+| at least one `feat(...)`, a `!` after the type (`refactor(kernel)!:`) or a `BREAKING CHANGE` footer | minor: `v1.0.3` → `v1.1.0` |
 | `fix`, `perf`, `refactor`, `revert` or a non-conventional commit | patch: `v1.0.3` → `v1.0.4` |
 | only `docs`, `test`, `ci`, `chore`, `style`, `build` | no release |
 
 You can force the choice with a label on the pull request: `release:minor`, `release:patch` or `release:none`.
 
-A major version is never created from a `vX.x` branch. It is only created by merging `dev` into `main`.
+A major version is never created from a `vX.x` branch, whatever the commit messages. It is only created by merging `dev` into `main`: prepare it on `dev`, never on `vX.x`.
 
 ### 3. Push on `vX.x`: back-merge pull request to `dev`
 
@@ -50,7 +50,7 @@ Merge it with a **merge commit** (no squash, no rebase).
 
 ## Changelog
 
-There is no `CHANGELOG.md` file. The changelog is generated in the release description, from the commits between the previous version and the new one, grouped by type:
+The changelog of a release is generated in its description, from the commits between the previous version and the new one, grouped by type:
 
 ```
 ## v1.0.1 (2026-09-24)
@@ -65,6 +65,8 @@ There is no `CHANGELOG.md` file. The changelog is generated in the release descr
 ```
 
 Commit format: `type(feature): message`.
+
+`CHANGELOG.md` keeps a one-line summary of every version, and the documentation of each feature has its own Changelog section: update them in the pull request of the change.
 
 ## Documentation per version
 
