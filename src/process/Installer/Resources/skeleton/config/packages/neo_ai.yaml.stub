@@ -1,6 +1,6 @@
 # NeoAI: development assistant (chat in the toolbar, `php bin/neo ai:start`, `ai:scan`, `ai:test`).
 # It only reads the project (vendor/, var/, .env* and keys are never sent) and never writes a file by itself.
-# Documentation: vendor/neophp/framework/src/packages/NeoAI/Docs/v1.x/README.md
+# Documentation: vendor/neophp/framework/src/packages/NeoAI/Docs/v2.x/README.md
 
 # ~ = active when APP_DEBUG=1 only. true = console commands also in other environments (the web chat always requires APP_DEBUG=1).
 enabled: ~

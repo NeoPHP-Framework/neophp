@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Process\Installer\Contract;
+namespace NeoPHP\Process\Installer;
 
-interface InstallerInterface
+interface InstallerManagerInterface
 {
     public const STATUS_CREATED = 'created';
     public const STATUS_OVERWRITTEN = 'overwritten';

@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace NeoPHP\Process\Installer\Provider;
 
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Process\Installer\Contract\InstallerInterface;
 use NeoPHP\Process\Installer\InstallerManager;
+use NeoPHP\Process\Installer\InstallerManagerInterface;
 
+/**
+ * @internal
+ */
 class InstallerProvider extends AbstractProvider
 {
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(InstallerInterface::class, InstallerManager::class);
-        $container->alias(InstallerManager::class, InstallerInterface::class);
+        $container->singleton(InstallerManagerInterface::class, InstallerManager::class);
+        $container->alias(InstallerManager::class, InstallerManagerInterface::class);
     }
 }
