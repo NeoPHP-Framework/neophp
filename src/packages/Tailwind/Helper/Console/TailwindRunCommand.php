@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Tailwind\Helper\Console;
 
-use NeoPHP\Component\Asset\Contract\AssetInterface;
-use NeoPHP\Package\Tailwind\Contract\TailwindInterface;
+use NeoPHP\Component\Asset\AssetManagerInterface;
 use NeoPHP\Package\Tailwind\Exception\TailwindException;
+use NeoPHP\Package\Tailwind\TailwindManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -15,10 +15,13 @@ use NeoPHP\Process\Console\Exception\InvalidInputException;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'tailwind:run', description: 'Compiles the Tailwind CSS file and publishes it with the assets')]
 class TailwindRunCommand extends AbstractConsole
 {
-    public function __construct(protected TailwindInterface $tailwind, protected AssetInterface $asset)
+    public function __construct(protected TailwindManagerInterface $tailwind, protected AssetManagerInterface $asset)
     {
     }
 
@@ -42,7 +45,7 @@ class TailwindRunCommand extends AbstractConsole
             return;
         }
 
-        $input->setArgument('input', $output->ask('Tailwind CSS file in assets/', TailwindInterface::DEFAULT_INPUT, static function (mixed $value): string {
+        $input->setArgument('input', $output->ask('Tailwind CSS file in assets/', TailwindManagerInterface::DEFAULT_INPUT, static function (mixed $value): string {
             $value = trim((string) $value);
 
             if (!str_ends_with(strtolower($value), '.css')) {
@@ -66,7 +69,7 @@ class TailwindRunCommand extends AbstractConsole
                 $this->tailwind->setInput($argument);
             }
 
-            $source = $this->tailwind->getInput() ?? TailwindInterface::DEFAULT_INPUT;
+            $source = $this->tailwind->getInput() ?? TailwindManagerInterface::DEFAULT_INPUT;
 
             if ($save) {
                 $this->tailwind->setInput($source);

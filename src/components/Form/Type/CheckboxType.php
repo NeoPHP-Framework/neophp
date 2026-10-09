@@ -6,7 +6,7 @@ namespace NeoPHP\Component\Form\Type;
 
 use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 
 class CheckboxType extends AbstractType
 {

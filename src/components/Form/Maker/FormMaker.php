@@ -6,7 +6,7 @@ namespace NeoPHP\Component\Form\Maker;
 
 use NeoPHP\Component\Form\Contract\AbstractForm;
 use NeoPHP\Component\Form\Exception\FormException;
-use NeoPHP\Component\Form\FormBuilder;
+use NeoPHP\Component\Form\Model\FormBuilder;
 use NeoPHP\Component\Form\Type\CheckboxType;
 use NeoPHP\Component\Form\Type\ColorType;
 use NeoPHP\Component\Form\Type\DateTimeType;
@@ -21,15 +21,15 @@ use NeoPHP\Component\Form\Type\TextareaType;
 use NeoPHP\Component\Form\Type\TextType;
 use NeoPHP\Component\Form\Type\TimeType;
 use NeoPHP\Component\Form\Type\UrlType;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Helper\Form\EntityType;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 
 class FormMaker
 {
     protected array $uses = [];
 
-    public function __construct(protected string $path, protected string $namespace = 'App\\Form', protected ?OrmInterface $orm = null)
+    public function __construct(protected string $path, protected string $namespace = 'App\\Form', protected ?OrmManagerInterface $orm = null)
     {
     }
 

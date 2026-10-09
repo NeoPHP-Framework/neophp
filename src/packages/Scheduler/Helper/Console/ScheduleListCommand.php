@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Scheduler\Helper\Console;
 
 use NeoPHP\Package\Scheduler\History\HistoryStore;
-use NeoPHP\Package\Scheduler\Scheduler;
+use NeoPHP\Package\Scheduler\SchedulerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'schedule:list', description: 'Lists the scheduled tasks with their next and last run')]
 class ScheduleListCommand extends AbstractConsole
 {
     public const HEARTBEAT_DELAY = 120;
 
-    public function __construct(protected Scheduler $scheduler, protected HistoryStore $history)
+    public function __construct(protected SchedulerManagerInterface $scheduler, protected HistoryStore $history)
     {
     }
 

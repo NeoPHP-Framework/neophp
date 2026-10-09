@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace NeoPHP\Process\Console\Command;
 
 use NeoPHP\Process\Console\Attribute\AsCommand;
+use NeoPHP\Process\Console\ConsoleManagerInterface;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
-use NeoPHP\Process\Console\Contract\ConsoleInterface;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\HelpRenderer;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'help', description: 'Displays the help of a command')]
 class HelpCommand extends AbstractConsole
 {
-    public function __construct(protected ConsoleInterface $console)
+    public function __construct(protected ConsoleManagerInterface $console)
     {
     }
 

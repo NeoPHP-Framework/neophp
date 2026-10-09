@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\NeoAI\Contract;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\NeoAI\Exception\NeoAiException;
 use NeoPHP\Package\NeoAI\Model\Patch;
 use NeoPHP\Package\NeoAI\NeoAiManager;
@@ -15,14 +15,14 @@ use NeoPHP\Process\Console\IO\Formatter;
 
 abstract class AbstractAiCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     protected function manager(OutputInterface $output): ?NeoAiManager
     {
         if (!$this->container->bound(NeoAiProvider::CONFIG_ID)) {
-            $output->error('The NeoAI package is not registered: add NeoAiProvider::class to the kernel providers.');
+            $output->error('The NeoAI package is not registered: check that NeoPHP\\Package\\NeoAI\\NeoAiManager is not disabled in config/config.php.');
 
             return null;
         }

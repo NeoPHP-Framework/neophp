@@ -6,13 +6,14 @@ namespace NeoPHP\Package\Orm\Contract;
 
 use NeoPHP\Package\Orm\Exception\OrmException;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Query\QueryBuilder;
 
 abstract class AbstractRepository implements RepositoryInterface
 {
     protected string $entityClass = '';
 
-    public function __construct(protected OrmInterface $orm, ?string $entityClass = null)
+    public function __construct(protected OrmManagerInterface $orm, ?string $entityClass = null)
     {
         if ($entityClass !== null) {
             $this->entityClass = $entityClass;
@@ -28,7 +29,7 @@ abstract class AbstractRepository implements RepositoryInterface
         return $this->entityClass;
     }
 
-    public function getOrm(): OrmInterface
+    public function getOrm(): OrmManagerInterface
     {
         return $this->orm;
     }

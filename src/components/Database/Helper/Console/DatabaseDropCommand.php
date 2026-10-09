@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Helper\Console;
 
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Database\Exception\DatabaseException;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -12,10 +12,13 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'database:drop', description: 'Drops the configured database and all its data', aliases: ['db:drop'])]
 class DatabaseDropCommand extends AbstractConsole
 {
-    public function __construct(protected DatabaseInterface $database)
+    public function __construct(protected DatabaseManagerInterface $database)
     {
     }
 

@@ -6,14 +6,14 @@ namespace NeoPHP\Component\Kernel\Event;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 use Throwable;
 
 class ExceptionEvent extends KernelEvent
 {
     protected ?Response $response = null;
 
-    public function __construct(KernelInterface $kernel, Request $request, protected Throwable $throwable)
+    public function __construct(KernelManagerInterface $kernel, Request $request, protected Throwable $throwable)
     {
         parent::__construct($kernel, $request);
     }

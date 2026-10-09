@@ -37,6 +37,11 @@ class ClassFinder
         return $classes;
     }
 
+    public function getResources(): array
+    {
+        return $this->resources;
+    }
+
     protected function contains(string $content, array $needles): bool
     {
         foreach ($needles as $needle) {
@@ -46,11 +51,6 @@ class ClassFinder
         }
 
         return false;
-    }
-
-    public function getResources(): array
-    {
-        return $this->resources;
     }
 
     protected function files(string $path): array

@@ -1,7 +1,8 @@
 # Changelog
 
-Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v1.x/README.md`). See the [versioning policy](docs/v1.x/README.md#versions-and-support).
+Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v2.x/README.md`, `Docs/v1.x/README.md` for NeoPHP 1). See the [versioning policy](docs/v2.x/README.md#versions-and-support).
 
+- v2.0.0 — Modules: `#[Component]` / `#[Package]` / `#[Process]` attributes on the `final` manager of every component, package and process, automatic discovery by the kernel (framework and Composer packages with `extra.neophp.modules`), providers sorted by `requires`, `config/config.php` to disable modules per project and per environment with a clear error when a required module is disabled, the discoveries ignore the classes of disabled modules; one public entry point per module: `<Module>Manager` (`final`) and `<Module>ManagerInterface` at its root (replaces the main interface of `Contract\`), the other classes of the root moved into sub-folders (`Exception\FrameworkException`, `Form\Model\Form`, `Logger\Contract\LogLevel`...), the abstract class of every manager merged into it, new `ApiManagerInterface`, `ExceptionManagerInterface`, `NeoAiManagerInterface`, `SchedulerManagerInterface`, `WebProfilerManagerInterface`, `Scheduler` renamed `SchedulerManager`, `Profiler` renamed `WebProfilerManager`, `App\Kernel` extends `AbstractKernel`; providers, discoveries, traces and helpers marked `@internal`, helper folders named after the module they plug into (`Helper/WebProfiler`, `Helper/Event`), Flash panel of the profiler moved to the Flash component; `ext-ctype`, `ext-json`, `ext-mbstring` and `ext-tokenizer` required; documentation of every module in `Docs/v2.x`. See [UPGRADE-2.0.md](UPGRADE-2.0.md)
 - v1.40.0 — Upload component: files stored in `public/uploads/` with a random name and a MIME type detected from the content, size limit, `upload()` view function, `storeUpload()` / `deleteUpload()` / `uploadUrl()` controller helpers, `config/framework/upload.yaml`
 - v1.39.2 — Bugfix: `make:migration` ignores the queue tables (`neo_queue_jobs`, `neo_queue_failed`) instead of dropping them
 - v1.39.1 — Bugfix: `createNamed()` adds the CSRF field like `create()` (forms created with a custom or empty name were posted without a token)
@@ -13,7 +14,7 @@ Every version of NeoPHP. The changes of a feature are detailed in the Changelog 
 - v1.34.0 — WebProfiler: Session / Cookies / Flash panel, Ajax panel listing the calls of a page, "Back to the site" link in the profiler
 - v1.33.3 — Generated YAML configuration files use a 4-space indentation and spaced flow collections (`[ a, b ]`, `[ ]`, `{ }`)
 - v1.33.2 — Added the `locales()` Twig function to retrieve available locales
-- v1.33.1 — Update changelog 
+- v1.33.1 — Update changelog
 - v1.33.0 — Generated projects no longer include `.gitkeep` files
 - v1.32.0 — Global `app` template variable, like Symfony: `app.request`, `app.session`, `app.user`, `app.flashes`, `app.locale`, `app.environment`, `app.debug`, `app.current_route`, `app.current_route_parameters`, `app.name`
 - v1.31.3 — Bugfix: `translation:generate` indents the YAML files with 4 spaces

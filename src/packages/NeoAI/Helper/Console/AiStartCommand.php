@@ -16,6 +16,9 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'ai:start', description: 'Starts an interactive chat with the NeoAI development assistant', aliases: ['ai'])]
 class AiStartCommand extends AbstractAiCommand
 {

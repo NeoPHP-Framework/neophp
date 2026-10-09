@@ -4,26 +4,29 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Csrf\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
 use NeoPHP\Component\Csrf\CsrfManager;
-use NeoPHP\Component\Session\Contract\SessionInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
 
+/**
+ * @internal
+ */
 class CsrfProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.csrf';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(CsrfInterface::class, static function (ContainerInterface $container): CsrfInterface {
-            $config = $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        $container->singleton(CsrfManagerInterface::class, static function (ContainerManagerInterface $container): CsrfManagerInterface {
+            $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
 
-            return new CsrfManager($container->get(SessionInterface::class), $config);
+            return new CsrfManager($container->get(SessionManagerInterface::class), $config);
         });
 
-        $container->alias(CsrfManager::class, CsrfInterface::class);
-        $container->alias('csrf', CsrfInterface::class);
+        $container->alias(CsrfManager::class, CsrfManagerInterface::class);
+        $container->alias('csrf', CsrfManagerInterface::class);
     }
 }

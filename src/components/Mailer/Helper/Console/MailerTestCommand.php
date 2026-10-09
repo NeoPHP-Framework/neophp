@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Mailer\Helper\Console;
 
-use NeoPHP\Component\Mailer\Contract\MailerInterface;
 use NeoPHP\Component\Mailer\Exception\MailerException;
 use NeoPHP\Component\Mailer\Exception\TransportException;
 use NeoPHP\Component\Mailer\MailerManager;
+use NeoPHP\Component\Mailer\MailerManagerInterface;
 use NeoPHP\Component\Mailer\Mime\Email;
 use NeoPHP\Component\Mailer\Transport\Dsn;
 use NeoPHP\Component\Mailer\Transport\TransportFactory;
@@ -20,10 +20,13 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'mailer:test', description: 'Sends a test email to check the mailer configuration')]
 class MailerTestCommand extends AbstractConsole
 {
-    public function __construct(protected MailerInterface $mailer, protected TransportFactory $factory)
+    public function __construct(protected MailerManagerInterface $mailer, protected TransportFactory $factory)
     {
     }
 

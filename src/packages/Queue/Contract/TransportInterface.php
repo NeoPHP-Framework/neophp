@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Contract;
 
-use NeoPHP\Package\Queue\Envelope;
+use NeoPHP\Package\Queue\Message\Envelope;
 
 interface TransportInterface
 {

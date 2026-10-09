@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Translation\Helper\Controller;
 
-use NeoPHP\Component\Cookie\Contract\CookieInterface;
+use NeoPHP\Component\Cookie\CookieManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Session\Contract\SessionInterface;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
 use NeoPHP\Package\Translation\Exception\TranslationException;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
 trait TranslationController
 {
@@ -18,12 +18,12 @@ trait TranslationController
 
     protected function translate(string $key, array $parameters = [], ?string $domain = null, ?string $locale = null): string
     {
-        return $this->get(TranslatorInterface::class)->translate($key, $parameters, $domain, $locale);
+        return $this->get(TranslationManagerInterface::class)->translate($key, $parameters, $domain, $locale);
     }
 
     protected function switchLocale(string $locale, bool $remember = true): string
     {
-        $translator = $this->get(TranslatorInterface::class);
+        $translator = $this->get(TranslationManagerInterface::class);
         $matched = $translator->matchLocale($locale) ?? throw new TranslationException('The locale "{locale}" is not enabled: use one of "{locales}".', 0, null, [
             'locale' => $locale,
             'locales' => implode('", "', $translator->getLocales()),
@@ -33,15 +33,15 @@ trait TranslationController
         $translator->setLocale($matched);
 
         if ($this->has(Request::class)) {
-            $this->get(Request::class)->attributes->set(TranslatorInterface::ATTRIBUTE, $matched);
+            $this->get(Request::class)->attributes->set(TranslationManagerInterface::ATTRIBUTE, $matched);
         }
 
-        if ($remember && $this->has(SessionInterface::class)) {
-            $this->get(SessionInterface::class)->set((string) ($detection['session_key'] ?? '_locale'), $matched);
+        if ($remember && $this->has(SessionManagerInterface::class)) {
+            $this->get(SessionManagerInterface::class)->set((string) ($detection['session_key'] ?? '_locale'), $matched);
         }
 
-        if ($remember && $this->has(CookieInterface::class) && (string) ($detection['cookie_name'] ?? '') !== '') {
-            $this->get(CookieInterface::class)->set((string) $detection['cookie_name'], $matched, ['lifetime' => (int) ($detection['cookie_lifetime'] ?? 31536000)]);
+        if ($remember && $this->has(CookieManagerInterface::class) && (string) ($detection['cookie_name'] ?? '') !== '') {
+            $this->get(CookieManagerInterface::class)->set((string) $detection['cookie_name'], $matched, ['lifetime' => (int) ($detection['cookie_lifetime'] ?? 31536000)]);
         }
 
         return $matched;

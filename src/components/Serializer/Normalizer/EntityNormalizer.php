@@ -5,26 +5,26 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Serializer\Normalizer;
 
 use Closure;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\NameConverterInterface;
 use NeoPHP\Component\Serializer\Exception\NotNormalizableValueException;
 use NeoPHP\Component\Serializer\Mapping\ClassMetadata;
 use NeoPHP\Component\Serializer\Mapping\ClassResolver;
 use NeoPHP\Component\Serializer\Mapping\MetadataFactory;
 use NeoPHP\Component\Serializer\Mapping\PropertyMetadata;
+use NeoPHP\Component\Serializer\SerializerManager;
 use NeoPHP\Package\Orm\Collection\ArrayCollection;
 use NeoPHP\Package\Orm\Contract\CollectionInterface;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Contract\ProxyInterface;
 use NeoPHP\Package\Orm\Mapping\Entity;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata as OrmClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use ReflectionClass;
 use ReflectionType;
 use Traversable;
 
 class EntityNormalizer extends ObjectNormalizer
 {
-    protected ?OrmInterface $orm = null;
+    protected ?OrmManagerInterface $orm = null;
 
     protected array $entities = [];
 
@@ -55,7 +55,7 @@ class EntityNormalizer extends ObjectNormalizer
         return $this->ormMetadata($entity)->getIdentifierValue($entity);
     }
 
-    protected function orm(): OrmInterface
+    protected function orm(): OrmManagerInterface
     {
         return $this->orm ??= ($this->ormFactory)();
     }
@@ -84,9 +84,9 @@ class EntityNormalizer extends ObjectNormalizer
         $groups = self::groups($context);
 
         if (is_object($value) && $this->isEntity($value)) {
-            $maxDepth = (int) ($context[AbstractSerializer::MAX_DEPTH] ?? 0);
+            $maxDepth = (int) ($context[SerializerManager::MAX_DEPTH] ?? 0);
 
-            if (($maxDepth > 0 && (int) ($context[AbstractSerializer::DEPTH] ?? 0) >= $maxDepth) || ($groups !== null && !$this->hasAttributesInGroups($value, $groups))) {
+            if (($maxDepth > 0 && (int) ($context[SerializerManager::DEPTH] ?? 0) >= $maxDepth) || ($groups !== null && !$this->hasAttributesInGroups($value, $groups))) {
                 return $this->getIdentifier($value);
             }
 
@@ -117,7 +117,7 @@ class EntityNormalizer extends ObjectNormalizer
 
     protected function handleCircularReference(object $object, ?string $format, array $context): mixed
     {
-        if (is_callable($context[AbstractSerializer::CIRCULAR_REFERENCE_HANDLER] ?? null)) {
+        if (is_callable($context[SerializerManager::CIRCULAR_REFERENCE_HANDLER] ?? null)) {
             return parent::handleCircularReference($object, $format, $context);
         }
 
@@ -152,8 +152,8 @@ class EntityNormalizer extends ObjectNormalizer
 
             if ($entity === null && !($association['nullable'] ?? true)) {
                 throw new NotNormalizableValueException('The value{at} must not be null.', 0, null, [
-                    'at' => AbstractSerializer::describePath($childContext),
-                    'path' => AbstractSerializer::path($childContext),
+                    'at' => SerializerManager::describePath($childContext),
+                    'path' => SerializerManager::path($childContext),
                 ]);
             }
 
@@ -171,21 +171,21 @@ class EntityNormalizer extends ObjectNormalizer
         }
 
         if (!is_array($value) || !array_is_list($value)) {
-            $value = AbstractSerializer::isLenient($format, $childContext) && is_array($value) ? [$value] : $value;
+            $value = SerializerManager::isLenient($format, $childContext) && is_array($value) ? [$value] : $value;
         }
 
         if (!is_array($value)) {
             throw new NotNormalizableValueException('The value{at} must be a list of identifiers or objects, {actual} given.', 0, null, [
                 'actual' => get_debug_type($value),
-                'at' => AbstractSerializer::describePath($childContext),
-                'path' => AbstractSerializer::path($childContext),
+                'at' => SerializerManager::describePath($childContext),
+                'path' => SerializerManager::path($childContext),
             ]);
         }
 
         $entities = [];
 
         foreach (array_values($value) as $index => $item) {
-            $entity = $this->resolveEntity($association['target'], $item, $format, AbstractSerializer::withPath($childContext, $index));
+            $entity = $this->resolveEntity($association['target'], $item, $format, SerializerManager::withPath($childContext, $index));
 
             if ($entity !== null) {
                 $entities[] = $entity;
@@ -226,7 +226,7 @@ class EntityNormalizer extends ObjectNormalizer
 
     protected function resolveEntity(string $class, mixed $value, ?string $format, array $context): ?object
     {
-        if ($value === null || ($value === '' && AbstractSerializer::isLenient($format, $context))) {
+        if ($value === null || ($value === '' && SerializerManager::isLenient($format, $context))) {
             return null;
         }
 
@@ -252,8 +252,8 @@ class EntityNormalizer extends ObjectNormalizer
             throw new NotNormalizableValueException('The value{at} must be an identifier of {class}, {actual} given.', 0, null, [
                 'class' => $class,
                 'actual' => get_debug_type($id),
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
@@ -264,8 +264,8 @@ class EntityNormalizer extends ObjectNormalizer
                 'entity' => (new ReflectionClass($class))->getShortName(),
                 'class' => $class,
                 'id' => $id,
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 

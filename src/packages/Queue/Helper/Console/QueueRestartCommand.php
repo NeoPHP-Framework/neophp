@@ -11,6 +11,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'queue:restart', description: 'Asks the running workers to stop after their current message')]
 class QueueRestartCommand extends AbstractConsole
 {

@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Queue;
 
 use DateTimeInterface;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
+use NeoPHP\Component\Kernel\Attribute\Package;
 use NeoPHP\Package\Queue\Attribute\AsMessage;
-use NeoPHP\Package\Queue\Contract\QueueInterface;
 use NeoPHP\Package\Queue\Contract\TransportInterface;
 use NeoPHP\Package\Queue\Event\MessageDispatchedEvent;
 use NeoPHP\Package\Queue\Exception\ConfigurationException;
 use NeoPHP\Package\Queue\Handler\HandlerInvoker;
+use NeoPHP\Package\Queue\Message\Envelope;
+use NeoPHP\Package\Queue\Provider\QueueProvider;
 use NeoPHP\Package\Queue\Retry\RetryStrategy;
 use NeoPHP\Package\Queue\Trace\QueueTrace;
 use NeoPHP\Package\Queue\Transport\SyncTransport;
@@ -19,7 +21,8 @@ use NeoPHP\Package\Queue\Transport\TransportFactory;
 use ReflectionClass;
 use Throwable;
 
-class QueueManager implements QueueInterface
+#[Package(provider: QueueProvider::class)]
+final class QueueManager implements QueueManagerInterface
 {
     protected array $transports = [];
 
@@ -32,7 +35,7 @@ class QueueManager implements QueueInterface
         protected RetryStrategy $retry,
         protected string $defaultTransport = 'async',
         protected array $routing = [],
-        protected ?EventDispatcherInterface $events = null,
+        protected ?EventManagerInterface $events = null,
         protected ?QueueTrace $trace = null,
     ) {
     }
@@ -136,7 +139,7 @@ class QueueManager implements QueueInterface
         return $this->invoker;
     }
 
-    public function getEvents(): ?EventDispatcherInterface
+    public function getEvents(): ?EventManagerInterface
     {
         return $this->events;
     }

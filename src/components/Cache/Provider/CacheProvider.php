@@ -5,29 +5,32 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Cache\Provider;
 
 use NeoPHP\Component\Cache\CacheManager;
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Component\Cache\Contract\CacheInterface;
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Database\Contract\ConnectionInterface;
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 
+/**
+ * @internal
+ */
 class CacheProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.cache';
 
     public const POOL_PREFIX = 'cache.';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(CacheManagerInterface::class, static function (ContainerInterface $container): CacheManagerInterface {
+        $container->singleton(CacheManagerInterface::class, static function (ContainerManagerInterface $container): CacheManagerInterface {
             $rootPath = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
-            $connections = $container->has(DatabaseInterface::class)
-                ? static fn (?string $name): ConnectionInterface => $container->get(DatabaseInterface::class)->connection($name)
+            $connections = $container->has(DatabaseManagerInterface::class)
+                ? static fn (?string $name): ConnectionInterface => $container->get(DatabaseManagerInterface::class)->connection($name)
                 : null;
 
-            $secret = $container->has(ConfigInterface::class) ? (string) ($container->get(ConfigInterface::class)->get('framework.app.secret', '') ?? '') : '';
+            $secret = $container->has(ConfigManagerInterface::class) ? (string) ($container->get(ConfigManagerInterface::class)->get('framework.app.secret', '') ?? '') : '';
 
             return new CacheManager(self::config($container), $rootPath, $connections, $secret !== '' ? $secret : null);
         });
@@ -40,12 +43,12 @@ class CacheProvider extends AbstractProvider
 
         foreach ($pools as $name) {
             $name = (string) $name;
-            $container->singleton(self::POOL_PREFIX . $name, static fn (ContainerInterface $container): CacheInterface => $container->get(CacheManagerInterface::class)->pool($name));
+            $container->singleton(self::POOL_PREFIX . $name, static fn (ContainerManagerInterface $container): CacheInterface => $container->get(CacheManagerInterface::class)->pool($name));
         }
     }
 
-    public static function config(ContainerInterface $container): array
+    public static function config(ContainerManagerInterface $container): array
     {
-        return $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        return $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
     }
 }

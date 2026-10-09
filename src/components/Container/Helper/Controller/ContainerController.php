@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Container\Helper\Controller;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Exception\ContainerException;
 
 trait ContainerController
 {
-    protected ?ContainerInterface $container = null;
+    protected ?ContainerManagerInterface $container = null;
 
-    public function setContainer(ContainerInterface $container): void
+    public function setContainer(ContainerManagerInterface $container): void
     {
         $this->container = $container;
     }

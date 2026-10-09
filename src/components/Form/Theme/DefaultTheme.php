@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Form\Theme;
 
 use NeoPHP\Component\Form\Contract\ThemeInterface;
-use NeoPHP\Component\Form\Form;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\Form;
+use NeoPHP\Component\Form\Model\FormView;
 use NeoPHP\Component\Form\Renderer\FormRenderer;
 use Stringable;
 
@@ -238,6 +238,34 @@ class DefaultTheme implements ThemeInterface
         return '<small' . $this->attributes(['id' => $vars['id'] . '_help'] + (array) ($vars['help_attr'] ?? [])) . '>' . $this->e($vars['help']) . '</small>';
     }
 
+    public function attributes(array $attributes): string
+    {
+        $html = '';
+
+        foreach ($attributes as $name => $value) {
+            if ($value === null || $value === false) {
+                continue;
+            }
+
+            $html .= $value === true ? ' ' . $this->e($name) : ' ' . $this->e($name) . '="' . $this->e($this->scalar($value)) . '"';
+        }
+
+        return $html;
+    }
+
+    public function addClass(array $attr, string $class): array
+    {
+        $existing = trim((string) ($attr['class'] ?? ''));
+        $attr['class'] = trim($class . ' ' . $existing);
+
+        return $attr;
+    }
+
+    public function e(mixed $value): string
+    {
+        return htmlspecialchars($this->scalar($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
     protected function expandedChoices(array $vars): array
     {
         $selected = array_map('strval', (array) ($vars['value'] ?? []));
@@ -287,34 +315,6 @@ class DefaultTheme implements ThemeInterface
     protected function rowAttributes(FormView $view, array $vars): array
     {
         return (array) ($vars['row_attr'] ?? []);
-    }
-
-    public function attributes(array $attributes): string
-    {
-        $html = '';
-
-        foreach ($attributes as $name => $value) {
-            if ($value === null || $value === false) {
-                continue;
-            }
-
-            $html .= $value === true ? ' ' . $this->e($name) : ' ' . $this->e($name) . '="' . $this->e($this->scalar($value)) . '"';
-        }
-
-        return $html;
-    }
-
-    public function addClass(array $attr, string $class): array
-    {
-        $existing = trim((string) ($attr['class'] ?? ''));
-        $attr['class'] = trim($class . ' ' . $existing);
-
-        return $attr;
-    }
-
-    public function e(mixed $value): string
-    {
-        return htmlspecialchars($this->scalar($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     protected function scalar(mixed $value): string

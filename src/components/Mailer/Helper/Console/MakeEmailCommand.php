@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Mailer\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Mailer\Exception\MailerException;
 use NeoPHP\Component\Mailer\Maker\EmailMaker;
 use NeoPHP\Process\Console\Attribute\AsCommand;
@@ -13,10 +13,13 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:email', description: 'Generates an email class in src/Email/')]
 class MakeEmailCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

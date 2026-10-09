@@ -11,11 +11,11 @@ use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Security\Authentication\Passport;
 use NeoPHP\Package\Security\Contract\AbstractAuthenticator;
 use NeoPHP\Package\Security\Contract\EntryPointInterface;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
 use NeoPHP\Package\Security\Contract\TokenInterface;
 use NeoPHP\Package\Security\Exception\AuthenticationException;
 use NeoPHP\Package\Security\Exception\BadCredentialsException;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 
 class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPointInterface
 {
@@ -68,7 +68,7 @@ class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPoint
         }
 
         $username = trim($username);
-        $this->http->getSession()->set(SecurityInterface::LAST_USERNAME, $username);
+        $this->http->getSession()->set(SecurityManagerInterface::LAST_USERNAME, $username);
 
         if (!is_string($password) || $password === '') {
             throw new BadCredentialsException('The password must be a non-empty string.');
@@ -93,8 +93,8 @@ class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPoint
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewall): ?Response
     {
         $session = $this->http->getSession();
-        $session->remove(SecurityInterface::LAST_ERROR);
-        $session->remove(SecurityInterface::LAST_USERNAME);
+        $session->remove(SecurityManagerInterface::LAST_ERROR);
+        $session->remove(SecurityManagerInterface::LAST_USERNAME);
 
         return new RedirectResponse($this->targetPath($request, $firewall));
     }
@@ -105,7 +105,7 @@ class FormLoginAuthenticator extends AbstractAuthenticator implements EntryPoint
             return new JsonResponse(['error' => $exception->getSafeMessage()], $exception->getStatusCode(), $exception->getHeaders());
         }
 
-        $this->http->getSession()->set(SecurityInterface::LAST_ERROR, $exception->getSafeMessage());
+        $this->http->getSession()->set(SecurityManagerInterface::LAST_ERROR, $exception->getSafeMessage());
 
         return $this->http->createRedirectResponse((string) ($this->options['failure_path'] ?? $this->options['login_path']));
     }

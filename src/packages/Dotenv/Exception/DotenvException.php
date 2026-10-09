@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Dotenv\Exception;
 
-use NeoPHP\Component\Exception\FrameworkException;
+use NeoPHP\Component\Exception\Exception\FrameworkException;
 
 class DotenvException extends FrameworkException
 {

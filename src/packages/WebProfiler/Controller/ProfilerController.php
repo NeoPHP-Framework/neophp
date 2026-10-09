@@ -8,8 +8,8 @@ use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\WebProfiler\Profiler;
 use NeoPHP\Package\WebProfiler\Renderer\TemplateRenderer;
+use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 
 class ProfilerController
 {
@@ -17,7 +17,7 @@ class ProfilerController
 
     public const HEADERS = ['Content-Type' => 'text/html; charset=UTF-8', 'X-Robots-Tag' => 'noindex, nofollow', 'Cache-Control' => 'no-store'];
 
-    public function __construct(protected Profiler $profiler, protected TemplateRenderer $templates)
+    public function __construct(protected WebProfilerManagerInterface $profiler, protected TemplateRenderer $templates)
     {
     }
 

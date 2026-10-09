@@ -64,6 +64,16 @@ class MessageFormatter
         return $nodes;
     }
 
+    public static function stringify(mixed $value): string
+    {
+        return match (true) {
+            $value === null => '',
+            is_bool($value) => $value ? 'true' : 'false',
+            is_scalar($value), $value instanceof Stringable => (string) $value,
+            default => get_debug_type($value),
+        };
+    }
+
     protected function parseNodes(string $message, int &$position, bool $branch): array
     {
         $nodes = [];
@@ -250,16 +260,6 @@ class MessageFormatter
         $value = array_key_exists($node['name'], $values) ? self::stringify($values[$node['name']]) : 'other';
 
         return $this->render($node['options'][$value] ?? $node['options']['other'], $values, $locale, $hash);
-    }
-
-    public static function stringify(mixed $value): string
-    {
-        return match (true) {
-            $value === null => '',
-            is_bool($value) => $value ? 'true' : 'false',
-            is_scalar($value), $value instanceof Stringable => (string) $value,
-            default => get_debug_type($value),
-        };
     }
 
     protected static function number(int|float $number): string

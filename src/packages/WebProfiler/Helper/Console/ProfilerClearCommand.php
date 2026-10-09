@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\WebProfiler\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -12,10 +12,13 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'profiler:clear', description: 'Deletes the stored profiles of the web profiler')]
 class ProfilerClearCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Worker;
 
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
-use NeoPHP\Package\Queue\Contract\QueueInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Package\Queue\Contract\TransportInterface;
 use NeoPHP\Package\Queue\Contract\UnrecoverableExceptionInterface;
-use NeoPHP\Package\Queue\Envelope;
 use NeoPHP\Package\Queue\Event\WorkerMessageFailedEvent;
 use NeoPHP\Package\Queue\Event\WorkerMessageHandledEvent;
 use NeoPHP\Package\Queue\Event\WorkerMessageReceivedEvent;
+use NeoPHP\Package\Queue\Message\Envelope;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Package\Queue\Retry\RetryStrategy;
 use Throwable;
 
@@ -40,10 +40,10 @@ class Worker
     protected array $stats = ['handled' => 0, 'retried' => 0, 'failed' => 0];
 
     public function __construct(
-        protected QueueInterface $queue,
+        protected QueueManagerInterface $queue,
         protected RetryStrategy $retry,
         protected ?RestartSignal $restart = null,
-        protected ?EventDispatcherInterface $events = null,
+        protected ?EventManagerInterface $events = null,
     ) {
     }
 

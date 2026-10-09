@@ -13,6 +13,9 @@ use RecursiveIteratorIterator;
 use ReflectionClass;
 use SplFileInfo;
 
+/**
+ * @internal
+ */
 class CommandDiscovery
 {
     public const DIRECTORY = 'Helper/Console';

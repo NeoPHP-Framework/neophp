@@ -21,10 +21,14 @@
         "openapi"
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "ext-ctype": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-tokenizer": "*"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan": "^2.2",
         "twig/twig": "^3.0"
     },
     "conflict": {
@@ -35,7 +39,6 @@
         "ext-apcu": "Required by the \"apcu\" adapter of the Cache component (in-memory shared cache pools; set apc.enable_cli=1 to use it from the console)",
         "ext-curl": "Recommended by the HttpClient component (faster transport, parallel requests with requestMany()); the stream transport is used without it",
         "ext-fileinfo": "Required to detect the mime type of uploaded files (File and Image constraints) and of email attachments",
-        "ext-mbstring": "Required by the Markdown package (heading anchors) and recommended for UTF-8 text",
         "ext-openssl": "Required to send emails over SSL/TLS (smtps:// or STARTTLS) and to download the Tailwind CLI (tailwind:install)",
         "ext-pcntl": "Recommended by the Queue package (graceful stop of queue:work on SIGTERM / SIGINT) and the Scheduler package (schedule:work)",
         "ext-pdo": "Required to use the Database component",
@@ -63,6 +66,7 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",
+    "prefer-stable": true,
     "scripts": {
         "phpstan": "phpstan analyse --memory-limit=1G"
     }

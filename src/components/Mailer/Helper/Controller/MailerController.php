@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Mailer\Helper\Controller;
 
-use NeoPHP\Component\Mailer\Contract\MailerInterface;
+use NeoPHP\Component\Mailer\MailerManagerInterface;
 use NeoPHP\Component\Mailer\Message\SentMessage;
 use NeoPHP\Component\Mailer\Mime\Email;
 
@@ -14,6 +14,6 @@ trait MailerController
 
     protected function sendEmail(Email $email): ?SentMessage
     {
-        return $this->get(MailerInterface::class)->send($email);
+        return $this->get(MailerManagerInterface::class)->send($email);
     }
 }

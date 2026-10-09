@@ -15,6 +15,9 @@ use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'migration:rollback', description: 'Rolls back the last executed migrations (down)', aliases: ['rollback'])]
 class MigrationRollbackCommand extends AbstractConsole
 {

@@ -6,11 +6,14 @@ namespace NeoPHP\Package\Debug\Helper\View;
 
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 use NeoPHP\Component\View\Contract\ViewSafeHtmlInterface;
-use NeoPHP\Package\Debug\Contract\DebugInterface;
+use NeoPHP\Package\Debug\DebugManagerInterface;
 
+/**
+ * @internal
+ */
 class DumpViewHelper implements ViewFunctionInterface, ViewSafeHtmlInterface
 {
-    public function __construct(protected DebugInterface $debug)
+    public function __construct(protected DebugManagerInterface $debug)
     {
     }
 

@@ -10,6 +10,9 @@ use NeoPHP\Package\Scheduler\Contract\ScheduleProviderInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 class TaskDiscovery
 {
     protected ClassFinder $finder;

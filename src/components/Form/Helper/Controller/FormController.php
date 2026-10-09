@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Form\Helper\Controller;
 
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\Contract\FormManagerInterface;
-use NeoPHP\Component\Form\FormBuilder;
+use NeoPHP\Component\Form\FormManagerInterface;
+use NeoPHP\Component\Form\Model\FormBuilder;
 use NeoPHP\Component\Form\Type\FormType;
 
 trait FormController

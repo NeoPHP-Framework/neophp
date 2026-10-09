@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\Helper\Console;
 
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
 use NeoPHP\Component\Serializer\Mapping\MetadataFactory;
 use NeoPHP\Component\Serializer\SerializerManager;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'serializer:debug', description: 'Displays the serialization metadata of a class (serialized names, groups, types, ignored attributes, max depth, context)')]
 class SerializerDebugCommand extends AbstractConsole
 {
-    public function __construct(protected SerializerInterface $serializer)
+    public function __construct(protected SerializerManagerInterface $serializer)
     {
     }
 

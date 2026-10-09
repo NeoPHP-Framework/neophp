@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Event\Helper\Controller;
 
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
 
 trait EventController
 {
@@ -12,6 +12,6 @@ trait EventController
 
     protected function dispatch(object $event): object
     {
-        return $this->get(EventDispatcherInterface::class)->dispatch($event);
+        return $this->get(EventManagerInterface::class)->dispatch($event);
     }
 }

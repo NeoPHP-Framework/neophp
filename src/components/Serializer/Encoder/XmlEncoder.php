@@ -7,12 +7,12 @@ namespace NeoPHP\Component\Serializer\Encoder;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DecoderInterface;
 use NeoPHP\Component\Serializer\Contract\EncoderInterface;
 use NeoPHP\Component\Serializer\Exception\NotEncodableValueException;
 use NeoPHP\Component\Serializer\Exception\SerializerException;
 use NeoPHP\Component\Serializer\Exception\UnexpectedValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
 
 class XmlEncoder implements EncoderInterface, DecoderInterface
 {
@@ -26,9 +26,9 @@ class XmlEncoder implements EncoderInterface, DecoderInterface
     {
         $this->assertDom();
 
-        $document = new DOMDocument('1.0', (string) ($context[AbstractSerializer::XML_ENCODING] ?? 'UTF-8'));
-        $document->formatOutput = (bool) ($context[AbstractSerializer::XML_FORMAT_OUTPUT] ?? false);
-        $rootName = (string) ($context[AbstractSerializer::XML_ROOT_NODE_NAME] ?? self::ROOT_NODE_NAME);
+        $document = new DOMDocument('1.0', (string) ($context[SerializerManager::XML_ENCODING] ?? 'UTF-8'));
+        $document->formatOutput = (bool) ($context[SerializerManager::XML_FORMAT_OUTPUT] ?? false);
+        $rootName = (string) ($context[SerializerManager::XML_ROOT_NODE_NAME] ?? self::ROOT_NODE_NAME);
 
         if (!$this->isValidName($rootName)) {
             throw new NotEncodableValueException('The XML root node name "{name}" is not valid.', 0, null, ['name' => $rootName]);

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Queue\Transport;
 
 use NeoPHP\Package\Queue\Contract\AbstractTransport;
-use NeoPHP\Package\Queue\Envelope;
 use NeoPHP\Package\Queue\Exception\ConfigurationException;
 use NeoPHP\Package\Queue\Exception\TransportException;
+use NeoPHP\Package\Queue\Message\Envelope;
 use NeoPHP\Package\Queue\Serializer\MessageSerializer;
 use Redis;
 use Throwable;

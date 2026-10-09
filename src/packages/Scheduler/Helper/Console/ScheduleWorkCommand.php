@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Scheduler\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\Scheduler\Provider\SchedulerProvider;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -12,12 +12,15 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'schedule:work', description: 'Runs schedule:run every minute in the foreground (development, Windows)')]
 class ScheduleWorkCommand extends AbstractConsole
 {
     protected bool $stop = false;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

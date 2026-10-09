@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Controller\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Controller\Maker\ControllerMaker;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -15,6 +15,9 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:controller', description: 'Generates a controller in src/Controller/ and its template')]
 class MakeControllerCommand extends AbstractConsole
 {
@@ -27,7 +30,7 @@ class MakeControllerCommand extends AbstractConsole
 
     protected ?string $format = null;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Api\Helper\Controller;
 
-use NeoPHP\Component\Api\Helper\Listener\RateLimitListener;
+use NeoPHP\Component\Api\Helper\Event\RateLimitListener;
 use NeoPHP\Component\Api\Pagination\Contract\PaginatorInterface;
 use NeoPHP\Component\Api\Pagination\Page;
 use NeoPHP\Component\Api\Pagination\PageRequest;

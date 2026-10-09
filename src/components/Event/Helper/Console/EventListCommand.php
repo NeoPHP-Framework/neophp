@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Event\Helper\Console;
 
-use NeoPHP\Component\Event\Contract\AbstractEventDispatcher;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Event\EventManager;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'event:list', description: 'Lists the events and their listeners in the order they are called')]
 class EventListCommand extends AbstractConsole
 {
-    public function __construct(protected EventDispatcherInterface $events)
+    public function __construct(protected EventManagerInterface $events)
     {
     }
 
@@ -37,7 +40,7 @@ class EventListCommand extends AbstractConsole
             }
 
             foreach ($listeners as $index => [$listener, $priority]) {
-                $rows[] = [$index === 0 ? (string) $event : '', (string) ($index + 1), AbstractEventDispatcher::describe($listener), (string) $priority];
+                $rows[] = [$index === 0 ? (string) $event : '', (string) ($index + 1), EventManager::describe($listener), (string) $priority];
             }
         }
 

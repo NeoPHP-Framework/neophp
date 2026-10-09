@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Session\Helper\Controller;
 
-use NeoPHP\Component\Session\Contract\SessionInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
 
 trait SessionController
 {
     abstract protected function get(string $id): mixed;
 
-    protected function getSession(): SessionInterface
+    protected function getSession(): SessionManagerInterface
     {
-        return $this->get(SessionInterface::class);
+        return $this->get(SessionManagerInterface::class);
     }
 }

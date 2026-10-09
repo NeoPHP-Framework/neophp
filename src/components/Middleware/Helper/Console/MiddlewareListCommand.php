@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Middleware\Helper\Console;
 
-use NeoPHP\Component\Middleware\Contract\MiddlewareManagerInterface;
+use NeoPHP\Component\Middleware\MiddlewareManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'middleware:list', description: 'Lists the global middlewares, the aliases and the groups')]
 class MiddlewareListCommand extends AbstractConsole
 {

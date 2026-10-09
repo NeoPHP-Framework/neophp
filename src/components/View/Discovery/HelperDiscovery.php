@@ -12,6 +12,9 @@ use RecursiveIteratorIterator;
 use ReflectionClass;
 use SplFileInfo;
 
+/**
+ * @internal
+ */
 class HelperDiscovery
 {
     public const DIRECTORY = 'Helper/View';

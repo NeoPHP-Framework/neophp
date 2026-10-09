@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Package\Queue\Contract\QueueInterface;
-use NeoPHP\Package\Queue\Envelope;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Package\Queue\Message\Envelope;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Package\Queue\Transport\SyncTransport;
 use NeoPHP\Package\Queue\Worker\Worker;
 use NeoPHP\Process\Console\Attribute\AsCommand;
@@ -17,10 +17,13 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'queue:work', description: 'Consumes the messages of a queue transport')]
 class QueueWorkCommand extends AbstractConsole
 {
-    public function __construct(protected QueueInterface $queue, protected ContainerInterface $container)
+    public function __construct(protected QueueManagerInterface $queue, protected ContainerManagerInterface $container)
     {
     }
 

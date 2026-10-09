@@ -156,6 +156,24 @@ class PropertyAccessor
         }
     }
 
+    public function getPropertyType(object|string $data, string $name): ?ReflectionNamedType
+    {
+        $property = $this->property($data, $name);
+        $type = $property?->getType();
+
+        return $type instanceof ReflectionNamedType ? $type : null;
+    }
+
+    public static function singularize(string $name): string
+    {
+        return match (true) {
+            str_ends_with($name, 'ies') => substr($name, 0, -3) . 'y',
+            str_ends_with($name, 'sses'), str_ends_with($name, 'xes'), str_ends_with($name, 'ches'), str_ends_with($name, 'shes') => substr($name, 0, -2),
+            str_ends_with($name, 's') && !str_ends_with($name, 'ss') => substr($name, 0, -1),
+            default => $name,
+        };
+    }
+
     protected function writeCollection(object $data, string $name, mixed $value): bool
     {
         if (!is_iterable($value)) {
@@ -194,14 +212,6 @@ class PropertyAccessor
         return true;
     }
 
-    public function getPropertyType(object|string $data, string $name): ?ReflectionNamedType
-    {
-        $property = $this->property($data, $name);
-        $type = $property?->getType();
-
-        return $type instanceof ReflectionNamedType ? $type : null;
-    }
-
     protected function property(object|string $data, string $name): ?ReflectionProperty
     {
         try {
@@ -224,15 +234,5 @@ class PropertyAccessor
         $path = str_replace(['[', ']'], ['.', ''], $path);
 
         return array_values(array_filter(explode('.', $path), static fn (string $segment): bool => $segment !== ''));
-    }
-
-    public static function singularize(string $name): string
-    {
-        return match (true) {
-            str_ends_with($name, 'ies') => substr($name, 0, -3) . 'y',
-            str_ends_with($name, 'sses'), str_ends_with($name, 'xes'), str_ends_with($name, 'ches'), str_ends_with($name, 'shes') => substr($name, 0, -2),
-            str_ends_with($name, 's') && !str_ends_with($name, 'ss') => substr($name, 0, -1),
-            default => $name,
-        };
     }
 }

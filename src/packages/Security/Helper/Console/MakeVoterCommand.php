@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\Orm\Provider\OrmProvider;
 use NeoPHP\Package\Security\Maker\VoterMaker;
 use NeoPHP\Process\Console\Attribute\AsCommand;
@@ -14,10 +14,13 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:voter', description: 'Generates a voter in src/Security/Voter/')]
 class MakeVoterCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

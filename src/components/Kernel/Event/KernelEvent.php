@@ -6,15 +6,15 @@ namespace NeoPHP\Component\Kernel\Event;
 
 use NeoPHP\Component\Event\Contract\AbstractEvent;
 use NeoPHP\Component\Http\Request\Request;
-use NeoPHP\Component\Kernel\Contract\KernelInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 
 abstract class KernelEvent extends AbstractEvent
 {
-    public function __construct(protected KernelInterface $kernel, protected Request $request)
+    public function __construct(protected KernelManagerInterface $kernel, protected Request $request)
     {
     }
 
-    public function getKernel(): KernelInterface
+    public function getKernel(): KernelManagerInterface
     {
         return $this->kernel;
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Kernel\Helper\Console;
 
 use FilesystemIterator;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -14,10 +14,13 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'cache:clear', description: 'Clears the application cache (var/cache/): routes, Twig templates...', aliases: ['cc'])]
 class CacheClearCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

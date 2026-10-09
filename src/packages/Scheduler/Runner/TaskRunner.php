@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Scheduler\Runner;
 
 use DateTimeImmutable;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\Queue\Contract\MessageBusInterface;
 use NeoPHP\Package\Scheduler\Exception\ConfigurationException;
 use NeoPHP\Package\Scheduler\Exception\SchedulerException;
 use NeoPHP\Package\Scheduler\History\HistoryStore;
 use NeoPHP\Package\Scheduler\Lock\LockStore;
-use NeoPHP\Package\Scheduler\Task;
+use NeoPHP\Package\Scheduler\Schedule\Task;
 use Throwable;
 
 class TaskRunner
@@ -25,7 +25,7 @@ class TaskRunner
     public function __construct(
         protected LockStore $locks,
         protected HistoryStore $history,
-        protected ?ContainerInterface $container = null,
+        protected ?ContainerManagerInterface $container = null,
         protected string $rootPath = '',
         protected string $console = 'bin/neo',
         protected ?string $phpBinary = null,
@@ -86,6 +86,18 @@ class TaskRunner
     public function getLocks(): LockStore
     {
         return $this->locks;
+    }
+
+    public static function tokenize(string $arguments): array
+    {
+        preg_match_all('/"((?:[^"\\\\]|\\\\.)*)"|\'([^\']*)\'|(\S+)/', $arguments, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
+        $tokens = [];
+
+        foreach ($matches as $match) {
+            $tokens[] = $match[3] ?? $match[2] ?? stripcslashes((string) $match[1]);
+        }
+
+        return $tokens;
     }
 
     protected function execute(Task $task): array
@@ -172,17 +184,5 @@ class TaskRunner
         }
 
         return [$result === false ? 1 : (is_int($result) ? $result : 0), $output];
-    }
-
-    public static function tokenize(string $arguments): array
-    {
-        preg_match_all('/"((?:[^"\\\\]|\\\\.)*)"|\'([^\']*)\'|(\S+)/', $arguments, $matches, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL);
-        $tokens = [];
-
-        foreach ($matches as $match) {
-            $tokens[] = $match[3] ?? $match[2] ?? stripcslashes((string) $match[1]);
-        }
-
-        return $tokens;
     }
 }

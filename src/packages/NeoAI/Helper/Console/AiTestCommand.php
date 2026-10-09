@@ -12,6 +12,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'ai:test', description: 'Checks the NeoAI configuration and sends a ping to a connection')]
 class AiTestCommand extends AbstractAiCommand
 {

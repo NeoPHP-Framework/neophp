@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Logger\Contract;
 
-use NeoPHP\Component\Logger\LogLevel;
 use Stringable;
 
 abstract class AbstractLogger implements LoggerInterface

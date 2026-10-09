@@ -6,11 +6,11 @@ namespace NeoPHP\Package\WebProfiler\Renderer;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\WebProfiler\Profiler;
+use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 
 class ToolbarInjector
 {
-    public function __construct(protected Profiler $profiler, protected TemplateRenderer $templates)
+    public function __construct(protected WebProfilerManagerInterface $profiler, protected TemplateRenderer $templates)
     {
     }
 

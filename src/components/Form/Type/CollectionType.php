@@ -6,8 +6,8 @@ namespace NeoPHP\Component\Form\Type;
 
 use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
-use NeoPHP\Component\Form\Form;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\Form;
+use NeoPHP\Component\Form\Model\FormView;
 use Traversable;
 
 class CollectionType extends AbstractType

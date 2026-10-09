@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Queue\Event;
 
 use NeoPHP\Component\Event\Contract\AbstractEvent;
-use NeoPHP\Package\Queue\Envelope;
+use NeoPHP\Package\Queue\Message\Envelope;
 
 class MessageDispatchedEvent extends AbstractEvent
 {

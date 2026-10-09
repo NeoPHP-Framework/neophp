@@ -15,6 +15,9 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'ai:scan', description: 'Audits the project code with the NeoAI assistant and writes a Markdown report')]
 class AiScanCommand extends AbstractAiCommand
 {

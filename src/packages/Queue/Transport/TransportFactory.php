@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Transport;
 
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Package\Queue\Contract\TransportFactoryInterface;
 use NeoPHP\Package\Queue\Contract\TransportInterface;
 use NeoPHP\Package\Queue\Exception\ConfigurationException;
@@ -20,7 +20,7 @@ class TransportFactory
     public function __construct(
         protected MessageSerializer $serializer,
         protected HandlerInvoker $invoker,
-        protected ?DatabaseInterface $database = null,
+        protected ?DatabaseManagerInterface $database = null,
         protected string $rootPath = '',
         protected array $defaults = [],
         iterable $factories = [],

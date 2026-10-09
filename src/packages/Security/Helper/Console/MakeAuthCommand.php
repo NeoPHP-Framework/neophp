@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\Security\Maker\AuthMaker;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -14,10 +14,13 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:auth', description: 'Generates a login controller and its template')]
 class MakeAuthCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use NeoPHP\Component\Kernel\KernelManager;
-use NeoPHP\Process\Console\Contract\ConsoleInterface;
+use NeoPHP\Process\Console\ConsoleManagerInterface;
 use NeoPHP\Process\Console\IO\Input;
 
 if (PHP_SAPI !== 'cli') {
@@ -36,4 +36,9 @@ $kernelClass = class_exists('App\\Kernel') ? 'App\\Kernel' : KernelManager::clas
 $kernel = new $kernelClass(Input::environment($argv), null, $projectDir);
 $kernel->boot();
 
-exit($kernel->getContainer()->get(ConsoleInterface::class)->run($argv));
+if (!$kernel->isEnabled(ConsoleManagerInterface::class)) {
+    fwrite(STDERR, 'The Console process is disabled in config/config.php: enable NeoPHP\\Process\\Console\\ConsoleManager to use the command line.' . PHP_EOL);
+    exit(1);
+}
+
+exit($kernel->getContainer()->get(ConsoleManagerInterface::class)->run($argv));

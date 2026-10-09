@@ -13,11 +13,14 @@ use NeoPHP\Component\Cache\Adapter\FilesystemAdapter;
 use NeoPHP\Component\Cache\Contract\AbstractCache;
 use NeoPHP\Component\Cache\Contract\AdapterInterface;
 use NeoPHP\Component\Cache\Contract\CacheInterface;
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
 use NeoPHP\Component\Cache\Exception\CacheException;
+use NeoPHP\Component\Cache\Pool\CachePool;
+use NeoPHP\Component\Cache\Provider\CacheProvider;
 use NeoPHP\Component\Database\Contract\ConnectionInterface;
+use NeoPHP\Component\Kernel\Attribute\Component;
 
-class CacheManager implements CacheManagerInterface
+#[Component(provider: CacheProvider::class)]
+final class CacheManager implements CacheManagerInterface
 {
     public const DEFAULT_POOL = 'app';
 

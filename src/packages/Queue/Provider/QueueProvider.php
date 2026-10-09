@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Package\Queue\Contract\MessageBusInterface;
-use NeoPHP\Package\Queue\Contract\QueueInterface;
 use NeoPHP\Package\Queue\Contract\TransportFactoryInterface;
 use NeoPHP\Package\Queue\Discovery\HandlerDiscovery;
 use NeoPHP\Package\Queue\Exception\ConfigurationException;
@@ -19,6 +18,7 @@ use NeoPHP\Package\Queue\Handler\HandlerInvoker;
 use NeoPHP\Package\Queue\Handler\HandlerLocator;
 use NeoPHP\Package\Queue\Maker\MessageMaker;
 use NeoPHP\Package\Queue\QueueManager;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Package\Queue\Retry\RetryStrategy;
 use NeoPHP\Package\Queue\Serializer\MessageSerializer;
 use NeoPHP\Package\Queue\Trace\QueueTrace;
@@ -26,6 +26,9 @@ use NeoPHP\Package\Queue\Transport\TransportFactory;
 use NeoPHP\Package\Queue\Worker\RestartSignal;
 use NeoPHP\Package\Queue\Worker\Worker;
 
+/**
+ * @internal
+ */
 class QueueProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.queue';
@@ -40,23 +43,23 @@ class QueueProvider extends AbstractProvider
 
     public const CACHE_DIRECTORY = 'queue';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::configure($container));
 
-        $container->singleton(HandlerLocator::class, static function (ContainerInterface $container): HandlerLocator {
+        $container->singleton(HandlerLocator::class, static function (ContainerManagerInterface $container): HandlerLocator {
             $config = $container->get(self::CONFIG_ID);
 
             return new HandlerLocator(array_merge_recursive(self::discover($container), (array) $config['handlers']));
         });
 
-        $container->singleton(HandlerInvoker::class, static fn (ContainerInterface $container): HandlerInvoker => new HandlerInvoker($container->get(HandlerLocator::class), $container));
+        $container->singleton(HandlerInvoker::class, static fn (ContainerManagerInterface $container): HandlerInvoker => new HandlerInvoker($container->get(HandlerLocator::class), $container));
 
-        $container->singleton(MessageSerializer::class, static fn (ContainerInterface $container): MessageSerializer => new MessageSerializer($container->get(self::CONFIG_ID)['secret']));
+        $container->singleton(MessageSerializer::class, static fn (ContainerManagerInterface $container): MessageSerializer => new MessageSerializer($container->get(self::CONFIG_ID)['secret']));
 
-        $container->singleton(RetryStrategy::class, static fn (ContainerInterface $container): RetryStrategy => RetryStrategy::fromConfig((array) $container->get(self::CONFIG_ID)['retry']));
+        $container->singleton(RetryStrategy::class, static fn (ContainerManagerInterface $container): RetryStrategy => RetryStrategy::fromConfig((array) $container->get(self::CONFIG_ID)['retry']));
 
-        $container->singleton(TransportFactory::class, static function (ContainerInterface $container): TransportFactory {
+        $container->singleton(TransportFactory::class, static function (ContainerManagerInterface $container): TransportFactory {
             $config = $container->get(self::CONFIG_ID);
             $factories = [];
 
@@ -73,14 +76,14 @@ class QueueProvider extends AbstractProvider
             return new TransportFactory(
                 $container->get(MessageSerializer::class),
                 $container->get(HandlerInvoker::class),
-                $container->has(DatabaseInterface::class) ? $container->get(DatabaseInterface::class) : null,
+                $container->has(DatabaseManagerInterface::class) ? $container->get(DatabaseManagerInterface::class) : null,
                 (string) $config['root_path'],
                 ['auto_setup' => $config['auto_setup'], 'retry_after' => $config['retry_after']],
                 $factories,
             );
         });
 
-        $container->singleton(QueueInterface::class, static function (ContainerInterface $container): QueueInterface {
+        $container->singleton(QueueManagerInterface::class, static function (ContainerManagerInterface $container): QueueManagerInterface {
             $config = $container->get(self::CONFIG_ID);
 
             return new QueueManager(
@@ -90,40 +93,40 @@ class QueueProvider extends AbstractProvider
                 $container->get(RetryStrategy::class),
                 (string) $config['default_transport'],
                 (array) $config['routing'],
-                $container->has(EventDispatcherInterface::class) ? $container->get(EventDispatcherInterface::class) : null,
+                $container->has(EventManagerInterface::class) ? $container->get(EventManagerInterface::class) : null,
                 self::profilingEnabled($container) ? $container->get(QueueTrace::class) : null,
             );
         });
 
         $container->singleton(QueueTrace::class, static fn (): QueueTrace => new QueueTrace());
 
-        $container->singleton(RestartSignal::class, static fn (ContainerInterface $container): RestartSignal => new RestartSignal((string) $container->get(self::CONFIG_ID)['restart_file']));
+        $container->singleton(RestartSignal::class, static fn (ContainerManagerInterface $container): RestartSignal => new RestartSignal((string) $container->get(self::CONFIG_ID)['restart_file']));
 
-        $container->bind(Worker::class, static fn (ContainerInterface $container): Worker => new Worker(
-            $container->get(QueueInterface::class),
+        $container->bind(Worker::class, static fn (ContainerManagerInterface $container): Worker => new Worker(
+            $container->get(QueueManagerInterface::class),
             $container->get(RetryStrategy::class),
             $container->get(RestartSignal::class),
-            $container->has(EventDispatcherInterface::class) ? $container->get(EventDispatcherInterface::class) : null,
+            $container->has(EventManagerInterface::class) ? $container->get(EventManagerInterface::class) : null,
         ));
 
-        $container->singleton(MessageMaker::class, static function (ContainerInterface $container): MessageMaker {
+        $container->singleton(MessageMaker::class, static function (ContainerManagerInterface $container): MessageMaker {
             $root = (string) $container->get(self::CONFIG_ID)['root_path'];
 
             return new MessageMaker($root . DIRECTORY_SEPARATOR . 'src');
         });
 
-        $container->alias(MessageBusInterface::class, QueueInterface::class);
-        $container->alias(QueueManager::class, QueueInterface::class);
-        $container->alias('queue', QueueInterface::class);
-        $container->alias('message_bus', QueueInterface::class);
+        $container->alias(MessageBusInterface::class, QueueManagerInterface::class);
+        $container->alias(QueueManager::class, QueueManagerInterface::class);
+        $container->alias('queue', QueueManagerInterface::class);
+        $container->alias('message_bus', QueueManagerInterface::class);
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $settings = $container->has(ConfigInterface::class) ? $container->get(ConfigInterface::class) : null;
-        $config = $settings instanceof ConfigInterface ? (array) ($settings->get(self::CONFIG_KEY, []) ?? []) : [];
+        $settings = $container->has(ConfigManagerInterface::class) ? $container->get(ConfigManagerInterface::class) : null;
+        $config = $settings instanceof ConfigManagerInterface ? (array) ($settings->get(self::CONFIG_KEY, []) ?? []) : [];
         $root = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
-        $secret = $settings instanceof ConfigInterface ? $settings->get(self::SECRET_KEY) : null;
+        $secret = $settings instanceof ConfigManagerInterface ? $settings->get(self::SECRET_KEY) : null;
         $secret ??= $_SERVER['APP_SECRET'] ?? $_ENV['APP_SECRET'] ?? null;
         $transports = [];
 
@@ -170,7 +173,7 @@ class QueueProvider extends AbstractProvider
         ];
     }
 
-    public static function discover(ContainerInterface $container): array
+    public static function discover(ContainerManagerInterface $container): array
     {
         $paths = $container->has('kernel.root_path') ? [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'] : [];
         $builder = static function () use ($paths): array {
@@ -190,7 +193,7 @@ class QueueProvider extends AbstractProvider
         return (new ResourceCache($file, $debug))->load($builder);
     }
 
-    public static function profilingEnabled(ContainerInterface $container): bool
+    public static function profilingEnabled(ContainerManagerInterface $container): bool
     {
         if (!$container->bound(self::PROFILER_CONFIG_ID) && !$container->has(self::PROFILER_CONFIG_ID)) {
             return false;
@@ -201,7 +204,7 @@ class QueueProvider extends AbstractProvider
         return is_array($config) && (bool) ($config['enabled'] ?? false);
     }
 
-    protected static function defaultDsn(ContainerInterface $container, ?ConfigInterface $settings): string
+    protected static function defaultDsn(ContainerManagerInterface $container, ?ConfigManagerInterface $settings): string
     {
         $env = $_SERVER['QUEUE_DSN'] ?? $_ENV['QUEUE_DSN'] ?? getenv('QUEUE_DSN');
 
@@ -209,16 +212,16 @@ class QueueProvider extends AbstractProvider
             return self::resolveKernelParameters($container, $env);
         }
 
-        $database = $settings instanceof ConfigInterface ? (array) ($settings->get(self::DATABASE_CONFIG_KEY, []) ?? []) : [];
+        $database = $settings instanceof ConfigManagerInterface ? (array) ($settings->get(self::DATABASE_CONFIG_KEY, []) ?? []) : [];
 
-        if ($container->has(DatabaseInterface::class) && (array) ($database['connections'] ?? []) !== []) {
+        if ($container->has(DatabaseManagerInterface::class) && (array) ($database['connections'] ?? []) !== []) {
             return 'database://default';
         }
 
         return 'filesystem://var/queue';
     }
 
-    protected static function resolveKernelParameters(ContainerInterface $container, string $value): string
+    protected static function resolveKernelParameters(ContainerManagerInterface $container, string $value): string
     {
         return (string) preg_replace_callback('/%(kernel\.\w+)%/', static fn (array $m): string => $container->has($m[1]) ? (string) $container->get($m[1]) : $m[0], $value);
     }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Validator\Context;
 
-use NeoPHP\Component\Validator\Contract\AbstractValidator;
 use NeoPHP\Component\Validator\Contract\ConstraintInterface;
+use NeoPHP\Component\Validator\ValidatorManager;
 use NeoPHP\Component\Validator\Violation\Violation;
 use NeoPHP\Component\Validator\Violation\ViolationList;
 
@@ -23,7 +23,7 @@ class ExecutionContext
 
     protected array $validated = [];
 
-    public function __construct(protected AbstractValidator $validator, protected mixed $root, protected array $groups)
+    public function __construct(protected ValidatorManager $validator, protected mixed $root, protected array $groups)
     {
         $this->violations = new ViolationList();
     }

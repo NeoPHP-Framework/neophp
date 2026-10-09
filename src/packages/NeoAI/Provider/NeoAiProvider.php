@@ -4,33 +4,38 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\NeoAI\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\HttpClient\Contract\HttpClientInterface;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
 use NeoPHP\Package\NeoAI\NeoAiManager;
+use NeoPHP\Package\NeoAI\NeoAiManagerInterface;
 
+/**
+ * @internal
+ */
 class NeoAiProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.neo_ai';
 
     public const CONFIG_ID = 'neo_ai.config';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::configure($container));
 
-        $container->singleton(NeoAiManager::class, static fn (ContainerInterface $container): NeoAiManager => new NeoAiManager(
+        $container->singleton(NeoAiManagerInterface::class, static fn (ContainerManagerInterface $container): NeoAiManagerInterface => new NeoAiManager(
             $container->get(self::CONFIG_ID),
             $container,
-            $container->has(HttpClientInterface::class) ? $container->get(HttpClientInterface::class) : null,
+            $container->has(HttpClientManagerInterface::class) ? $container->get(HttpClientManagerInterface::class) : null,
         ));
-        $container->alias('neo_ai', NeoAiManager::class);
+        $container->alias(NeoAiManager::class, NeoAiManagerInterface::class);
+        $container->alias('neo_ai', NeoAiManagerInterface::class);
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $config = $container->has(ConfigInterface::class) ? (array) ($container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
+        $config = $container->has(ConfigManagerInterface::class) ? (array) ($container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
         $root = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
         $storage = trim((string) ($config['storage'] ?? ''));
 

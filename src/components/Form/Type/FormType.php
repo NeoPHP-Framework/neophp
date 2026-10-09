@@ -9,7 +9,7 @@ use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Exception\FormException;
 use NeoPHP\Component\Form\Exception\InvalidTypeException;
-use NeoPHP\Component\Form\Form;
+use NeoPHP\Component\Form\Model\Form;
 use ReflectionClass;
 
 class FormType extends AbstractType

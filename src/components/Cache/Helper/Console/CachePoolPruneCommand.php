@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Cache\Helper\Console;
 
-use NeoPHP\Component\Cache\Contract\CacheManagerInterface;
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Component\Cache\Exception\CacheException;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -12,6 +12,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'cache:pool:prune', description: 'Removes the expired items of the cache pools')]
 class CachePoolPruneCommand extends AbstractConsole
 {

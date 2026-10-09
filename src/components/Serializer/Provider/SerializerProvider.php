@@ -4,31 +4,34 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Serializer\ArgumentResolver\RequestPayloadResolver;
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
 use NeoPHP\Component\Serializer\Discovery\NormalizerDiscovery;
 use NeoPHP\Component\Serializer\Exception\SerializerException;
 use NeoPHP\Component\Serializer\SerializerManager;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 
+/**
+ * @internal
+ */
 class SerializerProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.serializer';
 
     public const CACHE_DIRECTORY = 'serializer';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(SerializerInterface::class, static function (ContainerInterface $container): SerializerInterface {
+        $container->singleton(SerializerManagerInterface::class, static function (ContainerManagerInterface $container): SerializerManagerInterface {
             $config = self::config($container);
-            $orm = $container->has(OrmInterface::class) ? static fn (): OrmInterface => $container->get(OrmInterface::class) : null;
-            $yaml = $container->has(YamlInterface::class) ? $container->get(YamlInterface::class) : null;
+            $orm = $container->has(OrmManagerInterface::class) ? static fn (): OrmManagerInterface => $container->get(OrmManagerInterface::class) : null;
+            $yaml = $container->has(YamlManagerInterface::class) ? $container->get(YamlManagerInterface::class) : null;
             $serializer = SerializerManager::create($config, $orm, $yaml);
 
             foreach (self::normalizers($container, $config) as $class => $priority) {
@@ -38,20 +41,20 @@ class SerializerProvider extends AbstractProvider
             return $serializer;
         });
 
-        $container->alias(SerializerManager::class, SerializerInterface::class);
-        $container->alias('serializer', SerializerInterface::class);
-        $container->singleton(RequestPayloadResolver::class, static fn (ContainerInterface $container): RequestPayloadResolver => new RequestPayloadResolver($container));
+        $container->alias(SerializerManager::class, SerializerManagerInterface::class);
+        $container->alias('serializer', SerializerManagerInterface::class);
+        $container->singleton(RequestPayloadResolver::class, static fn (ContainerManagerInterface $container): RequestPayloadResolver => new RequestPayloadResolver($container));
 
         $resolvers = $container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $container->get(ArgumentResolverInterface::SERVICES_ID) : [];
         $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, RequestPayloadResolver::class]);
     }
 
-    public static function config(ContainerInterface $container): array
+    public static function config(ContainerManagerInterface $container): array
     {
-        return $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        return $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
     }
 
-    public static function normalizers(ContainerInterface $container, array $config): array
+    public static function normalizers(ContainerManagerInterface $container, array $config): array
     {
         $normalizers = self::discover($container);
 
@@ -69,7 +72,7 @@ class SerializerProvider extends AbstractProvider
         return $normalizers;
     }
 
-    protected static function discover(ContainerInterface $container): array
+    protected static function discover(ContainerManagerInterface $container): array
     {
         if (!$container->has('kernel.root_path')) {
             return [];

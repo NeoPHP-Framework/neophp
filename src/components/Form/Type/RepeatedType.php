@@ -7,8 +7,8 @@ namespace NeoPHP\Component\Form\Type;
 use NeoPHP\Component\Form\Contract\AbstractType;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Exception\TransformationFailedException;
-use NeoPHP\Component\Form\Form;
-use NeoPHP\Component\Form\FormBuilder;
+use NeoPHP\Component\Form\Model\Form;
+use NeoPHP\Component\Form\Model\FormBuilder;
 
 class RepeatedType extends AbstractType
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Csrf\Helper\Controller;
 
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
 
 trait CsrfController
 {
@@ -12,11 +12,11 @@ trait CsrfController
 
     protected function getCsrfToken(string $id): string
     {
-        return $this->get(CsrfInterface::class)->getToken($id);
+        return $this->get(CsrfManagerInterface::class)->getToken($id);
     }
 
     protected function isCsrfTokenValid(string $id, ?string $token): bool
     {
-        return $this->get(CsrfInterface::class)->isTokenValid($id, $token);
+        return $this->get(CsrfManagerInterface::class)->isTokenValid($id, $token);
     }
 }

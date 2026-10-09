@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Helper\Console;
 
-use NeoPHP\Package\Queue\Contract\QueueInterface;
+use NeoPHP\Package\Queue\QueueManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -13,10 +13,13 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'queue:retry', description: 'Sends failed messages back to their queue')]
 class QueueRetryCommand extends AbstractConsole
 {
-    public function __construct(protected QueueInterface $queue)
+    public function __construct(protected QueueManagerInterface $queue)
     {
     }
 

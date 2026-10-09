@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Form\Renderer;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Contract\ThemeInterface;
 use NeoPHP\Component\Form\Exception\FormException;
-use NeoPHP\Component\Form\FormView;
+use NeoPHP\Component\Form\Model\FormView;
 use NeoPHP\Component\Form\Theme\Bootstrap5Theme;
 use NeoPHP\Component\Form\Theme\DefaultTheme;
-use NeoPHP\Component\Validator\Contract\AbstractValidator;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
+use NeoPHP\Component\Validator\ValidatorManager;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
 class FormRenderer
 {
@@ -24,7 +24,7 @@ class FormRenderer
 
     protected array $themes = [];
 
-    public function __construct(protected string $defaultTheme = 'default', protected ?ContainerInterface $container = null)
+    public function __construct(protected string $defaultTheme = 'default', protected ?ContainerManagerInterface $container = null)
     {
     }
 
@@ -113,11 +113,11 @@ class FormRenderer
 
     public function translateVariables(array $variables): array
     {
-        if ($this->container === null || !$this->container->has(TranslatorInterface::class)) {
+        if ($this->container === null || !$this->container->has(TranslationManagerInterface::class)) {
             return $variables;
         }
 
-        $translator = $this->container->get(TranslatorInterface::class);
+        $translator = $this->container->get(TranslationManagerInterface::class);
         $domain = $variables['translation_domain'] ?? null;
 
         if ($domain === false) {
@@ -141,7 +141,7 @@ class FormRenderer
         }
 
         if (isset($variables['errors']) && is_array($variables['errors'])) {
-            $variables['errors'] = array_map(static fn (mixed $error): mixed => is_string($error) ? $translator->translate($error, [], AbstractValidator::TRANSLATION_DOMAIN) : $error, $variables['errors']);
+            $variables['errors'] = array_map(static fn (mixed $error): mixed => is_string($error) ? $translator->translate($error, [], ValidatorManager::TRANSLATION_DOMAIN) : $error, $variables['errors']);
         }
 
         return $variables;
@@ -153,6 +153,11 @@ class FormRenderer
         $name = is_string($name) && $name !== '' ? $name : $this->defaultTheme;
 
         return $this->themes[$name] ??= $this->createTheme($name);
+    }
+
+    public static function camelize(string $name): string
+    {
+        return lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name))));
     }
 
     protected function createTheme(string $name): ThemeInterface
@@ -178,10 +183,5 @@ class FormRenderer
     protected function view(FormView|FormInterface $view): FormView
     {
         return $view instanceof FormInterface ? $view->getView() : $view;
-    }
-
-    public static function camelize(string $name): string
-    {
-        return lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name))));
     }
 }

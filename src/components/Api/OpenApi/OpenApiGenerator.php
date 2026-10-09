@@ -17,8 +17,8 @@ use NeoPHP\Component\Api\Pagination\Paginator;
 use NeoPHP\Component\Api\ProblemDetails\ProblemDetails;
 use NeoPHP\Component\Api\Reflection\ControllerReflector;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
 use NeoPHP\Component\Routing\Route\Route;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Component\Serializer\ArgumentResolver\RequestPayloadResolver;
 use NeoPHP\Component\Serializer\Attribute\MapQueryString;
 use NeoPHP\Component\Serializer\Attribute\MapRequestPayload;
@@ -55,7 +55,7 @@ class OpenApiGenerator
     protected array $operationIds = [];
 
     public function __construct(
-        protected RoutingInterface $routing,
+        protected RoutingManagerInterface $routing,
         array $config = [],
         protected MetadataFactory $metadata = new MetadataFactory(),
         protected ?NameConverterInterface $nameConverter = null,

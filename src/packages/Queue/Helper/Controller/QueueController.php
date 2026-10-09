@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Queue\Helper\Controller;
 
 use NeoPHP\Package\Queue\Contract\MessageBusInterface;
-use NeoPHP\Package\Queue\Envelope;
+use NeoPHP\Package\Queue\Message\Envelope;
 
 trait QueueController
 {

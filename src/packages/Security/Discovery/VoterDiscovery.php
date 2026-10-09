@@ -10,6 +10,9 @@ use NeoPHP\Package\Security\Contract\VoterInterface;
 use NeoPHP\Package\Security\Exception\SecurityException;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 class VoterDiscovery
 {
     protected ClassFinder $finder;

@@ -6,17 +6,20 @@ namespace NeoPHP\Package\Scheduler\Helper\Console;
 
 use DateTimeImmutable;
 use NeoPHP\Package\Scheduler\Runner\TaskRunner;
-use NeoPHP\Package\Scheduler\Scheduler;
+use NeoPHP\Package\Scheduler\SchedulerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'schedule:run', description: 'Runs the scheduled tasks that are due (call it every minute from the system cron)')]
 class ScheduleRunCommand extends AbstractConsole
 {
-    public function __construct(protected Scheduler $scheduler, protected TaskRunner $runner)
+    public function __construct(protected SchedulerManagerInterface $scheduler, protected TaskRunner $runner)
     {
     }
 

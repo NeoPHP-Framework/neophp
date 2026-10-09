@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Translation\Helper\Console;
 
-use NeoPHP\Package\Translation\Contract\AbstractTranslator;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
 use NeoPHP\Package\Translation\Exception\TranslationException;
 use NeoPHP\Package\Translation\Extractor\TranslationExtractor;
+use NeoPHP\Package\Translation\TranslationManager;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -15,6 +15,9 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'translation:debug', description: 'Lists the translation keys with their state (translated, missing, fallback, unused) per locale')]
 class TranslationDebugCommand extends AbstractConsole
 {
@@ -28,7 +31,7 @@ class TranslationDebugCommand extends AbstractConsole
 
     public const FRAMEWORK_DOMAINS = ['validators', 'security'];
 
-    public function __construct(protected TranslatorInterface $translator)
+    public function __construct(protected TranslationManagerInterface $translator)
     {
     }
 
@@ -55,7 +58,7 @@ class TranslationDebugCommand extends AbstractConsole
         $locales = $this->translator->getLocales();
 
         if (is_string($argument) && $argument !== '') {
-            $locale = AbstractTranslator::normalizeLocale($argument);
+            $locale = TranslationManager::normalizeLocale($argument);
 
             if ($locale === null) {
                 $output->error(sprintf('The locale "%s" is invalid.', $argument));

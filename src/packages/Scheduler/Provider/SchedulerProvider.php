@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Scheduler\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Package\Scheduler\Discovery\TaskDiscovery;
 use NeoPHP\Package\Scheduler\History\HistoryStore;
 use NeoPHP\Package\Scheduler\Lock\LockStore;
 use NeoPHP\Package\Scheduler\Runner\TaskRunner;
-use NeoPHP\Package\Scheduler\Scheduler;
+use NeoPHP\Package\Scheduler\SchedulerManager;
+use NeoPHP\Package\Scheduler\SchedulerManagerInterface;
 
+/**
+ * @internal
+ */
 class SchedulerProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.scheduler';
@@ -22,15 +26,15 @@ class SchedulerProvider extends AbstractProvider
 
     public const CACHE_DIRECTORY = 'scheduler';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::configure($container));
 
-        $container->singleton(Scheduler::class, static function (ContainerInterface $container): Scheduler {
+        $container->singleton(SchedulerManagerInterface::class, static function (ContainerManagerInterface $container): SchedulerManagerInterface {
             $config = $container->get(self::CONFIG_ID);
             $discovered = self::discover($container);
 
-            return new Scheduler(
+            return new SchedulerManager(
                 (array) $config['tasks'],
                 (array) ($discovered['tasks'] ?? []),
                 [...(array) ($discovered['providers'] ?? []), ...(array) $config['providers']],
@@ -39,15 +43,15 @@ class SchedulerProvider extends AbstractProvider
             );
         });
 
-        $container->singleton(LockStore::class, static fn (ContainerInterface $container): LockStore => new LockStore((string) $container->get(self::CONFIG_ID)['lock_path']));
+        $container->singleton(LockStore::class, static fn (ContainerManagerInterface $container): LockStore => new LockStore((string) $container->get(self::CONFIG_ID)['lock_path']));
 
-        $container->singleton(HistoryStore::class, static function (ContainerInterface $container): HistoryStore {
+        $container->singleton(HistoryStore::class, static function (ContainerManagerInterface $container): HistoryStore {
             $config = $container->get(self::CONFIG_ID);
 
             return new HistoryStore((string) $config['history_file'], (int) $config['history_max'], (string) $config['heartbeat_file']);
         });
 
-        $container->singleton(TaskRunner::class, static function (ContainerInterface $container): TaskRunner {
+        $container->singleton(TaskRunner::class, static function (ContainerManagerInterface $container): TaskRunner {
             $config = $container->get(self::CONFIG_ID);
 
             return new TaskRunner(
@@ -60,12 +64,13 @@ class SchedulerProvider extends AbstractProvider
             );
         });
 
-        $container->alias('scheduler', Scheduler::class);
+        $container->alias(SchedulerManager::class, SchedulerManagerInterface::class);
+        $container->alias('scheduler', SchedulerManagerInterface::class);
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $config = $container->has(ConfigInterface::class) ? (array) ($container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
+        $config = $container->has(ConfigManagerInterface::class) ? (array) ($container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
         $root = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
         $storage = (string) ($config['storage'] ?? '');
         $storage = $storage === '' ? $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'scheduler' : (preg_match('#^([A-Za-z]:)?[/\\\\]#', $storage) === 1 ? $storage : $root . DIRECTORY_SEPARATOR . $storage);
@@ -86,7 +91,7 @@ class SchedulerProvider extends AbstractProvider
         ];
     }
 
-    public static function discover(ContainerInterface $container): array
+    public static function discover(ContainerManagerInterface $container): array
     {
         $paths = $container->has('kernel.root_path') ? [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'] : [];
         $builder = static function () use ($paths): array {

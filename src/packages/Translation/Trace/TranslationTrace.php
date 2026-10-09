@@ -8,6 +8,9 @@ use BackedEnum;
 use Stringable;
 use UnitEnum;
 
+/**
+ * @internal
+ */
 class TranslationTrace
 {
     public const MAX_MESSAGES = 1000;

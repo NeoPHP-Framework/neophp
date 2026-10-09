@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\User;
 
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Security\Contract\PasswordAuthenticatedUserInterface;
 use NeoPHP\Package\Security\Contract\PasswordUpgraderInterface;
 use NeoPHP\Package\Security\Contract\UserInterface;
@@ -14,7 +14,7 @@ use NeoPHP\Package\Security\Exception\UserNotFoundException;
 
 class EntityUserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
-    public function __construct(protected OrmInterface $orm, protected string $class, protected ?string $property = null)
+    public function __construct(protected OrmManagerInterface $orm, protected string $class, protected ?string $property = null)
     {
         if (!is_a($class, UserInterface::class, true)) {
             throw new SecurityException('The entity "{class}" used by the entity user provider must implement {interface}.', 0, null, ['class' => $class, 'interface' => UserInterface::class]);

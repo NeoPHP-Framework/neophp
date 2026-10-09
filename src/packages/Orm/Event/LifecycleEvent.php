@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Orm\Event;
 
 use NeoPHP\Component\Event\Contract\AbstractEvent;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 
 abstract class LifecycleEvent extends AbstractEvent
 {
-    public function __construct(protected object $entity, protected OrmInterface $orm)
+    public function __construct(protected object $entity, protected OrmManagerInterface $orm)
     {
     }
 
@@ -18,7 +18,7 @@ abstract class LifecycleEvent extends AbstractEvent
         return $this->entity;
     }
 
-    public function getOrm(): OrmInterface
+    public function getOrm(): OrmManagerInterface
     {
         return $this->orm;
     }

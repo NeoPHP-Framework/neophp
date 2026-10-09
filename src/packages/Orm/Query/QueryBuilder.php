@@ -6,11 +6,11 @@ namespace NeoPHP\Package\Orm\Query;
 
 use NeoPHP\Package\Orm\Collection\PersistentCollection;
 use NeoPHP\Package\Orm\Contract\CollectionInterface;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Exception\NonUniqueResultException;
 use NeoPHP\Package\Orm\Exception\NoResultException;
 use NeoPHP\Package\Orm\Exception\OrmException;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Type\Type;
 
 class QueryBuilder
@@ -45,7 +45,7 @@ class QueryBuilder
 
     protected array $scalars = [];
 
-    public function __construct(protected OrmInterface $orm)
+    public function __construct(protected OrmManagerInterface $orm)
     {
     }
 

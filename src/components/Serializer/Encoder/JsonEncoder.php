@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Serializer\Encoder;
 
 use JsonException;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DecoderInterface;
 use NeoPHP\Component\Serializer\Contract\EncoderInterface;
 use NeoPHP\Component\Serializer\Exception\NotEncodableValueException;
 use NeoPHP\Component\Serializer\Exception\UnexpectedValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
 
 class JsonEncoder implements EncoderInterface, DecoderInterface
 {
@@ -20,7 +20,7 @@ class JsonEncoder implements EncoderInterface, DecoderInterface
     public function encode(mixed $data, string $format, array $context = []): string
     {
         try {
-            return json_encode($data, ((int) ($context[AbstractSerializer::JSON_ENCODE_OPTIONS] ?? self::DEFAULT_OPTIONS)) | JSON_THROW_ON_ERROR);
+            return json_encode($data, ((int) ($context[SerializerManager::JSON_ENCODE_OPTIONS] ?? self::DEFAULT_OPTIONS)) | JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new NotEncodableValueException('Unable to encode the data as JSON: {error}', 0, $exception, ['error' => $exception->getMessage()]);
         }
@@ -33,7 +33,7 @@ class JsonEncoder implements EncoderInterface, DecoderInterface
         }
 
         try {
-            return json_decode($data, true, 512, ((int) ($context[AbstractSerializer::JSON_DECODE_OPTIONS] ?? JSON_BIGINT_AS_STRING)) | JSON_THROW_ON_ERROR);
+            return json_decode($data, true, 512, ((int) ($context[SerializerManager::JSON_DECODE_OPTIONS] ?? JSON_BIGINT_AS_STRING)) | JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new UnexpectedValueException('Unable to decode JSON: {error}', 0, $exception, ['error' => $exception->getMessage()]);
         }

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Trace;
 
+/**
+ * @internal
+ */
 class QueueTrace
 {
     public const MAX_MESSAGES = 200;

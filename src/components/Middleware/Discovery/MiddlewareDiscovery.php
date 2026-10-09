@@ -10,6 +10,9 @@ use NeoPHP\Component\Middleware\Contract\MiddlewareInterface;
 use NeoPHP\Component\Middleware\Exception\MiddlewareException;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 class MiddlewareDiscovery
 {
     protected ClassFinder $finder;

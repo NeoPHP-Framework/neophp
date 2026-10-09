@@ -11,6 +11,9 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 
+/**
+ * @internal
+ */
 class HandlerDiscovery
 {
     protected ClassFinder $finder;

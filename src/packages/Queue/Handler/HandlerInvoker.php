@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Queue\Handler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\Queue\Contract\JobInterface;
 use NeoPHP\Package\Queue\Exception\ConfigurationException;
 use NeoPHP\Package\Queue\Exception\NoHandlerException;
 
 class HandlerInvoker
 {
-    public function __construct(protected HandlerLocator $locator, protected ?ContainerInterface $container = null)
+    public function __construct(protected HandlerLocator $locator, protected ?ContainerManagerInterface $container = null)
     {
     }
 

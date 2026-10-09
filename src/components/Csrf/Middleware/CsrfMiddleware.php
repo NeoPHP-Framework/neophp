@@ -6,7 +6,7 @@ namespace NeoPHP\Component\Csrf\Middleware;
 
 use Closure;
 use NeoPHP\Component\Csrf\Attribute\Csrf;
-use NeoPHP\Component\Csrf\Contract\CsrfInterface;
+use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Csrf\Exception\InvalidCsrfTokenException;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
@@ -17,7 +17,7 @@ use ReflectionClass;
 
 class CsrfMiddleware implements MiddlewareInterface
 {
-    public function __construct(protected CsrfInterface $csrf)
+    public function __construct(protected CsrfManagerInterface $csrf)
     {
     }
 

@@ -8,6 +8,9 @@ use NeoPHP\Component\Kernel\Discovery\ClassFinder;
 use NeoPHP\Component\Serializer\Attribute\AsNormalizer;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 class NormalizerDiscovery
 {
     protected ClassFinder $finder;

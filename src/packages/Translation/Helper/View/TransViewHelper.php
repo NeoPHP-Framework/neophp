@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Translation\Helper\View;
 
 use NeoPHP\Component\View\Contract\ViewFilterInterface;
-use NeoPHP\Package\Translation\Contract\TranslatorInterface;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
+/**
+ * @internal
+ */
 class TransViewHelper implements ViewFilterInterface
 {
-    public function __construct(protected TranslatorInterface $translator)
+    public function __construct(protected TranslationManagerInterface $translator)
     {
     }
 

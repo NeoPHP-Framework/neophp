@@ -13,6 +13,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:repository', description: 'Generates the repository of an entity')]
 class MakeRepositoryCommand extends AbstractConsole
 {

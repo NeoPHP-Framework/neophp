@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Api\Helper\Console;
 
 use NeoPHP\Component\Api\OpenApi\OpenApiGenerator;
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -13,12 +13,15 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 use stdClass;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'openapi:dump', description: 'Dumps the OpenAPI 3.1 document of the API routes (JSON or YAML)')]
 class OpenApiDumpCommand extends AbstractConsole
 {
     public const EMPTY_OBJECT = '__neo_empty_object__';
 
-    public function __construct(protected OpenApiGenerator $generator, protected SerializerInterface $serializer)
+    public function __construct(protected OpenApiGenerator $generator, protected SerializerManagerInterface $serializer)
     {
     }
 

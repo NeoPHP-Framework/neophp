@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Form\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Form\Maker\FormMaker;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Maker\EntityMaker;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Provider\OrmProvider;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -17,10 +17,13 @@ use NeoPHP\Process\Console\Exception\InvalidInputException;
 use NeoPHP\Process\Console\IO\InputArgument;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:form', description: 'Generates a form class in src/Form/')]
 class MakeFormCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -55,7 +58,7 @@ class MakeFormCommand extends AbstractConsole
         $name = (string) $input->getArgument('name');
         $entity = (string) ($input->getArgument('entity') ?? '');
         $root = (string) $this->container->get('kernel.root_path');
-        $orm = $this->container->has(OrmInterface::class) ? $this->container->get(OrmInterface::class) : null;
+        $orm = $this->container->has(OrmManagerInterface::class) ? $this->container->get(OrmManagerInterface::class) : null;
         $maker = new FormMaker($root . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Form', 'App\\Form', $orm);
 
         try {

@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Event\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
 use NeoPHP\Component\Event\Discovery\ListenerDiscovery;
 use NeoPHP\Component\Event\EventManager;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 
+/**
+ * @internal
+ */
 class EventProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.event';
@@ -20,11 +24,11 @@ class EventProvider extends AbstractProvider
 
     public const FRAMEWORK_SOURCES = ['components', 'packages', 'process'];
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(EventDispatcherInterface::class, static function (ContainerInterface $container): EventDispatcherInterface {
+        $container->singleton(EventManagerInterface::class, static function (ContainerManagerInterface $container): EventManagerInterface {
             $dispatcher = new EventManager($container);
-            $config = $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+            $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
 
             foreach ((array) ($config['listeners'] ?? []) as $event => $listeners) {
                 foreach ((array) $listeners as $listener) {
@@ -37,8 +41,14 @@ class EventProvider extends AbstractProvider
                 $dispatcher->addSubscriber((string) $subscriber);
             }
 
+            $kernel = $container->bound(KernelManagerInterface::class) ? $container->get(KernelManagerInterface::class) : null;
+
             foreach (self::discover($container) as $event => $listeners) {
                 foreach ((array) $listeners as [$class, $method, $priority]) {
+                    if ($kernel !== null && !$kernel->isEnabled((string) $class)) {
+                        continue;
+                    }
+
                     $dispatcher->addListener((string) $event, [(string) $class, (string) $method], (int) $priority);
                 }
             }
@@ -46,10 +56,10 @@ class EventProvider extends AbstractProvider
             return $dispatcher;
         });
 
-        $container->alias(EventManager::class, EventDispatcherInterface::class);
+        $container->alias(EventManager::class, EventManagerInterface::class);
     }
 
-    protected static function discover(ContainerInterface $container): array
+    protected static function discover(ContainerManagerInterface $container): array
     {
         $paths = [];
         $frameworkPath = dirname(__DIR__, 3);

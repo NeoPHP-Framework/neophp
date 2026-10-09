@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Markdown\Helper\Console;
 
-use NeoPHP\Package\Markdown\Contract\MarkdownParserInterface;
 use NeoPHP\Package\Markdown\Exception\MarkdownException;
+use NeoPHP\Package\Markdown\MarkdownManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'markdown:convert', description: 'Converts an HTML file, a template or a text file into a Markdown file')]
 class MarkdownConvertCommand extends AbstractConsole
 {
-    public function __construct(protected MarkdownParserInterface $markdown)
+    public function __construct(protected MarkdownManagerInterface $markdown)
     {
     }
 

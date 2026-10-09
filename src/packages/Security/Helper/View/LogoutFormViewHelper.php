@@ -6,11 +6,14 @@ namespace NeoPHP\Package\Security\Helper\View;
 
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 use NeoPHP\Component\View\Contract\ViewSafeHtmlInterface;
-use NeoPHP\Package\Security\Contract\SecurityInterface;
+use NeoPHP\Package\Security\SecurityManagerInterface;
 
+/**
+ * @internal
+ */
 class LogoutFormViewHelper implements ViewFunctionInterface, ViewSafeHtmlInterface
 {
-    public function __construct(protected SecurityInterface $security)
+    public function __construct(protected SecurityManagerInterface $security)
     {
     }
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\View\Engine;
 
-use NeoPHP\Component\View\Contract\ViewInterface;
 use NeoPHP\Component\View\Exception\ViewException;
 use NeoPHP\Component\View\Template\Sections;
 use NeoPHP\Component\View\Template\Template;
+use NeoPHP\Component\View\ViewManagerInterface;
 
 class PhpEngine implements EngineInterface
 {
@@ -19,9 +19,9 @@ class PhpEngine implements EngineInterface
 
     protected array $globals = [];
 
-    protected ?ViewInterface $view = null;
+    protected ?ViewManagerInterface $view = null;
 
-    public function setView(ViewInterface $view): void
+    public function setView(ViewManagerInterface $view): void
     {
         $this->view = $view;
     }

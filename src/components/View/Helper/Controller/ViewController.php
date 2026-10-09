@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\View\Helper\Controller;
 
-use NeoPHP\Component\Http\Contract\HttpInterface;
+use NeoPHP\Component\Http\HttpManagerInterface;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\View\Contract\ViewInterface;
+use NeoPHP\Component\View\ViewManagerInterface;
 
 trait ViewController
 {
@@ -14,11 +14,11 @@ trait ViewController
 
     protected function render(string $template, array $parameters = [], int $status = 200, array $headers = []): Response
     {
-        return $this->get(HttpInterface::class)->createResponse($this->renderView($template, $parameters), $status, $headers);
+        return $this->get(HttpManagerInterface::class)->createResponse($this->renderView($template, $parameters), $status, $headers);
     }
 
     protected function renderView(string $template, array $parameters = []): string
     {
-        return $this->get(ViewInterface::class)->render($template, $parameters);
+        return $this->get(ViewManagerInterface::class)->render($template, $parameters);
     }
 }

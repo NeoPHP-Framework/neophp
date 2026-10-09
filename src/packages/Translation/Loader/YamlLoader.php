@@ -6,15 +6,15 @@ namespace NeoPHP\Package\Translation\Loader;
 
 use NeoPHP\Package\Translation\Contract\LoaderInterface;
 use NeoPHP\Package\Translation\Exception\TranslationException;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
 use NeoPHP\Package\Yaml\YamlManager;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 use Throwable;
 
 class YamlLoader implements LoaderInterface
 {
-    protected YamlInterface $yaml;
+    protected YamlManagerInterface $yaml;
 
-    public function __construct(?YamlInterface $yaml = null)
+    public function __construct(?YamlManagerInterface $yaml = null)
     {
         $this->yaml = $yaml ?? new YamlManager();
     }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Debug\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Package\Debug\Contract\DebugInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Package\Debug\DebugManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -17,10 +17,13 @@ use ReflectionClass;
 use ReflectionNamedType;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'debug:container', description: 'Lists the services of the container or shows one of them')]
 class DebugContainerCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container, protected DebugInterface $debug)
+    public function __construct(protected ContainerManagerInterface $container, protected DebugManagerInterface $debug)
     {
     }
 
@@ -32,7 +35,7 @@ class DebugContainerCommand extends AbstractConsole
         $this->addExample('debug:container');
         $this->addExample('debug:container Router');
         $this->addExample('debug:container kernel.root_path');
-        $this->addExample('debug:container "NeoPHP\\Component\\Routing\\Contract\\RoutingInterface" --dump');
+        $this->addExample('debug:container "NeoPHP\\Component\\Routing\\RoutingManagerInterface" --dump');
         $this->addExample('debug:container --parameters');
     }
 

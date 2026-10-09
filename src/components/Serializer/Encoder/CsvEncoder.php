@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\Encoder;
 
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DecoderInterface;
 use NeoPHP\Component\Serializer\Contract\EncoderInterface;
 use NeoPHP\Component\Serializer\Exception\NotEncodableValueException;
 use NeoPHP\Component\Serializer\Exception\UnexpectedValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
 
 class CsvEncoder implements EncoderInterface, DecoderInterface
 {
@@ -24,7 +24,7 @@ class CsvEncoder implements EncoderInterface, DecoderInterface
 
         [$delimiter, $enclosure, $separator] = $this->options($context);
         $rows = [];
-        $headers = array_map('strval', (array) ($context[AbstractSerializer::CSV_HEADERS] ?? []));
+        $headers = array_map('strval', (array) ($context[SerializerManager::CSV_HEADERS] ?? []));
 
         foreach ($data as $row) {
             $flat = [];
@@ -132,9 +132,9 @@ class CsvEncoder implements EncoderInterface, DecoderInterface
 
     protected function options(array $context): array
     {
-        $delimiter = (string) ($context[AbstractSerializer::CSV_DELIMITER] ?? ',');
-        $enclosure = (string) ($context[AbstractSerializer::CSV_ENCLOSURE] ?? '"');
-        $separator = (string) ($context[AbstractSerializer::CSV_KEY_SEPARATOR] ?? '.');
+        $delimiter = (string) ($context[SerializerManager::CSV_DELIMITER] ?? ',');
+        $enclosure = (string) ($context[SerializerManager::CSV_ENCLOSURE] ?? '"');
+        $separator = (string) ($context[SerializerManager::CSV_KEY_SEPARATOR] ?? '.');
 
         if (strlen($delimiter) !== 1 || strlen($enclosure) !== 1 || $separator === '') {
             throw new NotEncodableValueException('The CSV delimiter and enclosure must be one character, and the key separator must not be empty.');
