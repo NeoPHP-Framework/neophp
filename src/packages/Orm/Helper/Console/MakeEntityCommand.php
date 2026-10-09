@@ -14,6 +14,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:entity', description: 'Creates an entity and its repository, or adds fields to an existing entity')]
 class MakeEntityCommand extends AbstractConsole
 {

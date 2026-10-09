@@ -6,7 +6,6 @@ namespace NeoPHP\Package\Orm\UnitOfWork;
 
 use NeoPHP\Package\Orm\Collection\PersistentCollection;
 use NeoPHP\Package\Orm\Contract\CollectionInterface;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Contract\ProxyInterface;
 use NeoPHP\Package\Orm\Event\LifecycleEvent;
 use NeoPHP\Package\Orm\Event\PostFlushEvent;
@@ -21,6 +20,7 @@ use NeoPHP\Package\Orm\Exception\EntityNotFoundException;
 use NeoPHP\Package\Orm\Exception\OrmException;
 use NeoPHP\Package\Orm\Mapping\GeneratedValue;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Type\Type;
 use ReflectionMethod;
 use Throwable;
@@ -58,7 +58,7 @@ class UnitOfWork
 
     protected int $initializedProxies = 0;
 
-    public function __construct(protected OrmInterface $orm)
+    public function __construct(protected OrmManagerInterface $orm)
     {
         $this->hydrator = new Hydrator($orm, $this);
     }
@@ -541,21 +541,6 @@ class UnitOfWork
         $this->dispatch(new PostFlushEvent($this->orm));
     }
 
-    protected function recordFlush(float $start, int $inserts, int $updates, int $deletes, int $collections): void
-    {
-        $this->flushCount++;
-
-        if (count($this->flushes) < self::MAX_FLUSH_STATISTICS) {
-            $this->flushes[] = [
-                'inserts' => $inserts,
-                'updates' => $updates,
-                'deletes' => $deletes,
-                'collections' => $collections,
-                'duration' => round((microtime(true) - $start) * 1000, 3),
-            ];
-        }
-    }
-
     public function invokeLifecycle(ClassMetadata $metadata, object $entity, string $event, LifecycleEvent $object): void
     {
         foreach ($metadata->getCallbacks($event) as $callback) {
@@ -576,6 +561,21 @@ class UnitOfWork
         $hex = $time . bin2hex($random);
 
         return sprintf('%s-%s-%s-%s-%s', substr($hex, 0, 8), substr($hex, 8, 4), substr($hex, 12, 4), substr($hex, 16, 4), substr($hex, 20, 12));
+    }
+
+    protected function recordFlush(float $start, int $inserts, int $updates, int $deletes, int $collections): void
+    {
+        $this->flushCount++;
+
+        if (count($this->flushes) < self::MAX_FLUSH_STATISTICS) {
+            $this->flushes[] = [
+                'inserts' => $inserts,
+                'updates' => $updates,
+                'deletes' => $deletes,
+                'collections' => $collections,
+                'duration' => round((microtime(true) - $start) * 1000, 3),
+            ];
+        }
     }
 
     protected function computeChangeSets(): void

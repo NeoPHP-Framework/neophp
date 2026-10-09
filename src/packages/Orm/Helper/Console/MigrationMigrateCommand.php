@@ -14,6 +14,9 @@ use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'migration:migrate', description: 'Executes the migrations not executed yet', aliases: ['migrate'])]
 class MigrationMigrateCommand extends AbstractConsole
 {

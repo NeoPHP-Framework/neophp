@@ -7,7 +7,7 @@ namespace NeoPHP\Package\Orm\Helper\Form;
 use NeoPHP\Component\Form\Accessor\PropertyAccessor;
 use NeoPHP\Component\Form\Exception\FormException;
 use NeoPHP\Component\Form\Type\ChoiceType;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Query\QueryBuilder;
 use Stringable;
 
@@ -15,7 +15,7 @@ class EntityType extends ChoiceType
 {
     protected array $loaded = [];
 
-    public function __construct(protected OrmInterface $orm, ?PropertyAccessor $accessor = null)
+    public function __construct(protected OrmManagerInterface $orm, ?PropertyAccessor $accessor = null)
     {
         parent::__construct($accessor);
     }

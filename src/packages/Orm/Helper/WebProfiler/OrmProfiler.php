@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Orm\Helper\Profiler;
+namespace NeoPHP\Package\Orm\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\WebProfiler\Block\MetricBlock;
 use NeoPHP\Package\WebProfiler\Block\TableBlock;
 use NeoPHP\Package\WebProfiler\Block\TabsBlock;
@@ -21,23 +21,26 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class OrmProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 75;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     public function collect(Request $request, Response $response, ?Throwable $exception = null): array
     {
-        if (!$this->container->bound(OrmInterface::class) || !$this->container->resolved(OrmInterface::class)) {
+        if (!$this->container->bound(OrmManagerInterface::class) || !$this->container->resolved(OrmManagerInterface::class)) {
             return [];
         }
 
-        $orm = $this->container->get(OrmInterface::class);
+        $orm = $this->container->get(OrmManagerInterface::class);
 
-        if (!$orm instanceof OrmInterface) {
+        if (!$orm instanceof OrmManagerInterface) {
             return [];
         }
 

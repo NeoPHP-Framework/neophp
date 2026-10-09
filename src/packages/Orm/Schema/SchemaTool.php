@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\Schema;
 
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 
 class SchemaTool
 {
-    public function __construct(protected OrmInterface $orm, protected array $ignoredTables = [])
+    public function __construct(protected OrmManagerInterface $orm, protected array $ignoredTables = [])
     {
     }
 

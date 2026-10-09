@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\ArgumentResolver;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Http\Exception\NotFoundHttpException;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Package\Orm\Attribute\MapEntity;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use ReflectionNamedType;
 use ReflectionParameter;
 
 class EntityValueResolver implements ArgumentResolverInterface
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -96,7 +96,7 @@ class EntityValueResolver implements ArgumentResolverInterface
     {
         $type = $parameter->getType();
 
-        if (!$type instanceof ReflectionNamedType || $type->isBuiltin() || !$this->container->has(OrmInterface::class)) {
+        if (!$type instanceof ReflectionNamedType || $type->isBuiltin() || !$this->container->has(OrmManagerInterface::class)) {
             return null;
         }
 
@@ -123,8 +123,8 @@ class EntityValueResolver implements ArgumentResolverInterface
         return $attributes === [] ? null : $attributes[0]->newInstance();
     }
 
-    protected function orm(): OrmInterface
+    protected function orm(): OrmManagerInterface
     {
-        return $this->container->get(OrmInterface::class);
+        return $this->container->get(OrmManagerInterface::class);
     }
 }

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\Event;
 
-use NeoPHP\Package\Orm\Contract\OrmInterface;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 
 class PreUpdateEvent extends LifecycleEvent
 {
-    public function __construct(object $entity, OrmInterface $orm, protected array $changeSet = [])
+    public function __construct(object $entity, OrmManagerInterface $orm, protected array $changeSet = [])
     {
         parent::__construct($entity, $orm);
     }

@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Orm\Contract;
+namespace NeoPHP\Package\Orm;
 
 use NeoPHP\Component\Database\Contract\ConnectionInterface;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
+use NeoPHP\Package\Orm\Contract\PlatformInterface;
+use NeoPHP\Package\Orm\Contract\RepositoryInterface;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
 use NeoPHP\Package\Orm\Metadata\MetadataFactory;
 use NeoPHP\Package\Orm\Proxy\ProxyFactory;
@@ -13,7 +15,7 @@ use NeoPHP\Package\Orm\Query\QueryBuilder;
 use NeoPHP\Package\Orm\Query\SqlQueryBuilder;
 use NeoPHP\Package\Orm\UnitOfWork\UnitOfWork;
 
-interface OrmInterface
+interface OrmManagerInterface
 {
     public function getConnection(): ConnectionInterface;
 
@@ -27,7 +29,7 @@ interface OrmInterface
 
     public function getPlatform(): PlatformInterface;
 
-    public function getEventDispatcher(): ?EventDispatcherInterface;
+    public function getEventDispatcher(): ?EventManagerInterface;
 
     public function persist(object $entity): void;
 

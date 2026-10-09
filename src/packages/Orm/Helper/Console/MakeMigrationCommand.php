@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\Helper\Console;
 
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Migration\MigrationGenerator;
 use NeoPHP\Package\Orm\Migration\Migrator;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Schema\SchemaTool;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
@@ -16,10 +16,13 @@ use NeoPHP\Process\Console\IO\Formatter;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'make:migration', description: 'Generates a migration from the differences between the entities and the database')]
 class MakeMigrationCommand extends AbstractConsole
 {
-    public function __construct(protected OrmInterface $orm, protected SchemaTool $schemaTool, protected Migrator $migrator, protected MigrationGenerator $generator)
+    public function __construct(protected OrmManagerInterface $orm, protected SchemaTool $schemaTool, protected Migrator $migrator, protected MigrationGenerator $generator)
     {
     }
 

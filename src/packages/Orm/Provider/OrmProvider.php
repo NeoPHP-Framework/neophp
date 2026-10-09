@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
-use NeoPHP\Component\Database\Contract\DatabaseInterface;
-use NeoPHP\Component\Event\Contract\EventDispatcherInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
+use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Package\Orm\ArgumentResolver\EntityValueResolver;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Contract\EntityManagerInterface;
 use NeoPHP\Package\Orm\Maker\EntityMaker;
 use NeoPHP\Package\Orm\Maker\RepositoryMaker;
@@ -19,9 +18,13 @@ use NeoPHP\Package\Orm\Metadata\MetadataFactory;
 use NeoPHP\Package\Orm\Migration\MigrationGenerator;
 use NeoPHP\Package\Orm\Migration\Migrator;
 use NeoPHP\Package\Orm\OrmManager;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Proxy\ProxyFactory;
 use NeoPHP\Package\Orm\Schema\SchemaTool;
 
+/**
+ * @internal
+ */
 class OrmProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.orm';
@@ -30,70 +33,70 @@ class OrmProvider extends AbstractProvider
 
     public const FRAMEWORK_TABLES = ['cache_items', 'remember_me_tokens', 'neo_queue_jobs', 'neo_queue_failed'];
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(self::CONFIG_ID, static fn (ContainerInterface $container): array => self::configure($container));
+        $container->singleton(self::CONFIG_ID, static fn (ContainerManagerInterface $container): array => self::configure($container));
 
-        $container->singleton(OrmInterface::class, static function (ContainerInterface $container): OrmInterface {
+        $container->singleton(OrmManagerInterface::class, static function (ContainerManagerInterface $container): OrmManagerInterface {
             $config = $container->get(self::CONFIG_ID);
             $debug = $container->has('kernel.debug') && (bool) $container->get('kernel.debug');
 
             return new OrmManager(
-                $container->get(DatabaseInterface::class)->connection($config['connection']),
+                $container->get(DatabaseManagerInterface::class)->connection($config['connection']),
                 new MetadataFactory([$config['entity']['path']]),
                 new ProxyFactory($config['proxy']['path'], $debug),
-                $container->has(EventDispatcherInterface::class) ? $container->get(EventDispatcherInterface::class) : null,
+                $container->has(EventManagerInterface::class) ? $container->get(EventManagerInterface::class) : null,
                 $container,
                 $config['repository']['namespace'],
             );
         });
 
-        $container->singleton(Migrator::class, static function (ContainerInterface $container): Migrator {
+        $container->singleton(Migrator::class, static function (ContainerManagerInterface $container): Migrator {
             $config = $container->get(self::CONFIG_ID);
-            $orm = $container->get(OrmInterface::class);
+            $orm = $container->get(OrmManagerInterface::class);
 
             return new Migrator($orm->getConnection(), $orm->getPlatform(), $config['migration']['path'], $config['migration']['namespace'], $config['migration']['table']);
         });
 
-        $container->singleton(MigrationGenerator::class, static function (ContainerInterface $container): MigrationGenerator {
+        $container->singleton(MigrationGenerator::class, static function (ContainerManagerInterface $container): MigrationGenerator {
             $config = $container->get(self::CONFIG_ID);
 
             return new MigrationGenerator($config['migration']['path'], $config['migration']['namespace']);
         });
 
-        $container->singleton(SchemaTool::class, static function (ContainerInterface $container): SchemaTool {
+        $container->singleton(SchemaTool::class, static function (ContainerManagerInterface $container): SchemaTool {
             $config = $container->get(self::CONFIG_ID);
 
-            return new SchemaTool($container->get(OrmInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables']]);
+            return new SchemaTool($container->get(OrmManagerInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables']]);
         });
 
-        $container->singleton(EntityMaker::class, static function (ContainerInterface $container): EntityMaker {
+        $container->singleton(EntityMaker::class, static function (ContainerManagerInterface $container): EntityMaker {
             $config = $container->get(self::CONFIG_ID);
 
             return new EntityMaker($config['entity']['path'], $config['entity']['namespace']);
         });
 
-        $container->singleton(RepositoryMaker::class, static function (ContainerInterface $container): RepositoryMaker {
+        $container->singleton(RepositoryMaker::class, static function (ContainerManagerInterface $container): RepositoryMaker {
             $config = $container->get(self::CONFIG_ID);
 
             return new RepositoryMaker($config['repository']['path'], $config['repository']['namespace']);
         });
 
-        $container->alias(OrmManager::class, OrmInterface::class);
+        $container->alias(OrmManager::class, OrmManagerInterface::class);
 
-        $container->alias(EntityManagerInterface::class, OrmInterface::class);
-        $container->alias('entity_manager', OrmInterface::class);
+        $container->alias(EntityManagerInterface::class, OrmManagerInterface::class);
+        $container->alias('entity_manager', OrmManagerInterface::class);
 
-        $container->alias('orm', OrmInterface::class);
+        $container->alias('orm', OrmManagerInterface::class);
 
-        $container->singleton(EntityValueResolver::class, static fn (ContainerInterface $container): EntityValueResolver => new EntityValueResolver($container));
+        $container->singleton(EntityValueResolver::class, static fn (ContainerManagerInterface $container): EntityValueResolver => new EntityValueResolver($container));
         $resolvers = $container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $container->get(ArgumentResolverInterface::SERVICES_ID) : [];
         $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, EntityValueResolver::class]);
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $config = $container->has(ConfigInterface::class) ? (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) : [];
+        $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) : [];
         $root = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
         $cache = $container->has('kernel.cache_path') ? (string) $container->get('kernel.cache_path') : $root . '/var/cache';
         $absolute = static fn (string $path): string => preg_match('#^([A-Za-z]:)?[/\\\\]#', $path) === 1 ? $path : $root . DIRECTORY_SEPARATOR . $path;

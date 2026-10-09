@@ -11,6 +11,9 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'migration:status', description: 'Lists the migrations and whether they are executed')]
 class MigrationStatusCommand extends AbstractConsole
 {

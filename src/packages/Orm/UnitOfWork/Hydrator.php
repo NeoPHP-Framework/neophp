@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Orm\UnitOfWork;
 
 use NeoPHP\Package\Orm\Collection\PersistentCollection;
-use NeoPHP\Package\Orm\Contract\OrmInterface;
 use NeoPHP\Package\Orm\Contract\ProxyInterface;
 use NeoPHP\Package\Orm\Event\PostLoadEvent;
 use NeoPHP\Package\Orm\Metadata\ClassMetadata;
+use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Type\Type;
 
 class Hydrator
 {
-    public function __construct(protected OrmInterface $orm, protected UnitOfWork $unitOfWork)
+    public function __construct(protected OrmManagerInterface $orm, protected UnitOfWork $unitOfWork)
     {
     }
 
