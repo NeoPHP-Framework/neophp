@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Yaml\Contract;
+namespace NeoPHP\Package\Yaml;
 
-interface YamlInterface
+interface YamlManagerInterface
 {
     public function parse(string $input): mixed;
 
