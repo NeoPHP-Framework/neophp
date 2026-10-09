@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Config\Contract;
+namespace NeoPHP\Component\Config;
 
-interface ConfigInterface
+interface ConfigManagerInterface
 {
     public function get(string $key, mixed $default = null): mixed;
 

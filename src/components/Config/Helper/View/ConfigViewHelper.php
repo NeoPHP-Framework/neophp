@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Config\Helper\View;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 
+/**
+ * @internal
+ */
 class ConfigViewHelper implements ViewFunctionInterface
 {
-    public function __construct(protected ConfigInterface $config)
+    public function __construct(protected ConfigManagerInterface $config)
     {
     }
 
