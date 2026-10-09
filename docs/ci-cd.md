@@ -48,6 +48,47 @@ Every push on `vX.x` opens a `vX.x → dev` pull request, so that fixes reach fu
 
 Merge it with a **merge commit** (no squash, no rebase).
 
+### 4. Tests and static analysis
+
+Workflows: `.github/workflows/tests.yaml` and `.github/workflows/phpstan.yaml`
+
+On every pull request and every push on `dev`, `main` and `vX.x`:
+
+- `composer validate --strict`, then PHPUnit on PHP 8.2, 8.3, 8.4 and 8.5;
+- PHPStan on PHP 8.2.
+
+Make them required checks (see [GitHub setup](#github-setup-once)): a pull request can then be merged only when both are green.
+
+## Tests
+
+```bash
+composer install
+composer test                                       # every test
+vendor/bin/phpunit --testsuite=components           # components, packages or process
+vendor/bin/phpunit tests/Component/Http             # one folder
+vendor/bin/phpunit --filter=testIpMatches           # one test
+```
+
+The tests mirror `src/`: the tests of `src/components/Http/Request/Request.php` are in `tests/Component/Http/RequestTest.php`, namespace `NeoPHP\Tests\Component\Http`.
+
+| Base class | Use |
+|---|---|
+| `PHPUnit\Framework\TestCase` | unit test of a class created by hand (`new Request(...)`) |
+| `NeoPHP\Tests\KernelTestCase` | integration test: generates a project from the skeleton of the Installer in a temporary directory and boots its kernel |
+
+`KernelTestCase`:
+
+| Method | Description |
+|---|---|
+| `createProject(array $modules = [], array $files = []): string` | generates the project; `$modules` is the content of `config/config.php`, `$files` adds or replaces files (`'src/Controller/PostController.php' => '<?php ...'`) |
+| `bootKernel(array $modules = [], string $environment = 'test', bool $debug = true): AbstractKernel` | boots the kernel of the project (created if needed) |
+| `getContainer(): ContainerManagerInterface` | container of the booted kernel |
+| `request(string $method, string $uri, array $parameters = [], array $server = [], ?string $content = null): Response` | handles a request through the kernel |
+
+The project directory, the error handler of the kernel and the environment variables are reset after each test. A test that changes a static state (`Request::setTrustedProxies()`...) resets it in its `tearDown()`.
+
+The tests are not part of the Composer package (`export-ignore` in `.gitattributes`).
+
 ## Changelog
 
 The changelog of a release is generated in its description, from the commits between the previous version and the new one, grouped by type:
@@ -88,4 +129,4 @@ Each major version has its documentation in `docs/vX.x/README.md`: how it works,
 - Settings > Actions > General > Workflow permissions: select **Read and write permissions**.
 - Same page: check **Allow GitHub Actions to create and approve pull requests**.
 - Settings > General: set the default branch to **`dev`**.
-- Protect `main` and `v*.x` (Settings > Rules): merge through pull requests only.
+- Protect `main`, `dev` and `v*.x` (Settings > Rules): merge through pull requests only, with the required status checks `PHPStan` and `PHPUnit (PHP 8.2)` to `PHPUnit (PHP 8.5)`.

@@ -29,6 +29,7 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^2.2",
+        "phpunit/phpunit": "^11.5",
         "twig/twig": "^3.0"
     },
     "conflict": {
@@ -59,6 +60,11 @@
             "src/packages/Debug/Resources/Functions.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "NeoPHP\\Tests\\": "tests/"
+        }
+    },
     "bin": [
         "bin/neo"
     ],
@@ -66,8 +72,8 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
     "scripts": {
-        "phpstan": "phpstan analyse --memory-limit=1G"
+        "phpstan": "phpstan analyse --memory-limit=1G",
+        "test": "phpunit"
     }
 }
