@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Event\Discovery;
 
 use NeoPHP\Component\Event\Attribute\AsListener;
-use NeoPHP\Component\Event\Contract\AbstractEventDispatcher;
 use NeoPHP\Component\Event\Contract\EventSubscriberInterface;
+use NeoPHP\Component\Event\EventManager;
 use NeoPHP\Component\Event\Exception\EventException;
 use NeoPHP\Component\Kernel\Discovery\ClassFinder;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionNamedType;
 
+/**
+ * @internal
+ */
 class ListenerDiscovery
 {
     protected ClassFinder $finder;
@@ -75,7 +78,7 @@ class ListenerDiscovery
         }
 
         if ($class->implementsInterface(EventSubscriberInterface::class)) {
-            array_push($listeners, ...AbstractEventDispatcher::subscriptions($class->getName()));
+            array_push($listeners, ...EventManager::subscriptions($class->getName()));
         }
 
         return $listeners;

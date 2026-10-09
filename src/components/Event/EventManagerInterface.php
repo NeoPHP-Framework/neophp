@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Event\Contract;
+namespace NeoPHP\Component\Event;
 
-interface EventDispatcherInterface
+use NeoPHP\Component\Event\Contract\EventSubscriberInterface;
+
+interface EventManagerInterface
 {
     public function dispatch(object $event): object;
 
