@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Mailer\Contract;
+namespace NeoPHP\Component\Mailer;
 
+use NeoPHP\Component\Mailer\Contract\TransportInterface;
 use NeoPHP\Component\Mailer\Message\Envelope;
 use NeoPHP\Component\Mailer\Message\SentMessage;
 use NeoPHP\Component\Mailer\Mime\Email;
 
-interface MailerInterface
+interface MailerManagerInterface
 {
     public function send(Email $email, ?Envelope $envelope = null): ?SentMessage;
 
