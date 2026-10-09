@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Logger;
+namespace NeoPHP\Component\Logger\Contract;
 
 use NeoPHP\Component\Logger\Exception\LoggerException;
 

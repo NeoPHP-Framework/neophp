@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Logger\Contract;
+namespace NeoPHP\Component\Logger;
+
+use NeoPHP\Component\Logger\Contract\LoggerInterface;
 
 interface LoggerManagerInterface extends LoggerInterface
 {

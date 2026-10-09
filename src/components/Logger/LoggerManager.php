@@ -5,18 +5,21 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Logger;
 
 use DateTimeZone;
+use NeoPHP\Component\Kernel\Attribute\Component;
 use NeoPHP\Component\Logger\Channel\Channel;
 use NeoPHP\Component\Logger\Contract\AbstractLogger;
 use NeoPHP\Component\Logger\Contract\LoggerInterface;
-use NeoPHP\Component\Logger\Contract\LoggerManagerInterface;
+use NeoPHP\Component\Logger\Contract\LogLevel;
 use NeoPHP\Component\Logger\Exception\LoggerException;
 use NeoPHP\Component\Logger\Formatter\LineFormatter;
+use NeoPHP\Component\Logger\Provider\LoggerProvider;
 use NeoPHP\Component\Logger\Writer\Archiver;
 use NeoPHP\Component\Logger\Writer\FileWriter;
 use Stringable;
 use Throwable;
 
-class LoggerManager extends AbstractLogger implements LoggerManagerInterface
+#[Component(provider: LoggerProvider::class)]
+final class LoggerManager extends AbstractLogger implements LoggerManagerInterface
 {
     public const DEFAULT_CHANNEL = 'app';
 
@@ -79,19 +82,6 @@ class LoggerManager extends AbstractLogger implements LoggerManagerInterface
         return $manager;
     }
 
-    protected static function createTimezone(mixed $timezone): ?DateTimeZone
-    {
-        if ($timezone === null || $timezone === '') {
-            return null;
-        }
-
-        try {
-            return new DateTimeZone((string) $timezone);
-        } catch (Throwable $exception) {
-            throw new LoggerException('Invalid logger timezone "{timezone}".', 0, $exception, ['timezone' => (string) $timezone]);
-        }
-    }
-
     public function addChannel(Channel $channel): static
     {
         $this->channels[$channel->getName()] = $channel;
@@ -129,5 +119,18 @@ class LoggerManager extends AbstractLogger implements LoggerManagerInterface
     public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
         $this->channel($this->defaultChannel)->log($level, $message, $context);
+    }
+
+    protected static function createTimezone(mixed $timezone): ?DateTimeZone
+    {
+        if ($timezone === null || $timezone === '') {
+            return null;
+        }
+
+        try {
+            return new DateTimeZone((string) $timezone);
+        } catch (Throwable $exception) {
+            throw new LoggerException('Invalid logger timezone "{timezone}".', 0, $exception, ['timezone' => (string) $timezone]);
+        }
     }
 }
