@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Flash\Trace;
 
+/**
+ * @internal
+ */
 class FlashTrace
 {
     public const MAX_MESSAGES = 200;

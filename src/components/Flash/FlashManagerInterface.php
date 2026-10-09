@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Flash\Contract;
+namespace NeoPHP\Component\Flash;
 
-interface FlashInterface
+interface FlashManagerInterface
 {
     public function add(string $type, string $message): static;
 

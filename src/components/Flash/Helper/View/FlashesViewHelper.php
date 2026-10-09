@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Flash\Helper\View;
 
-use NeoPHP\Component\Flash\Contract\FlashInterface;
+use NeoPHP\Component\Flash\FlashManagerInterface;
 use NeoPHP\Component\View\Contract\ViewFunctionInterface;
 
+/**
+ * @internal
+ */
 class FlashesViewHelper implements ViewFunctionInterface
 {
-    public function __construct(protected FlashInterface $flash)
+    public function __construct(protected FlashManagerInterface $flash)
     {
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Flash\Helper\Controller;
 
-use NeoPHP\Component\Flash\Contract\FlashInterface;
+use NeoPHP\Component\Flash\FlashManagerInterface;
 
 trait FlashController
 {
@@ -12,6 +12,6 @@ trait FlashController
 
     protected function addFlash(string $type, string $message): void
     {
-        $this->get(FlashInterface::class)->add($type, $message);
+        $this->get(FlashManagerInterface::class)->add($type, $message);
     }
 }
