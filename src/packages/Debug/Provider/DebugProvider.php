@@ -4,30 +4,33 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Debug\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
 use NeoPHP\Component\Exception\ExceptionManager;
-use NeoPHP\Package\Debug\Contract\DebugInterface;
 use NeoPHP\Package\Debug\DebugManager;
+use NeoPHP\Package\Debug\DebugManagerInterface;
 
+/**
+ * @internal
+ */
 class DebugProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'packages.debug';
 
     public const EXCEPTION_DEPTH = 3;
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(DebugInterface::class, static fn (ContainerInterface $container): DebugInterface => new DebugManager(self::configure($container)));
+        $container->singleton(DebugManagerInterface::class, static fn (ContainerManagerInterface $container): DebugManagerInterface => new DebugManager(self::configure($container)));
 
-        $container->alias(DebugManager::class, DebugInterface::class);
-        $container->alias('debug', DebugInterface::class);
+        $container->alias(DebugManager::class, DebugManagerInterface::class);
+        $container->alias('debug', DebugManagerInterface::class);
     }
 
-    public function boot(ContainerInterface $container): void
+    public function boot(ContainerManagerInterface $container): void
     {
-        $debug = $container->get(DebugInterface::class);
+        $debug = $container->get(DebugManagerInterface::class);
         DebugManager::setInstance($debug);
 
         if ($debug->isEnabled() && $container->has(ExceptionManager::class)) {
@@ -35,9 +38,9 @@ class DebugProvider extends AbstractProvider
         }
     }
 
-    public static function configure(ContainerInterface $container): array
+    public static function configure(ContainerManagerInterface $container): array
     {
-        $config = $container->has(ConfigInterface::class) ? (array) ($container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
+        $config = $container->has(ConfigManagerInterface::class) ? (array) ($container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []) ?? []) : [];
         $debug = $container->has('kernel.debug') && (bool) $container->get('kernel.debug');
 
         return [

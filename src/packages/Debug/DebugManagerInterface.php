@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Debug\Contract;
+namespace NeoPHP\Package\Debug;
 
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Debug\Cloner\VarCloner;
 
-interface DebugInterface
+interface DebugManagerInterface
 {
     public function isEnabled(): bool;
 
