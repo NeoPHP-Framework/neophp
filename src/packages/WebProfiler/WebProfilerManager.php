@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
+use NeoPHP\Component\Kernel\Attribute\Package;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerElementInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerInterface;
+use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use NeoPHP\Package\WebProfiler\Contract\ToolbarAssetInterface;
 use NeoPHP\Package\WebProfiler\Contract\ToolbarInterface;
 use NeoPHP\Package\WebProfiler\Exception\InvalidElementException;
 use NeoPHP\Package\WebProfiler\Model\Panel;
 use NeoPHP\Package\WebProfiler\Model\Profile;
+use NeoPHP\Package\WebProfiler\Provider\WebProfilerProvider;
 use NeoPHP\Package\WebProfiler\Stopwatch\Stopwatch;
 use NeoPHP\Package\WebProfiler\Util\ValueExporter;
 use Throwable;
 
-class Profiler
+#[Package(provider: WebProfilerProvider::class)]
+final class WebProfilerManager implements WebProfilerManagerInterface
 {
     public const DEFAULTS = [
         'enabled' => null,
@@ -47,7 +50,7 @@ class Profiler
     protected string $basePath = '';
 
     public function __construct(
-        protected ContainerInterface $container,
+        protected ContainerManagerInterface $container,
         protected ProfileStorageInterface $storage,
         protected Stopwatch $stopwatch,
         protected array $config = [],

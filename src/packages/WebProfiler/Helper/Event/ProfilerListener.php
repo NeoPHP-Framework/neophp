@@ -2,22 +2,25 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Listener;
+namespace NeoPHP\Package\WebProfiler\Helper\Event;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Event\Attribute\AsListener;
 use NeoPHP\Component\Kernel\Event\ControllerEvent;
 use NeoPHP\Component\Kernel\Event\ExceptionEvent;
 use NeoPHP\Component\Kernel\Event\RequestEvent;
 use NeoPHP\Component\Kernel\Event\ResponseEvent;
-use NeoPHP\Component\Routing\Contract\RoutingInterface;
 use NeoPHP\Component\Routing\Route\Route;
+use NeoPHP\Component\Routing\RoutingManagerInterface;
 use NeoPHP\Package\WebProfiler\Controller\ProfilerController;
-use NeoPHP\Package\WebProfiler\Profiler;
 use NeoPHP\Package\WebProfiler\Provider\WebProfilerProvider;
 use NeoPHP\Package\WebProfiler\Renderer\ToolbarInjector;
+use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 class ProfilerListener
 {
     public const ROUTE_INDEX = '_profiler_index';
@@ -36,7 +39,7 @@ class ProfilerListener
 
     public const HEADER_LINK = 'X-Debug-Token-Link';
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -133,24 +136,24 @@ class ProfilerListener
         }
     }
 
-    protected function profiler(): ?Profiler
+    protected function profiler(): ?WebProfilerManagerInterface
     {
         if (!$this->container->bound(WebProfilerProvider::CONFIG_ID) || !($this->container->get(WebProfilerProvider::CONFIG_ID)['enabled'] ?? false)) {
             return null;
         }
 
-        $profiler = $this->container->get(Profiler::class);
+        $profiler = $this->container->get(WebProfilerManagerInterface::class);
 
-        return $profiler instanceof Profiler && $profiler->isEnabled() ? $profiler : null;
+        return $profiler instanceof WebProfilerManagerInterface && $profiler->isEnabled() ? $profiler : null;
     }
 
-    protected function registerRoutes(Profiler $profiler): void
+    protected function registerRoutes(WebProfilerManagerInterface $profiler): void
     {
-        if (!$this->container->has(RoutingInterface::class)) {
+        if (!$this->container->has(RoutingManagerInterface::class)) {
             return;
         }
 
-        $routing = $this->container->get(RoutingInterface::class);
+        $routing = $this->container->get(RoutingManagerInterface::class);
 
         if ($routing->getRoutes()->has(self::ROUTE_INDEX)) {
             return;

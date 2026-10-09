@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
-use NeoPHP\Component\Flash\Contract\AbstractFlash;
-use NeoPHP\Component\Flash\Contract\FlashInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
-use NeoPHP\Component\Session\Contract\SessionInterface;
+use NeoPHP\Component\Session\SessionManagerInterface;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
 use NeoPHP\Package\WebProfiler\Block\TableBlock;
@@ -22,6 +19,9 @@ use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Model\Status;
 use Throwable;
 
+/**
+ * @internal
+ */
 class SessionProfiler extends AbstractProfiler implements ProfilerInterface
 {
     public const PRIORITY = 290;
@@ -30,23 +30,16 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
 
     public const SENSITIVE = '/pass(word)?|secret|token|authorization|api[_-]?key|csrf|remember|sess/i';
 
-    public const FLASH_CONFIG = 'framework.app.flash.key';
-
-    public const DEFAULT_FLASH_KEY = '_flashes';
-
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
     public function collect(Request $request, Response $response, ?Throwable $exception = null): array
     {
         $name = $this->sessionName();
-        $flashKey = $this->flashKey();
         $id = session_id();
         $opened = is_string($id) && $id !== '' && isset($_SESSION);
         $attributes = $opened ? $_SESSION : [];
-        $flashes = $attributes[$flashKey] ?? [];
-        unset($attributes[$flashKey]);
 
         return [
             'session' => [
@@ -60,11 +53,6 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
                 'gc_maxlifetime' => (int) ini_get('session.gc_maxlifetime'),
                 'save_path' => (string) session_save_path(),
             ],
-            'flashes' => [
-                'key' => $flashKey,
-                'pending' => is_array($flashes) ? $flashes : [],
-                ...$this->flashTrace(),
-            ],
             'cookies' => [
                 'request' => $this->mask($request->cookies->all()),
                 'response' => $this->responseCookies($response),
@@ -75,24 +63,19 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
     public function getPanel(Profile $profile, array $data): ?Panel
     {
         $session = (array) ($data['session'] ?? []);
-        $flashes = (array) ($data['flashes'] ?? []);
         $cookies = (array) ($data['cookies'] ?? []);
-        $pending = (array) ($flashes['pending'] ?? []);
-        $flashCount = array_sum(array_map(static fn (mixed $messages): int => is_array($messages) ? count($messages) : 1, $pending));
-        $flashCount += count((array) ($flashes['added'] ?? [])) + count((array) ($flashes['read'] ?? []));
         $requestCookies = (array) ($cookies['request'] ?? []);
         $responseCookies = (array) ($cookies['response'] ?? []);
 
-        return new Panel('Session / Cookies / Flash', 'user', [
+        return new Panel('Session / Cookies', 'user', [
             new TabsBlock([
                 'Session' => $this->sessionBlocks($session),
-                'Flash messages (' . $flashCount . ')' => $this->flashBlocks($pending, (string) ($flashes['key'] ?? self::DEFAULT_FLASH_KEY), $flashes),
                 'Cookies (' . (count($requestCookies) + count($responseCookies)) . ')' => [
                     new KeyValueBlock($requestCookies, 'Request cookies (sent by the browser)', 'The browser sent no cookie.'),
                     new TableBlock(['Name', 'Value', 'Expires', 'Path', 'Domain', 'Secure', 'HttpOnly', 'SameSite'], array_map(static fn (array $cookie): array => array_values($cookie), $responseCookies), 'Response cookies (Set-Cookie)', 'The response sets no cookie.'),
                 ],
             ]),
-        ], $flashCount > 0 ? $flashCount : null, $flashCount > 0 ? Status::INFO : Status::DEFAULT);
+        ]);
     }
 
     protected function sessionBlocks(array $session): array
@@ -126,29 +109,6 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
             ], 'Session'),
             new KeyValueBlock((array) ($session['attributes'] ?? []), 'Attributes (at the end of the request)', 'The session is empty.'),
         ];
-    }
-
-    protected function flashBlocks(array $pending, string $key, array $flashes = []): array
-    {
-        $rows = [];
-
-        foreach ($pending as $type => $messages) {
-            foreach ((array) $messages as $message) {
-                $rows[] = [(string) $type, $message];
-            }
-        }
-
-        $blocks = [];
-
-        if (($flashes['traced'] ?? false) === true) {
-            $blocks[] = new TableBlock(['Type', 'Message'], array_map(static fn (mixed $flash): array => is_array($flash) ? [(string) ($flash['type'] ?? ''), (string) ($flash['message'] ?? '')] : [], (array) ($flashes['added'] ?? [])), 'Added during this request', 'No flash message added during this request.');
-            $blocks[] = new TableBlock(['Type', 'Message', 'Read with'], array_map(static fn (mixed $flash): array => is_array($flash) ? [(string) ($flash['type'] ?? ''), (string) ($flash['message'] ?? ''), (string) ($flash['method'] ?? '') . '()'] : [], (array) ($flashes['read'] ?? [])), 'Read (displayed) during this request', 'No flash message read during this request.');
-        }
-
-        $blocks[] = new TableBlock(['Type', 'Message'], $rows, 'Pending at the end of the request', 'No pending flash message.');
-        $blocks[] = new AlertBlock(sprintf('Pending messages are still stored in the session (key "%s"): they will be displayed by the next page that reads them.', $key), Status::INFO);
-
-        return $blocks;
     }
 
     protected function responseCookies(Response $response): array
@@ -202,51 +162,16 @@ class SessionProfiler extends AbstractProfiler implements ProfilerInterface
         return $values;
     }
 
-    protected function flashTrace(): array
-    {
-        try {
-            if (!$this->container->resolved(FlashInterface::class)) {
-                return ['traced' => true, 'added' => [], 'read' => []];
-            }
-
-            $flash = $this->container->get(FlashInterface::class);
-        } catch (Throwable) {
-            return ['traced' => false];
-        }
-
-        $trace = $flash instanceof AbstractFlash ? $flash->getTrace() : null;
-
-        if ($trace === null) {
-            return ['traced' => false];
-        }
-
-        $data = ['traced' => true, 'added' => $trace->getAdded(), 'read' => $trace->getRead()];
-        $trace->reset();
-
-        return $data;
-    }
-
     protected function sessionName(): string
     {
         try {
-            if ($this->container->resolved(SessionInterface::class)) {
-                return $this->container->get(SessionInterface::class)->getName();
+            if ($this->container->resolved(SessionManagerInterface::class)) {
+                return $this->container->get(SessionManagerInterface::class)->getName();
             }
         } catch (Throwable) {
             return (string) session_name();
         }
 
         return (string) session_name();
-    }
-
-    protected function flashKey(): string
-    {
-        try {
-            $key = $this->container->has(ConfigInterface::class) ? $this->container->get(ConfigInterface::class)->get(self::FLASH_CONFIG) : null;
-        } catch (Throwable) {
-            $key = null;
-        }
-
-        return is_string($key) && $key !== '' ? $key : self::DEFAULT_FLASH_KEY;
     }
 }

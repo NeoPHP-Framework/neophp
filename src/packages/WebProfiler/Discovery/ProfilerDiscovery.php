@@ -9,9 +9,14 @@ use NeoPHP\Package\WebProfiler\Attribute\AsProfiler;
 use NeoPHP\Package\WebProfiler\Contract\ProfilerElementInterface;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 class ProfilerDiscovery
 {
-    public const DIRECTORY = 'Helper' . DIRECTORY_SEPARATOR . 'Profiler';
+    public const DIRECTORIES = [
+        'Helper' . DIRECTORY_SEPARATOR . 'WebProfiler',
+    ];
 
     protected ClassFinder $finder;
 
@@ -38,15 +43,18 @@ class ProfilerDiscovery
             foreach (glob($source . DIRECTORY_SEPARATOR . '*', GLOB_ONLYDIR) ?: [] as $feature) {
                 $this->track($feature);
                 $this->track($feature . DIRECTORY_SEPARATOR . 'Helper');
-                $directory = $feature . DIRECTORY_SEPARATOR . self::DIRECTORY;
 
-                if (!is_dir($directory)) {
-                    continue;
-                }
+                foreach (self::DIRECTORIES as $directory) {
+                    $directory = $feature . DIRECTORY_SEPARATOR . $directory;
 
-                foreach ($this->finder->find($directory) as $class) {
-                    if ($this->isElement($class)) {
-                        $elements[$class] = $this->priority($class);
+                    if (!is_dir($directory)) {
+                        continue;
+                    }
+
+                    foreach ($this->finder->find($directory) as $class) {
+                        if ($this->isElement($class)) {
+                            $elements[$class] = $this->priority($class);
+                        }
                     }
                 }
             }

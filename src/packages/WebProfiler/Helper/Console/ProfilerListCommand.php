@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\WebProfiler\Helper\Console;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use NeoPHP\Package\WebProfiler\Util\ValueExporter;
 use NeoPHP\Process\Console\Attribute\AsCommand;
@@ -13,10 +13,13 @@ use NeoPHP\Process\Console\Contract\InputInterface;
 use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'profiler:list', description: 'Lists the last profiles collected by the web profiler')]
 class ProfilerListCommand extends AbstractConsole
 {
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
@@ -21,6 +21,9 @@ use NeoPHP\Package\WebProfiler\Stopwatch\Stopwatch;
 use NeoPHP\Package\WebProfiler\Util\ValueExporter;
 use Throwable;
 
+/**
+ * @internal
+ */
 class PerformanceProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 200;

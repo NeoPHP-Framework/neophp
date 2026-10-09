@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
@@ -18,6 +18,9 @@ use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use Throwable;
 
+/**
+ * @internal
+ */
 class RequestProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 300;
@@ -32,7 +35,7 @@ class RequestProfiler extends AbstractProfiler implements ToolbarInterface, Prof
 
     public const SENSITIVE = '/pass(word)?|secret|token|authorization|cookie|api[_-]?key|csrf/i';
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 

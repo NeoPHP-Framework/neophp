@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
@@ -14,9 +14,12 @@ use NeoPHP\Package\WebProfiler\Contract\ProfilerInterface;
 use NeoPHP\Package\WebProfiler\Model\Panel;
 use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Model\Status;
-use NeoPHP\Package\WebProfiler\Profiler;
+use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 class AjaxProfiler extends AbstractProfiler implements ProfilerInterface
 {
     public const PRIORITY = 280;
@@ -29,7 +32,7 @@ class AjaxProfiler extends AbstractProfiler implements ProfilerInterface
 
     public const MAX_CHILDREN = 100;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -95,7 +98,7 @@ class AjaxProfiler extends AbstractProfiler implements ProfilerInterface
         return new Panel('Ajax', 'ajax', $blocks, $children !== [] ? count($children) : null, $errors > 0 ? Status::DANGER : Status::DEFAULT);
     }
 
-    protected function children(Profiler $profiler, Profile $profile): array
+    protected function children(WebProfilerManagerInterface $profiler, Profile $profile): array
     {
         $children = [];
 
@@ -126,7 +129,7 @@ class AjaxProfiler extends AbstractProfiler implements ProfilerInterface
         return $children;
     }
 
-    protected function table(Profiler $profiler, array $children): string
+    protected function table(WebProfilerManagerInterface $profiler, array $children): string
     {
         $html = '<div class="neo-table-wrap"><table class="neo-table"><thead><tr><th>Time</th><th>Method</th><th>Status</th><th>URL</th><th>Duration</th><th>Profile</th></tr></thead><tbody>';
 
@@ -167,15 +170,15 @@ class AjaxProfiler extends AbstractProfiler implements ProfilerInterface
         return '';
     }
 
-    protected function profiler(): ?Profiler
+    protected function profiler(): ?WebProfilerManagerInterface
     {
         try {
-            $profiler = $this->container->get(Profiler::class);
+            $profiler = $this->container->get(WebProfilerManagerInterface::class);
         } catch (Throwable) {
             return null;
         }
 
-        return $profiler instanceof Profiler ? $profiler : null;
+        return $profiler instanceof WebProfilerManagerInterface ? $profiler : null;
     }
 
     protected function e(string $value): string

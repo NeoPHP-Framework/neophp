@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\WebProfiler\Block\KeyValueBlock;
@@ -17,16 +17,19 @@ use NeoPHP\Package\WebProfiler\Model\Panel;
 use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Model\Status;
 use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
-use NeoPHP\Package\WebProfiler\Profiler;
+use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 use Throwable;
 
+/**
+ * @internal
+ */
 class ConfigProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = -100;
 
     public const INI = ['memory_limit', 'max_execution_time', 'display_errors', 'error_reporting', 'opcache.enable', 'opcache.jit', 'date.timezone', 'upload_max_filesize', 'post_max_size'];
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -43,8 +46,8 @@ class ConfigProfiler extends AbstractProfiler implements ToolbarInterface, Profi
 
         $elements = [];
 
-        if ($this->container->bound(Profiler::class)) {
-            foreach ($this->container->get(Profiler::class)->getElements() as $name => $element) {
+        if ($this->container->bound(WebProfilerManagerInterface::class)) {
+            foreach ($this->container->get(WebProfilerManagerInterface::class)->getElements() as $name => $element) {
                 $elements[] = [$name, $element::class, $element->getPriority()];
             }
         }

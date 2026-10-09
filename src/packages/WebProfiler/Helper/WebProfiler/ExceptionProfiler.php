@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\WebProfiler\Helper\Profiler;
+namespace NeoPHP\Package\WebProfiler\Helper\WebProfiler;
 
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
@@ -21,6 +21,9 @@ use NeoPHP\Package\WebProfiler\Model\ToolbarItem;
 use SplFileObject;
 use Throwable;
 
+/**
+ * @internal
+ */
 class ExceptionProfiler extends AbstractProfiler implements ToolbarInterface, ProfilerInterface
 {
     public const PRIORITY = 250;
