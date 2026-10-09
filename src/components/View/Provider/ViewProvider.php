@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\View\Provider;
 
-use NeoPHP\Component\Config\Contract\ConfigInterface;
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 use NeoPHP\Component\View\Contract\ViewHelperInterface;
-use NeoPHP\Component\View\Contract\ViewInterface;
 use NeoPHP\Component\View\Discovery\HelperDiscovery;
 use NeoPHP\Component\View\Engine\PhpEngine;
 use NeoPHP\Component\View\Engine\TwigEngine;
 use NeoPHP\Component\View\Exception\ViewException;
 use NeoPHP\Component\View\ViewManager;
+use NeoPHP\Component\View\ViewManagerInterface;
 
+/**
+ * @internal
+ */
 class ViewProvider extends AbstractProvider
 {
     public const CONFIG_KEY = 'framework.view';
@@ -27,9 +31,9 @@ class ViewProvider extends AbstractProvider
 
     public const APPLICATION_NAMESPACE = 'App\\';
 
-    public function register(ContainerInterface $container): void
+    public function register(ContainerManagerInterface $container): void
     {
-        $container->singleton(ViewInterface::class, static function (ContainerInterface $container): ViewInterface {
+        $container->singleton(ViewManagerInterface::class, static function (ContainerManagerInterface $container): ViewManagerInterface {
             $config = self::config($container);
             $rootPath = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : (string) getcwd();
             $templatesPath = $container->has('kernel.templates_path') ? (string) $container->get('kernel.templates_path') : $rootPath . DIRECTORY_SEPARATOR . 'templates';
@@ -52,7 +56,9 @@ class ViewProvider extends AbstractProvider
                 $view->addPath((string) $path, (string) $namespace);
             }
 
-            foreach (self::helpers($rootPath, $config, $debug) as $class) {
+            $kernel = $container->bound(KernelManagerInterface::class) ? $container->get(KernelManagerInterface::class) : null;
+
+            foreach (self::helpers($rootPath, $config, $debug, $kernel) as $class) {
                 $helper = $container->get($class);
 
                 if (!$helper instanceof ViewHelperInterface) {
@@ -68,10 +74,10 @@ class ViewProvider extends AbstractProvider
             return $view;
         });
 
-        $container->alias(ViewManager::class, ViewInterface::class);
+        $container->alias(ViewManager::class, ViewManagerInterface::class);
     }
 
-    protected static function helpers(string $rootPath, array $config, bool $debug = false): array
+    protected static function helpers(string $rootPath, array $config, bool $debug = false, ?KernelManagerInterface $kernel = null): array
     {
         $discovery = new HelperDiscovery([], $debug);
         $frameworkPath = dirname(__DIR__, 3);
@@ -82,7 +88,7 @@ class ViewProvider extends AbstractProvider
 
         $discovery->addSource($rootPath . DIRECTORY_SEPARATOR . 'src', self::APPLICATION_NAMESPACE);
 
-        $helpers = $discovery->discover();
+        $helpers = array_values(array_filter($discovery->discover(), static fn (string $class): bool => $kernel?->isEnabled($class) ?? true));
 
         foreach ((array) ($config['helpers'] ?? []) as $helper) {
             $helpers[] = (string) $helper;
@@ -91,12 +97,12 @@ class ViewProvider extends AbstractProvider
         return array_values(array_unique($helpers));
     }
 
-    protected static function config(ContainerInterface $container): array
+    protected static function config(ContainerManagerInterface $container): array
     {
-        if (!$container->has(ConfigInterface::class)) {
+        if (!$container->has(ConfigManagerInterface::class)) {
             return [];
         }
 
-        return (array) $container->get(ConfigInterface::class)->get(self::CONFIG_KEY, []);
+        return (array) $container->get(ConfigManagerInterface::class)->get(self::CONFIG_KEY, []);
     }
 }

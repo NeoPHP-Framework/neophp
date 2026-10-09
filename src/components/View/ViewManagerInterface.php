@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\View\Contract;
+namespace NeoPHP\Component\View;
 
+use NeoPHP\Component\View\Contract\ViewHelperInterface;
 use NeoPHP\Component\View\Engine\EngineInterface;
 
-interface ViewInterface
+interface ViewManagerInterface
 {
     public function render(string $template, array $parameters = []): string;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\View\Template;
 
-use NeoPHP\Component\View\Contract\ViewInterface;
 use NeoPHP\Component\View\Exception\ViewException;
+use NeoPHP\Component\View\ViewManagerInterface;
 
 class Template
 {
@@ -16,7 +16,7 @@ class Template
     private array $openSections = [];
 
     public function __construct(
-        protected ViewInterface $view,
+        protected ViewManagerInterface $view,
         protected Sections $sections,
         protected array $functions = [],
         protected array $filters = [],
@@ -124,7 +124,7 @@ class Template
     public function filter(string $name, mixed $value, mixed ...$arguments): mixed
     {
         if (!isset($this->filters[$name])) {
-            throw new ViewException(sprintf('Unknown view filter "%s". Register it with ViewInterface::addFilter() or a ViewFilterInterface helper.', $name));
+            throw new ViewException(sprintf('Unknown view filter "%s". Register it with ViewManagerInterface::addFilter() or a ViewFilterInterface helper.', $name));
         }
 
         return ($this->filters[$name])($value, ...$arguments);
@@ -133,7 +133,7 @@ class Template
     public function __call(string $name, array $arguments): mixed
     {
         if (!isset($this->functions[$name])) {
-            throw new ViewException(sprintf('Unknown view function "%s()". Register it with ViewInterface::addHelper() or a ViewFunctionInterface helper.', $name));
+            throw new ViewException(sprintf('Unknown view function "%s()". Register it with ViewManagerInterface::addHelper() or a ViewFunctionInterface helper.', $name));
         }
 
         return ($this->functions[$name])(...$arguments);
