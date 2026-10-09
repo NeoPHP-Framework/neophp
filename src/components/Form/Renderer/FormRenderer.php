@@ -155,6 +155,11 @@ class FormRenderer
         return $this->themes[$name] ??= $this->createTheme($name);
     }
 
+    public static function camelize(string $name): string
+    {
+        return lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name))));
+    }
+
     protected function createTheme(string $name): ThemeInterface
     {
         $class = self::THEMES[strtolower($name)] ?? $name;
@@ -178,10 +183,5 @@ class FormRenderer
     protected function view(FormView|FormInterface $view): FormView
     {
         return $view instanceof FormInterface ? $view->getView() : $view;
-    }
-
-    public static function camelize(string $name): string
-    {
-        return lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $name))));
     }
 }

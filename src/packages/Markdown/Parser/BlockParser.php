@@ -27,6 +27,77 @@ class BlockParser
         return [$blocks, $this->references];
     }
 
+    public static function indent(string $line): int
+    {
+        return strlen($line) - strlen(ltrim($line, ' '));
+    }
+
+    public static function isThematicBreak(string $line): bool
+    {
+        return preg_match('/^ {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$/', $line) === 1;
+    }
+
+    public static function listMarker(string $line): ?array
+    {
+        if (preg_match('/^( {0,3})([-+*]|(\d{1,9})([.)]))( +|$)(.*)$/', $line, $matches) !== 1) {
+            return null;
+        }
+
+        $ordered = $matches[3] !== '';
+        $width = strlen($matches[1]) + strlen($matches[2]);
+        $spaces = strlen($matches[5]);
+        $content = $matches[6];
+
+        if ($content === '' || $spaces > 4) {
+            $content = $spaces > 4 ? str_repeat(' ', $spaces - 1) . $content : '';
+            $spaces = 1;
+        }
+
+        return [
+            'key' => $ordered ? 'o' . $matches[4] : 'b' . $matches[2],
+            'ordered' => $ordered,
+            'start' => $ordered ? (int) $matches[3] : 1,
+            'indent' => $width + $spaces,
+            'content' => $content,
+        ];
+    }
+
+    public static function htmlBlockType(string $line, bool $interrupt): int
+    {
+        if (preg_match('/^ {0,3}</', $line) !== 1) {
+            return 0;
+        }
+
+        $patterns = [
+            1 => '/^ {0,3}<(?:script|pre|style|textarea)(?:\s|>|$)/i',
+            2 => '/^ {0,3}<!--/',
+            3 => '/^ {0,3}<\?/',
+            4 => '/^ {0,3}<![A-Za-z]/',
+            5 => '/^ {0,3}<!\[CDATA\[/',
+            6 => '/^ {0,3}<\/?(?:' . self::HTML_BLOCK_TAGS . ')(?:\s|\/?>|$)/i',
+        ];
+
+        foreach ($patterns as $type => $pattern) {
+            if (preg_match($pattern, $line) === 1) {
+                return $type;
+            }
+        }
+
+        $tag = '/^ {0,3}(?:<[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^"\'=<>`\s]+|\'[^\']*\'|"[^"]*"))?)*\s*\/?>|<\/[A-Za-z][A-Za-z0-9-]*\s*>)[ \t]*$/';
+
+        return !$interrupt && preg_match($tag, $line) === 1 ? 7 : 0;
+    }
+
+    public static function splitCells(string $line): array
+    {
+        $line = trim($line);
+        $line = str_starts_with($line, '|') ? substr($line, 1) : $line;
+        $line = preg_match('/(?<!\\\\)\|$/', $line) === 1 ? substr($line, 0, -1) : $line;
+        $cells = preg_split('/(?<!\\\\)\|/', $line) ?: [];
+
+        return array_map(static fn (string $cell): string => str_replace('\\|', '|', trim($cell)), $cells);
+    }
+
     protected function parseLines(array $lines): array
     {
         $blocks = [];
@@ -454,76 +525,5 @@ class BlockParser
         }
 
         return $result;
-    }
-
-    public static function indent(string $line): int
-    {
-        return strlen($line) - strlen(ltrim($line, ' '));
-    }
-
-    public static function isThematicBreak(string $line): bool
-    {
-        return preg_match('/^ {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$/', $line) === 1;
-    }
-
-    public static function listMarker(string $line): ?array
-    {
-        if (preg_match('/^( {0,3})([-+*]|(\d{1,9})([.)]))( +|$)(.*)$/', $line, $matches) !== 1) {
-            return null;
-        }
-
-        $ordered = $matches[3] !== '';
-        $width = strlen($matches[1]) + strlen($matches[2]);
-        $spaces = strlen($matches[5]);
-        $content = $matches[6];
-
-        if ($content === '' || $spaces > 4) {
-            $content = $spaces > 4 ? str_repeat(' ', $spaces - 1) . $content : '';
-            $spaces = 1;
-        }
-
-        return [
-            'key' => $ordered ? 'o' . $matches[4] : 'b' . $matches[2],
-            'ordered' => $ordered,
-            'start' => $ordered ? (int) $matches[3] : 1,
-            'indent' => $width + $spaces,
-            'content' => $content,
-        ];
-    }
-
-    public static function htmlBlockType(string $line, bool $interrupt): int
-    {
-        if (preg_match('/^ {0,3}</', $line) !== 1) {
-            return 0;
-        }
-
-        $patterns = [
-            1 => '/^ {0,3}<(?:script|pre|style|textarea)(?:\s|>|$)/i',
-            2 => '/^ {0,3}<!--/',
-            3 => '/^ {0,3}<\?/',
-            4 => '/^ {0,3}<![A-Za-z]/',
-            5 => '/^ {0,3}<!\[CDATA\[/',
-            6 => '/^ {0,3}<\/?(?:' . self::HTML_BLOCK_TAGS . ')(?:\s|\/?>|$)/i',
-        ];
-
-        foreach ($patterns as $type => $pattern) {
-            if (preg_match($pattern, $line) === 1) {
-                return $type;
-            }
-        }
-
-        $tag = '/^ {0,3}(?:<[A-Za-z][A-Za-z0-9-]*(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^"\'=<>`\s]+|\'[^\']*\'|"[^"]*"))?)*\s*\/?>|<\/[A-Za-z][A-Za-z0-9-]*\s*>)[ \t]*$/';
-
-        return !$interrupt && preg_match($tag, $line) === 1 ? 7 : 0;
-    }
-
-    public static function splitCells(string $line): array
-    {
-        $line = trim($line);
-        $line = str_starts_with($line, '|') ? substr($line, 1) : $line;
-        $line = preg_match('/(?<!\\\\)\|$/', $line) === 1 ? substr($line, 0, -1) : $line;
-        $cells = preg_split('/(?<!\\\\)\|/', $line) ?: [];
-
-        return array_map(static fn (string $cell): string => str_replace('\\|', '|', trim($cell)), $cells);
     }
 }

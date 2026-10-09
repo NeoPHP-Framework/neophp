@@ -487,6 +487,61 @@ class Form implements FormInterface
         return $this->addError($message);
     }
 
+    public function mappedChildren(bool $submitted): array
+    {
+        $children = [];
+
+        foreach ($this->children as $name => $child) {
+            if (!$child->isMapped() || $child->isButton()) {
+                continue;
+            }
+
+            if ($submitted && (!$child->isSubmitted() || !$child->isSynchronized() || $child->isDisabled())) {
+                continue;
+            }
+
+            if (!$submitted && $child->hasExplicitData()) {
+                continue;
+            }
+
+            $children[$name] = $child;
+        }
+
+        return $children;
+    }
+
+    public function findTarget(string $path): FormInterface
+    {
+        $segments = array_values(array_filter(explode('.', str_replace(['[', ']'], ['.', ''], $path)), static fn (string $segment): bool => $segment !== ''));
+        $target = $this;
+
+        foreach ($segments as $segment) {
+            $found = null;
+
+            foreach ($target->all() as $child) {
+                if ($child->isMapped() && !$child->isButton() && ($child->getPropertyPath() === $segment || $child->getName() === $segment)) {
+                    $found = $child;
+                    break;
+                }
+            }
+
+            if ($found === null) {
+                break;
+            }
+
+            $target = $found;
+        }
+
+        return $target;
+    }
+
+    public function getCsrfTokenId(): string
+    {
+        $id = $this->getOption('csrf_token_id');
+
+        return is_string($id) && $id !== '' ? $id : ($this->name !== '' ? $this->name : 'form');
+    }
+
     protected function submitCompound(array $data, bool $clearMissing): void
     {
         foreach ($this->children as $name => $child) {
@@ -534,29 +589,6 @@ class Form implements FormInterface
         }
     }
 
-    public function mappedChildren(bool $submitted): array
-    {
-        $children = [];
-
-        foreach ($this->children as $name => $child) {
-            if (!$child->isMapped() || $child->isButton()) {
-                continue;
-            }
-
-            if ($submitted && (!$child->isSubmitted() || !$child->isSynchronized() || $child->isDisabled())) {
-                continue;
-            }
-
-            if (!$submitted && $child->hasExplicitData()) {
-                continue;
-            }
-
-            $children[$name] = $child;
-        }
-
-        return $children;
-    }
-
     protected function validate(): void
     {
         $this->validateCsrf();
@@ -601,31 +633,6 @@ class Form implements FormInterface
         }
     }
 
-    public function findTarget(string $path): FormInterface
-    {
-        $segments = array_values(array_filter(explode('.', str_replace(['[', ']'], ['.', ''], $path)), static fn (string $segment): bool => $segment !== ''));
-        $target = $this;
-
-        foreach ($segments as $segment) {
-            $found = null;
-
-            foreach ($target->all() as $child) {
-                if ($child->isMapped() && !$child->isButton() && ($child->getPropertyPath() === $segment || $child->getName() === $segment)) {
-                    $found = $child;
-                    break;
-                }
-            }
-
-            if ($found === null) {
-                break;
-            }
-
-            $target = $found;
-        }
-
-        return $target;
-    }
-
     protected function validateCsrf(): void
     {
         $field = (string) $this->getOption('csrf_field_name', '_token');
@@ -640,13 +647,6 @@ class Form implements FormInterface
         if (!$csrf->isTokenValid($this->getCsrfTokenId(), is_string($token) ? $token : null)) {
             $this->addError(self::CSRF_ERROR);
         }
-    }
-
-    public function getCsrfTokenId(): string
-    {
-        $id = $this->getOption('csrf_token_id');
-
-        return is_string($id) && $id !== '' ? $id : ($this->name !== '' ? $this->name : 'form');
     }
 
     protected function hasErrorsDeep(): bool

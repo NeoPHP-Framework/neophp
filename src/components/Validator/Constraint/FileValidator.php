@@ -65,20 +65,6 @@ class FileValidator extends AbstractConstraintValidator
         $this->validateFile($path, $value, $constraint, $context);
     }
 
-    protected function validateFile(string $path, mixed $value, File $constraint, ExecutionContext $context): void
-    {
-    }
-
-    protected function describe(mixed $value): array
-    {
-        return match (true) {
-            $value instanceof UploadedFile => [$value->getPath(), $value->getClientOriginalName()],
-            $value instanceof SplFileInfo => [$value->getPathname(), $value->getFilename()],
-            is_string($value) => [$value, basename($value)],
-            default => [null, ''],
-        };
-    }
-
     public static function guessMimeType(string $path, ?string $fallback = null): ?string
     {
         if (function_exists('finfo_open')) {
@@ -123,6 +109,20 @@ class FileValidator extends AbstractConstraintValidator
             $bytes >= 1000000 => round($bytes / 1000000, 2) . ' MB',
             $bytes >= 1000 => round($bytes / 1000, 2) . ' kB',
             default => $bytes . ' bytes',
+        };
+    }
+
+    protected function validateFile(string $path, mixed $value, File $constraint, ExecutionContext $context): void
+    {
+    }
+
+    protected function describe(mixed $value): array
+    {
+        return match (true) {
+            $value instanceof UploadedFile => [$value->getPath(), $value->getClientOriginalName()],
+            $value instanceof SplFileInfo => [$value->getPathname(), $value->getFilename()],
+            is_string($value) => [$value, basename($value)],
+            default => [null, ''],
         };
     }
 }

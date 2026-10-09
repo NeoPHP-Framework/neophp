@@ -130,74 +130,6 @@ class EntityMaker extends AbstractMaker
         $this->plan($name, $fields, $repositoryClass, $force);
     }
 
-    protected function plan(string $name, array $fields, ?string $repositoryClass, bool $force): array
-    {
-        [$class, $file] = $this->resolve($name);
-        $created = $force || !is_file($file);
-        $manipulators = [$file => $created ? new ClassManipulator($this->skeleton($class, $repositoryClass)) : ClassManipulator::fromFile($file)];
-        $existing = [$class => !$created];
-        $names = [];
-
-        foreach ($fields as $field) {
-            $field = $this->normalize($field, $class);
-
-            if (isset($names[$field['name']])) {
-                throw new OrmException('The field "{name}" is defined twice.', 0, null, ['name' => $field['name']]);
-            }
-
-            $names[$field['name']] = true;
-            $this->add($manipulators[$file], $class, $field, $existing[$class]);
-
-            if (isset($field['relation']) && ($field['inverse'] ?? null) !== null) {
-                $target = ltrim((string) $field['target'], '\\');
-                $targetFile = $this->fileOf($target);
-
-                if (!isset($manipulators[$targetFile])) {
-                    if (!is_file($targetFile)) {
-                        throw new OrmException('The entity "{class}" does not exist: its file {file} is missing.', 0, null, ['class' => $target, 'file' => $targetFile]);
-                    }
-
-                    $manipulators[$targetFile] = ClassManipulator::fromFile($targetFile);
-                    $existing[$target] = true;
-                }
-
-                $this->add($manipulators[$targetFile], $target, $this->inverseField($field, $class), $existing[$target] ?? false);
-            }
-        }
-
-        return [$class, $file, $created, $manipulators];
-    }
-
-    protected function add(ClassManipulator $manipulator, string $class, array $field, bool $existing): void
-    {
-        $loaded = $existing && class_exists($class);
-
-        if ($manipulator->hasProperty($field['name']) || ($loaded && property_exists($class, $field['name']))) {
-            throw new OrmException('The property "{class}::${name}" already exists.', 0, null, ['class' => $class, 'name' => $field['name']]);
-        }
-
-        $snippets = $this->snippets($field, $manipulator);
-
-        foreach ($snippets['methods'] as $method) {
-            $methodName = preg_match('/function\s+(\w+)/', $method, $matches) === 1 ? $matches[1] : '';
-
-            if ($manipulator->hasMethod($methodName) || ($loaded && method_exists($class, $methodName))) {
-                throw new OrmException('The method "{class}::{method}()" already exists: rename the field "{name}".', 0, null, ['class' => $class, 'method' => $methodName, 'name' => $field['name']]);
-            }
-        }
-
-        foreach ($snippets['properties'] as $property) {
-            $manipulator->addProperty($property);
-        }
-
-        $parent = $loaded ? get_parent_class($class) : false;
-        $manipulator->addConstructorLines($snippets['constructor'], $parent !== false && method_exists($parent, '__construct'));
-
-        foreach ($snippets['methods'] as $method) {
-            $manipulator->addMethod($method);
-        }
-    }
-
     public function exists(string $name): bool
     {
         return is_file($this->resolve($name)[1]);
@@ -366,6 +298,74 @@ class EntityMaker extends AbstractMaker
             preg_match('/(s|x|z|ch|sh)$/i', $name) === 1 => $name . 'es',
             default => $name . 's',
         };
+    }
+
+    protected function plan(string $name, array $fields, ?string $repositoryClass, bool $force): array
+    {
+        [$class, $file] = $this->resolve($name);
+        $created = $force || !is_file($file);
+        $manipulators = [$file => $created ? new ClassManipulator($this->skeleton($class, $repositoryClass)) : ClassManipulator::fromFile($file)];
+        $existing = [$class => !$created];
+        $names = [];
+
+        foreach ($fields as $field) {
+            $field = $this->normalize($field, $class);
+
+            if (isset($names[$field['name']])) {
+                throw new OrmException('The field "{name}" is defined twice.', 0, null, ['name' => $field['name']]);
+            }
+
+            $names[$field['name']] = true;
+            $this->add($manipulators[$file], $class, $field, $existing[$class]);
+
+            if (isset($field['relation']) && ($field['inverse'] ?? null) !== null) {
+                $target = ltrim((string) $field['target'], '\\');
+                $targetFile = $this->fileOf($target);
+
+                if (!isset($manipulators[$targetFile])) {
+                    if (!is_file($targetFile)) {
+                        throw new OrmException('The entity "{class}" does not exist: its file {file} is missing.', 0, null, ['class' => $target, 'file' => $targetFile]);
+                    }
+
+                    $manipulators[$targetFile] = ClassManipulator::fromFile($targetFile);
+                    $existing[$target] = true;
+                }
+
+                $this->add($manipulators[$targetFile], $target, $this->inverseField($field, $class), $existing[$target] ?? false);
+            }
+        }
+
+        return [$class, $file, $created, $manipulators];
+    }
+
+    protected function add(ClassManipulator $manipulator, string $class, array $field, bool $existing): void
+    {
+        $loaded = $existing && class_exists($class);
+
+        if ($manipulator->hasProperty($field['name']) || ($loaded && property_exists($class, $field['name']))) {
+            throw new OrmException('The property "{class}::${name}" already exists.', 0, null, ['class' => $class, 'name' => $field['name']]);
+        }
+
+        $snippets = $this->snippets($field, $manipulator);
+
+        foreach ($snippets['methods'] as $method) {
+            $methodName = preg_match('/function\s+(\w+)/', $method, $matches) === 1 ? $matches[1] : '';
+
+            if ($manipulator->hasMethod($methodName) || ($loaded && method_exists($class, $methodName))) {
+                throw new OrmException('The method "{class}::{method}()" already exists: rename the field "{name}".', 0, null, ['class' => $class, 'method' => $methodName, 'name' => $field['name']]);
+            }
+        }
+
+        foreach ($snippets['properties'] as $property) {
+            $manipulator->addProperty($property);
+        }
+
+        $parent = $loaded ? get_parent_class($class) : false;
+        $manipulator->addConstructorLines($snippets['constructor'], $parent !== false && method_exists($parent, '__construct'));
+
+        foreach ($snippets['methods'] as $method) {
+            $manipulator->addMethod($method);
+        }
     }
 
     protected static function endsWithWord(string $name, string $word): bool

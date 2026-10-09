@@ -10,6 +10,20 @@ use Stringable;
 
 abstract class AbstractConstraintValidator implements ConstraintValidatorInterface
 {
+    public static function formatValue(mixed $value): string
+    {
+        return match (true) {
+            $value === null => 'null',
+            is_bool($value) => $value ? 'true' : 'false',
+            is_string($value) => '"' . $value . '"',
+            is_int($value), is_float($value) => (string) $value,
+            $value instanceof DateTimeInterface => $value->format('Y-m-d H:i:s'),
+            is_array($value) => 'array',
+            is_object($value) => 'object',
+            default => get_debug_type($value),
+        };
+    }
+
     protected function isEmpty(mixed $value): bool
     {
         return $value === null || $value === '';
@@ -43,19 +57,5 @@ abstract class AbstractConstraintValidator implements ConstraintValidatorInterfa
                 'given' => $constraint::class,
             ]);
         }
-    }
-
-    public static function formatValue(mixed $value): string
-    {
-        return match (true) {
-            $value === null => 'null',
-            is_bool($value) => $value ? 'true' : 'false',
-            is_string($value) => '"' . $value . '"',
-            is_int($value), is_float($value) => (string) $value,
-            $value instanceof DateTimeInterface => $value->format('Y-m-d H:i:s'),
-            is_array($value) => 'array',
-            is_object($value) => 'object',
-            default => get_debug_type($value),
-        };
     }
 }

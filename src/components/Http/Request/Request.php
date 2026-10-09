@@ -391,28 +391,6 @@ class Request
         return $chain[0] ?? $ip;
     }
 
-    protected function isTrustedProxy(string $ip): bool
-    {
-        foreach (self::$trustedProxies as $proxy) {
-            if ($proxy === 'REMOTE_ADDR' ? $ip === (string) $this->server->get('REMOTE_ADDR', '') : self::ipMatches($ip, $proxy)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected function getForwardedValue(string $header): ?string
-    {
-        if (self::$trustedProxies === [] || !$this->isFromTrustedProxy()) {
-            return null;
-        }
-
-        $value = trim(explode(',', (string) $this->headers->get($header, ''))[0]);
-
-        return $value === '' ? null : $value;
-    }
-
     public function getContent(): string
     {
         if ($this->content === null) {
@@ -476,5 +454,27 @@ class Request
     public function isXmlHttpRequest(): bool
     {
         return $this->headers->get('X-Requested-With') === 'XMLHttpRequest';
+    }
+
+    protected function isTrustedProxy(string $ip): bool
+    {
+        foreach (self::$trustedProxies as $proxy) {
+            if ($proxy === 'REMOTE_ADDR' ? $ip === (string) $this->server->get('REMOTE_ADDR', '') : self::ipMatches($ip, $proxy)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getForwardedValue(string $header): ?string
+    {
+        if (self::$trustedProxies === [] || !$this->isFromTrustedProxy()) {
+            return null;
+        }
+
+        $value = trim(explode(',', (string) $this->headers->get($header, ''))[0]);
+
+        return $value === '' ? null : $value;
     }
 }

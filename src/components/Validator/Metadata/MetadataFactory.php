@@ -18,6 +18,11 @@ class MetadataFactory
         return $this->metadata[$class] ??= $this->load($class);
     }
 
+    public static function value(ReflectionProperty $property, object $object): mixed
+    {
+        return $property->isInitialized($object) ? $property->getValue($object) : null;
+    }
+
     protected function load(string $class): array
     {
         $reflection = new ReflectionClass($class);
@@ -54,10 +59,5 @@ class MetadataFactory
     protected function constraints(array $attributes): array
     {
         return array_map(static fn (ReflectionAttribute $attribute): ConstraintInterface => $attribute->newInstance(), $attributes);
-    }
-
-    public static function value(ReflectionProperty $property, object $object): mixed
-    {
-        return $property->isInitialized($object) ? $property->getValue($object) : null;
     }
 }
