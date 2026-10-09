@@ -6,7 +6,6 @@ namespace NeoPHP\Component\Serializer\Normalizer;
 
 use Closure;
 use Error;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DenormalizerInterface;
 use NeoPHP\Component\Serializer\Contract\NameConverterInterface;
 use NeoPHP\Component\Serializer\Contract\NormalizerInterface;
@@ -19,6 +18,7 @@ use NeoPHP\Component\Serializer\Mapping\ClassMetadata;
 use NeoPHP\Component\Serializer\Mapping\ClassResolver;
 use NeoPHP\Component\Serializer\Mapping\MetadataFactory;
 use NeoPHP\Component\Serializer\Mapping\PropertyMetadata;
+use NeoPHP\Component\Serializer\SerializerManager;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionProperty;
@@ -59,17 +59,17 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             return $this->handleCircularReference($data, $format, $context);
         }
 
-        $depth = (int) ($context[AbstractSerializer::DEPTH] ?? 0);
-        $maxDepth = (int) ($context[AbstractSerializer::MAX_DEPTH] ?? 0);
+        $depth = (int) ($context[SerializerManager::DEPTH] ?? 0);
+        $maxDepth = (int) ($context[SerializerManager::MAX_DEPTH] ?? 0);
 
         if ($maxDepth > 0 && $depth >= $maxDepth) {
             return $this->handleMaxDepth($data, $format, $context);
         }
 
         $id = spl_object_id($data);
-        $context[AbstractSerializer::CIRCULAR_COUNTERS][$id] = ($context[AbstractSerializer::CIRCULAR_COUNTERS][$id] ?? 0) + 1;
-        $context[AbstractSerializer::DEPTH] = $depth + 1;
-        unset($context[AbstractSerializer::OBJECT_TO_POPULATE]);
+        $context[SerializerManager::CIRCULAR_COUNTERS][$id] = ($context[SerializerManager::CIRCULAR_COUNTERS][$id] ?? 0) + 1;
+        $context[SerializerManager::DEPTH] = $depth + 1;
+        unset($context[SerializerManager::OBJECT_TO_POPULATE]);
 
         $this->prepareNormalization($data);
         $metadata = $this->metadataFactory->getMetadata($data);
@@ -84,10 +84,10 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             $childContext = $this->childContext($property, $context, $groups, true);
             $limited = false;
 
-            if ($property->maxDepth !== null && ($context[AbstractSerializer::ENABLE_MAX_DEPTH] ?? false)) {
+            if ($property->maxDepth !== null && ($context[SerializerManager::ENABLE_MAX_DEPTH] ?? false)) {
                 $key = $metadata->class . '::' . $name;
-                $count = (int) ($context[AbstractSerializer::MAX_DEPTH_COUNTERS][$key] ?? 0) + 1;
-                $childContext[AbstractSerializer::MAX_DEPTH_COUNTERS][$key] = $count;
+                $count = (int) ($context[SerializerManager::MAX_DEPTH_COUNTERS][$key] ?? 0) + 1;
+                $childContext[SerializerManager::MAX_DEPTH_COUNTERS][$key] = $count;
                 $limited = $count > $property->maxDepth;
             }
 
@@ -103,7 +103,7 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
                 $value = $value === null || is_scalar($value) ? $value : $this->normalizeAttribute($data, $property, $value, $format, $childContext);
             }
 
-            if ($value === null && ($context[AbstractSerializer::SKIP_NULL_VALUES] ?? false)) {
+            if ($value === null && ($context[SerializerManager::SKIP_NULL_VALUES] ?? false)) {
                 continue;
             }
 
@@ -127,8 +127,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             throw new NotNormalizableValueException('The value{at} must be an object ({type}), {actual} given.', 0, null, [
                 'type' => $type,
                 'actual' => is_array($data) ? 'a list' : get_debug_type($data),
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
@@ -156,18 +156,18 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             $values[$property->name] = $value;
         }
 
-        if ($extra !== [] && ($context[AbstractSerializer::ALLOW_EXTRA_ATTRIBUTES] ?? true) === false) {
+        if ($extra !== [] && ($context[SerializerManager::ALLOW_EXTRA_ATTRIBUTES] ?? true) === false) {
             throw new ExtraAttributesException('Extra attributes are not allowed{at}: {attributes} (class {class}).', 0, null, [
                 'attributes' => '"' . implode('", "', $extra) . '"',
                 'extra' => $extra,
                 'class' => $metadata->class,
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
-        $populate = $context[AbstractSerializer::OBJECT_TO_POPULATE] ?? null;
-        unset($context[AbstractSerializer::OBJECT_TO_POPULATE]);
+        $populate = $context[SerializerManager::OBJECT_TO_POPULATE] ?? null;
+        unset($context[SerializerManager::OBJECT_TO_POPULATE]);
 
         if (is_object($populate) && $populate instanceof $type) {
             $object = $populate;
@@ -184,7 +184,7 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
     public static function groups(array $context): ?array
     {
-        $groups = $context[AbstractSerializer::GROUPS] ?? null;
+        $groups = $context[SerializerManager::GROUPS] ?? null;
 
         if ($groups === null || $groups === [] || $groups === '') {
             return null;
@@ -210,11 +210,11 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
     protected function isAllowed(PropertyMetadata $property, array $context, ?array $groups): bool
     {
-        if ($property->ignored || in_array($property->name, (array) ($context[AbstractSerializer::IGNORED_ATTRIBUTES] ?? []), true)) {
+        if ($property->ignored || in_array($property->name, (array) ($context[SerializerManager::IGNORED_ATTRIBUTES] ?? []), true)) {
             return false;
         }
 
-        $attributes = $context[AbstractSerializer::ATTRIBUTES] ?? null;
+        $attributes = $context[SerializerManager::ATTRIBUTES] ?? null;
 
         if (is_array($attributes) && !in_array($property->name, $attributes, true) && !array_key_exists($property->name, $attributes)) {
             return false;
@@ -229,17 +229,17 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
     protected function childContext(PropertyMetadata $property, array $context, ?array $groups, bool $normalization): array
     {
-        $attributes = $context[AbstractSerializer::ATTRIBUTES] ?? null;
+        $attributes = $context[SerializerManager::ATTRIBUTES] ?? null;
 
         if (is_array($attributes) && isset($attributes[$property->name]) && is_array($attributes[$property->name])) {
-            $context[AbstractSerializer::ATTRIBUTES] = $attributes[$property->name];
+            $context[SerializerManager::ATTRIBUTES] = $attributes[$property->name];
         } else {
-            unset($context[AbstractSerializer::ATTRIBUTES]);
+            unset($context[SerializerManager::ATTRIBUTES]);
         }
 
         $context = array_replace($context, $property->getContext($normalization, $groups ?? []));
 
-        return AbstractSerializer::withPath($context, $this->serializedName($property));
+        return SerializerManager::withPath($context, $this->serializedName($property));
     }
 
     protected function prepareNormalization(object $object): void
@@ -277,14 +277,14 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
     protected function isCircularReference(object $object, array $context): bool
     {
-        $limit = max(1, (int) ($context[AbstractSerializer::CIRCULAR_REFERENCE_LIMIT] ?? 1));
+        $limit = max(1, (int) ($context[SerializerManager::CIRCULAR_REFERENCE_LIMIT] ?? 1));
 
-        return ($context[AbstractSerializer::CIRCULAR_COUNTERS][spl_object_id($object)] ?? 0) >= $limit;
+        return ($context[SerializerManager::CIRCULAR_COUNTERS][spl_object_id($object)] ?? 0) >= $limit;
     }
 
     protected function handleCircularReference(object $object, ?string $format, array $context): mixed
     {
-        $handler = $context[AbstractSerializer::CIRCULAR_REFERENCE_HANDLER] ?? null;
+        $handler = $context[SerializerManager::CIRCULAR_REFERENCE_HANDLER] ?? null;
 
         if (is_callable($handler)) {
             return $handler($object, $format, $context);
@@ -292,19 +292,19 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
         throw new CircularReferenceException('A circular reference has been detected when serializing an object of class "{class}"{at} (limit: {limit}). Use serialization groups, #[Ignore], #[MaxDepth], the "ignored_attributes" option or a "circular_reference_handler".', 0, null, [
             'class' => ClassResolver::getRealClass($object),
-            'limit' => (int) ($context[AbstractSerializer::CIRCULAR_REFERENCE_LIMIT] ?? 1),
-            'at' => AbstractSerializer::describePath($context),
-            'path' => AbstractSerializer::path($context),
+            'limit' => (int) ($context[SerializerManager::CIRCULAR_REFERENCE_LIMIT] ?? 1),
+            'at' => SerializerManager::describePath($context),
+            'path' => SerializerManager::path($context),
         ]);
     }
 
     protected function handleMaxDepth(object $object, ?string $format, array $context): mixed
     {
         throw new NotNormalizableValueException('The maximum depth of {depth} has been reached when serializing an object of class "{class}"{at}: raise "max_depth" or use serialization groups.', 0, null, [
-            'depth' => (int) ($context[AbstractSerializer::MAX_DEPTH] ?? 0),
+            'depth' => (int) ($context[SerializerManager::MAX_DEPTH] ?? 0),
             'class' => ClassResolver::getRealClass($object),
-            'at' => AbstractSerializer::describePath($context),
-            'path' => AbstractSerializer::path($context),
+            'at' => SerializerManager::describePath($context),
+            'path' => SerializerManager::path($context),
         ]);
     }
 
@@ -315,8 +315,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
         if (!$reflection->isInstantiable()) {
             throw new NotNormalizableValueException('Unable to create an instance of "{class}"{at}: the class is abstract or not instantiable.', 0, null, [
                 'class' => $metadata->class,
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
@@ -360,9 +360,9 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             throw new MissingConstructorArgumentsException('Unable to create an instance of "{class}"{at}: the constructor requires the missing attribute(s) {arguments}.', 0, null, [
                 'class' => $metadata->class,
                 'arguments' => '"' . implode('", "', $missing) . '"',
-                'missing' => array_map(static fn (string $name): string => AbstractSerializer::path(AbstractSerializer::withPath($context, $name)), $missing),
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'missing' => array_map(static fn (string $name): string => SerializerManager::path(SerializerManager::withPath($context, $name)), $missing),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
@@ -372,8 +372,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             throw new NotNormalizableValueException('Unable to create an instance of "{class}"{at}: {error}', 0, $error, [
                 'class' => $metadata->class,
                 'error' => $error->getMessage(),
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
     }
@@ -405,8 +405,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
                 'class' => $metadata->class,
                 'property' => $property->name,
                 'error' => $error->getMessage(),
-                'at' => AbstractSerializer::describePath($childContext),
-                'path' => AbstractSerializer::path($childContext),
+                'at' => SerializerManager::describePath($childContext),
+                'path' => SerializerManager::path($childContext),
             ]);
         }
     }
@@ -418,7 +418,7 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
                 return null;
             }
 
-            if ($value === '' && $type !== null && $type->allowsNull() && AbstractSerializer::isLenient($format, $context)) {
+            if ($value === '' && $type !== null && $type->allowsNull() && SerializerManager::isLenient($format, $context)) {
                 return null;
             }
 
@@ -441,7 +441,7 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
             return $value;
         }
 
-        if ($value === '' && $type->allowsNull() && !in_array('string', $names, true) && !in_array('mixed', $names, true) && AbstractSerializer::isLenient($format, $context)) {
+        if ($value === '' && $type->allowsNull() && !in_array('string', $names, true) && !in_array('mixed', $names, true) && SerializerManager::isLenient($format, $context)) {
             return null;
         }
 
@@ -452,8 +452,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
 
             throw new NotNormalizableValueException('The value{at} must not be null (expected {type}).', 0, null, [
                 'type' => (string) $type,
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
@@ -482,8 +482,8 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
         throw new NotNormalizableValueException('The value{at} must be of type {type}, {actual} given.', 0, $last, [
             'type' => (string) $type,
             'actual' => get_debug_type($value),
-            'at' => AbstractSerializer::describePath($context),
-            'path' => AbstractSerializer::path($context),
+            'at' => SerializerManager::describePath($context),
+            'path' => SerializerManager::path($context),
         ]);
     }
 

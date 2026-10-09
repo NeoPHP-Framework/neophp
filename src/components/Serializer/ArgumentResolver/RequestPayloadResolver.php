@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\ArgumentResolver;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Http\Exception\BadRequestHttpException;
 use NeoPHP\Component\Http\Exception\HttpException;
@@ -12,16 +12,16 @@ use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Serializer\Attribute\MapQueryString;
 use NeoPHP\Component\Serializer\Attribute\MapRequestPayload;
 use NeoPHP\Component\Serializer\Attribute\Type;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
-use NeoPHP\Component\Serializer\Contract\SerializerInterface;
 use NeoPHP\Component\Serializer\Exception\ExtraAttributesException;
 use NeoPHP\Component\Serializer\Exception\MissingConstructorArgumentsException;
 use NeoPHP\Component\Serializer\Exception\NotNormalizableValueException;
 use NeoPHP\Component\Serializer\Exception\SerializerException;
 use NeoPHP\Component\Serializer\Exception\UnexpectedValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
+use NeoPHP\Component\Serializer\SerializerManagerInterface;
 use NeoPHP\Component\Validator\Contract\AbstractConstraint;
-use NeoPHP\Component\Validator\Contract\ValidatorInterface;
 use NeoPHP\Component\Validator\Exception\ValidationFailedException;
+use NeoPHP\Component\Validator\ValidatorManagerInterface;
 use NeoPHP\Component\Validator\Violation\Violation;
 use NeoPHP\Component\Validator\Violation\ViolationList;
 use ReflectionNamedType;
@@ -37,7 +37,7 @@ class RequestPayloadResolver implements ArgumentResolverInterface
         'form' => ['application/x-www-form-urlencoded', 'multipart/form-data'],
     ];
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -149,7 +149,7 @@ class RequestPayloadResolver implements ArgumentResolverInterface
     protected function map(array $data, string $type, string $format, array $context, ?array $groups, bool $validate, ?array $validationGroups): mixed
     {
         if ($groups !== null) {
-            $context[AbstractSerializer::GROUPS] = $groups;
+            $context[SerializerManager::GROUPS] = $groups;
         }
 
         try {
@@ -158,7 +158,7 @@ class RequestPayloadResolver implements ArgumentResolverInterface
             throw ValidationFailedException::create($this->violations($exception, $data));
         }
 
-        if ($validate && $this->container->has(ValidatorInterface::class)) {
+        if ($validate && $this->container->has(ValidatorManagerInterface::class)) {
             $violations = $this->validate($object, $validationGroups ?? [AbstractConstraint::DEFAULT_GROUP]);
 
             if (count($violations) > 0) {
@@ -171,7 +171,7 @@ class RequestPayloadResolver implements ArgumentResolverInterface
 
     protected function validate(mixed $object, array $groups): ViolationList
     {
-        $validator = $this->container->get(ValidatorInterface::class);
+        $validator = $this->container->get(ValidatorManagerInterface::class);
 
         if (!is_array($object)) {
             return $validator->validate($object, null, $groups);
@@ -246,8 +246,8 @@ class RequestPayloadResolver implements ArgumentResolverInterface
         return $type->getName();
     }
 
-    protected function serializer(): SerializerInterface
+    protected function serializer(): SerializerManagerInterface
     {
-        return $this->container->get(SerializerInterface::class);
+        return $this->container->get(SerializerManagerInterface::class);
     }
 }

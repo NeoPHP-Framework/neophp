@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\Encoder;
 
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DecoderInterface;
 use NeoPHP\Component\Serializer\Contract\EncoderInterface;
 use NeoPHP\Component\Serializer\Exception\NotEncodableValueException;
 use NeoPHP\Component\Serializer\Exception\UnexpectedValueException;
-use NeoPHP\Package\Yaml\Contract\YamlInterface;
+use NeoPHP\Component\Serializer\SerializerManager;
 use NeoPHP\Package\Yaml\YamlManager;
+use NeoPHP\Package\Yaml\YamlManagerInterface;
 use Throwable;
 
 class YamlEncoder implements EncoderInterface, DecoderInterface
@@ -19,14 +19,14 @@ class YamlEncoder implements EncoderInterface, DecoderInterface
 
     public const RESERVED = ['null', '~', 'true', 'false', 'yes', 'no', 'on', 'off', '.inf', '-.inf', '+.inf', '.nan'];
 
-    public function __construct(protected ?YamlInterface $yaml = null)
+    public function __construct(protected ?YamlManagerInterface $yaml = null)
     {
     }
 
     public function encode(mixed $data, string $format, array $context = []): string
     {
-        $inline = max(0, (int) ($context[AbstractSerializer::YAML_INLINE] ?? 4));
-        $indent = max(1, (int) ($context[AbstractSerializer::YAML_INDENT] ?? 2));
+        $inline = max(0, (int) ($context[SerializerManager::YAML_INLINE] ?? 4));
+        $indent = max(1, (int) ($context[SerializerManager::YAML_INDENT] ?? 2));
 
         if (!is_array($data) || $data === [] || $inline === 0) {
             return $this->inline($data) . "\n";

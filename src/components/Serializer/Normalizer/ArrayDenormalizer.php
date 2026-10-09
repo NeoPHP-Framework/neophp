@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Serializer\Normalizer;
 
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DenormalizerInterface;
 use NeoPHP\Component\Serializer\Contract\SerializerAwareInterface;
 use NeoPHP\Component\Serializer\Exception\NotNormalizableValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
 
 class ArrayDenormalizer implements DenormalizerInterface, SerializerAwareInterface
 {
@@ -16,7 +16,7 @@ class ArrayDenormalizer implements DenormalizerInterface, SerializerAwareInterfa
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         $inner = substr($type, 0, -2);
-        $lenient = AbstractSerializer::isLenient($format, $context);
+        $lenient = SerializerManager::isLenient($format, $context);
 
         if ($lenient && $data === '') {
             return [];
@@ -30,16 +30,16 @@ class ArrayDenormalizer implements DenormalizerInterface, SerializerAwareInterfa
             throw new NotNormalizableValueException('The value{at} must be a list of {type}, {actual} given.', 0, null, [
                 'type' => $inner,
                 'actual' => get_debug_type($data),
-                'at' => AbstractSerializer::describePath($context),
-                'path' => AbstractSerializer::path($context),
+                'at' => SerializerManager::describePath($context),
+                'path' => SerializerManager::path($context),
             ]);
         }
 
-        unset($context[AbstractSerializer::OBJECT_TO_POPULATE]);
+        unset($context[SerializerManager::OBJECT_TO_POPULATE]);
         $result = [];
 
         foreach ($data as $key => $value) {
-            $result[$key] = $this->serializer()->denormalize($value, $inner, $format, AbstractSerializer::withPath($context, $key));
+            $result[$key] = $this->serializer()->denormalize($value, $inner, $format, SerializerManager::withPath($context, $key));
         }
 
         return $result;

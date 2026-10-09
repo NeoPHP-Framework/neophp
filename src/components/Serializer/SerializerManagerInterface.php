@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Serializer\Contract;
+namespace NeoPHP\Component\Serializer;
 
-interface SerializerInterface
+interface SerializerManagerInterface
 {
     public function serialize(mixed $data, string $format = 'json', array $context = []): string;
 

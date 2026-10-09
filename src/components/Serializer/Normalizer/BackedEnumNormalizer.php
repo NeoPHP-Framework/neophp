@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Serializer\Normalizer;
 
 use BackedEnum;
-use NeoPHP\Component\Serializer\Contract\AbstractSerializer;
 use NeoPHP\Component\Serializer\Contract\DenormalizerInterface;
 use NeoPHP\Component\Serializer\Contract\NormalizerInterface;
 use NeoPHP\Component\Serializer\Exception\NotNormalizableValueException;
+use NeoPHP\Component\Serializer\SerializerManager;
 use ReflectionEnum;
 use UnitEnum;
 
@@ -35,7 +35,7 @@ class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInterface
         if ($reflection->isBacked()) {
             $backing = (string) $reflection->getBackingType();
 
-            if ($backing === 'int' && is_string($data) && preg_match('/^[-+]?\d+$/', $data) === 1 && AbstractSerializer::isLenient($format, $context)) {
+            if ($backing === 'int' && is_string($data) && preg_match('/^[-+]?\d+$/', $data) === 1 && SerializerManager::isLenient($format, $context)) {
                 $data = (int) $data;
             }
 
@@ -60,8 +60,8 @@ class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInterface
             'value' => is_scalar($data) ? $data : get_debug_type($data),
             'enum' => $type,
             'allowed' => implode(', ', $allowed),
-            'at' => AbstractSerializer::describePath($context),
-            'path' => AbstractSerializer::path($context),
+            'at' => SerializerManager::describePath($context),
+            'path' => SerializerManager::path($context),
         ]);
     }
 
