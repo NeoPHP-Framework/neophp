@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Scheduler;
 
 use DateTimeInterface;
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Kernel\Attribute\Package;
 use NeoPHP\Package\Scheduler\Contract\ScheduleProviderInterface;
 use NeoPHP\Package\Scheduler\Exception\ConfigurationException;
 use NeoPHP\Package\Scheduler\Exception\TaskNotFoundException;
+use NeoPHP\Package\Scheduler\Provider\SchedulerProvider;
+use NeoPHP\Package\Scheduler\Schedule\Schedule;
+use NeoPHP\Package\Scheduler\Schedule\Task;
 
-class Scheduler
+#[Package(provider: SchedulerProvider::class)]
+final class SchedulerManager implements SchedulerManagerInterface
 {
     protected ?array $tasks = null;
 
@@ -18,7 +23,7 @@ class Scheduler
         protected array $configTasks = [],
         protected array $discovered = [],
         protected array $providers = [],
-        protected ?ContainerInterface $container = null,
+        protected ?ContainerManagerInterface $container = null,
         protected ?string $timezone = null,
     ) {
     }

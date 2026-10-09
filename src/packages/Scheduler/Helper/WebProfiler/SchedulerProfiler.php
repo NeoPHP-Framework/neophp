@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Scheduler\Helper\Profiler;
+namespace NeoPHP\Package\Scheduler\Helper\WebProfiler;
 
-use NeoPHP\Component\Container\Contract\ContainerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\Response;
 use NeoPHP\Package\Scheduler\History\HistoryStore;
 use NeoPHP\Package\Scheduler\Provider\SchedulerProvider;
-use NeoPHP\Package\Scheduler\Scheduler;
+use NeoPHP\Package\Scheduler\SchedulerManagerInterface;
 use NeoPHP\Package\WebProfiler\Block\AlertBlock;
 use NeoPHP\Package\WebProfiler\Block\MetricBlock;
 use NeoPHP\Package\WebProfiler\Block\TableBlock;
@@ -22,6 +22,9 @@ use NeoPHP\Package\WebProfiler\Model\Profile;
 use NeoPHP\Package\WebProfiler\Model\Status;
 use Throwable;
 
+/**
+ * @internal
+ */
 class SchedulerProfiler extends AbstractProfiler implements ProfilerInterface
 {
     public const PRIORITY = 35;
@@ -30,7 +33,7 @@ class SchedulerProfiler extends AbstractProfiler implements ProfilerInterface
 
     public const RECENT_RUNS = 20;
 
-    public function __construct(protected ContainerInterface $container)
+    public function __construct(protected ContainerManagerInterface $container)
     {
     }
 
@@ -51,9 +54,9 @@ class SchedulerProfiler extends AbstractProfiler implements ProfilerInterface
         $error = null;
 
         try {
-            $scheduler = $this->container->get(Scheduler::class);
+            $scheduler = $this->container->get(SchedulerManagerInterface::class);
 
-            foreach ($scheduler instanceof Scheduler ? $scheduler->getTasks() : [] as $name => $task) {
+            foreach ($scheduler instanceof SchedulerManagerInterface ? $scheduler->getTasks() : [] as $name => $task) {
                 try {
                     $next = $task->getCron()->getNextRunDate()->format('Y-m-d H:i T');
                 } catch (Throwable $exception) {

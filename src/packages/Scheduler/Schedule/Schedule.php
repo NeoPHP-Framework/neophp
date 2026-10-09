@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Scheduler;
+namespace NeoPHP\Package\Scheduler\Schedule;
 
 use NeoPHP\Package\Scheduler\Exception\ConfigurationException;
 

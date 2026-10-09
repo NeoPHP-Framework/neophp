@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Scheduler\Helper\Console;
 
 use NeoPHP\Package\Scheduler\Runner\TaskRunner;
-use NeoPHP\Package\Scheduler\Scheduler;
+use NeoPHP\Package\Scheduler\SchedulerManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -13,10 +13,13 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'schedule:test', description: 'Runs a scheduled task now, whatever its schedule')]
 class ScheduleTestCommand extends AbstractConsole
 {
-    public function __construct(protected Scheduler $scheduler, protected TaskRunner $runner)
+    public function __construct(protected SchedulerManagerInterface $scheduler, protected TaskRunner $runner)
     {
     }
 

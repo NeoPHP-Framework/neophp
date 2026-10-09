@@ -14,6 +14,9 @@ use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 use Throwable;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'schedule:next', description: 'Explains a cron expression and shows its next run dates', aliases: ['cron:explain'])]
 class ScheduleNextCommand extends AbstractConsole
 {
