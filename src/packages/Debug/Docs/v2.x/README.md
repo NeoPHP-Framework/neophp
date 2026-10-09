@@ -40,7 +40,7 @@ The module is enabled by default. To disable it in a project, add it to `config/
 NeoPHP\Package\Debug\DebugManager::class => false,
 ```
 
-The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` (provider, discoveries, traces, `Helper/View`, `Helper/Console`, `Helper/Event`, `Helper/WebProfiler`) are used by the framework only.
+The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` are used by the framework only.
 
 ## Dumping values
 

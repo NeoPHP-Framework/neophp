@@ -36,7 +36,7 @@ public function __construct(private EventManagerInterface $event)
 
 The kernel requires this module: it is always loaded and cannot be disabled in `config/config.php`.
 
-The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` (provider, discoveries, traces, `Helper/View`, `Helper/Console`, `Helper/Event`, `Helper/WebProfiler`) are used by the framework only.
+The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` are used by the framework only.
 
 ## Events
 

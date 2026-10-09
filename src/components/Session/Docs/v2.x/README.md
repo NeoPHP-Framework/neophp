@@ -41,7 +41,7 @@ NeoPHP\Component\Session\SessionManager::class => false,
 
 It cannot be disabled while Csrf, Flash, Security are enabled.
 
-The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` (provider, discoveries, traces, `Helper/View`, `Helper/Console`, `Helper/Event`, `Helper/WebProfiler`) are used by the framework only.
+The public API of the module is its manager and its interface, `Contract\`, the attributes, the exceptions, the events and the classes documented below. The classes marked `@internal` are used by the framework only.
 
 ## Configuration
 
