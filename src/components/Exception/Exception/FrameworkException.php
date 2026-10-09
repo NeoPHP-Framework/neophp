@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Component\Exception;
+namespace NeoPHP\Component\Exception\Exception;
 
 use NeoPHP\Component\Exception\Contract\AbstractException;
 

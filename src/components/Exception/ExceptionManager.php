@@ -6,9 +6,12 @@ namespace NeoPHP\Component\Exception;
 
 use Closure;
 use NeoPHP\Component\Exception\Contract\ExceptionInterface;
+use NeoPHP\Component\Exception\Provider\ExceptionProvider;
+use NeoPHP\Component\Kernel\Attribute\Component;
 use Throwable;
 
-class ExceptionManager
+#[Component(provider: ExceptionProvider::class)]
+final class ExceptionManager implements ExceptionManagerInterface
 {
     public const PHRASES = [
         400 => 'Bad Request',
