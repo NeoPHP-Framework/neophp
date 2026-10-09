@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace NeoPHP\Package\Tailwind\Contract;
+namespace NeoPHP\Package\Tailwind;
 
-interface TailwindInterface
+interface TailwindManagerInterface
 {
     public const DEFAULT_INPUT = 'css/app.css';
 

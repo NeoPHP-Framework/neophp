@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Tailwind\Helper\Console;
 
-use NeoPHP\Package\Tailwind\Contract\TailwindInterface;
 use NeoPHP\Package\Tailwind\Exception\TailwindException;
+use NeoPHP\Package\Tailwind\TailwindManagerInterface;
 use NeoPHP\Process\Console\Attribute\AsCommand;
 use NeoPHP\Process\Console\Contract\AbstractConsole;
 use NeoPHP\Process\Console\Contract\InputInterface;
@@ -13,16 +13,19 @@ use NeoPHP\Process\Console\Contract\OutputInterface;
 use NeoPHP\Process\Console\IO\InputArgument;
 use NeoPHP\Process\Console\IO\InputOption;
 
+/**
+ * @internal
+ */
 #[AsCommand(name: 'tailwind:install', description: 'Downloads the Tailwind CSS standalone CLI and prepares the Tailwind CSS file in assets/')]
 class TailwindInstallCommand extends AbstractConsole
 {
-    public function __construct(protected TailwindInterface $tailwind)
+    public function __construct(protected TailwindManagerInterface $tailwind)
     {
     }
 
     protected function configure(InputInterface $input, OutputInterface $output): void
     {
-        $input->addArgument('input', InputArgument::OPTIONAL, 'The Tailwind CSS file, relative to assets/', $this->tailwind->getInput() ?? TailwindInterface::DEFAULT_INPUT, 'Tailwind CSS file in assets/');
+        $input->addArgument('input', InputArgument::OPTIONAL, 'The Tailwind CSS file, relative to assets/', $this->tailwind->getInput() ?? TailwindManagerInterface::DEFAULT_INPUT, 'Tailwind CSS file in assets/');
         $input->addOption('tailwind-version', null, InputOption::VALUE_REQUIRED, 'The Tailwind version to download (e.g. 4.1.13, "latest" by default)');
         $this->setHelp(implode("\n", [
             'The binary is downloaded from GitHub into var/tailwind/ (no Node.js needed); --force downloads it again.',
