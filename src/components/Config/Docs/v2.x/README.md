@@ -165,7 +165,7 @@ A value made of a single placeholder keeps its type (`'%kernel.debug%'` is a boo
 | `set(string $key, mixed $value): void` | sets a value (not persisted) |
 | `all(): array` | the whole tree |
 | `loadDirectory(string $directory, array $exclude = []): static` | loads every YAML file of a directory, keyed by path |
-| `loadFile(string $file, string $key = '', bool $resolve = true): static` | loads one file under `$key` (merged with the existing value; root when empty) |
+| `loadFile(string $file, string $key = '', bool $resolve = true): static` | loads one file under `$key` (merged with the existing value; root when empty); its values can reference each other |
 | `resolve(mixed $value): mixed` | resolves the placeholders of a value or an array |
 
 ```php
@@ -179,6 +179,7 @@ $path = $config->resolve('%kernel.root_path%/var');
 
 ## Changelog
 
+- v2.0.1 — Bugfix: an escaped `%%` stays a literal `%` when the value is referenced by another placeholder or the configuration is loaded again (it was resolved a second time); a file loaded with `loadFile()` can reference its own keys.
 - v2.0.0 — `ConfigManager` is the `final` entry point of the module, declared with `#[Component]`; `ConfigManagerInterface` replaces `Contract\ConfigInterface`; `Contract\AbstractConfig` is merged into the manager; the internal classes are marked `@internal`.
 - Bugfix after v1.17.0 — `framework.app.url` / `APP_URL` for absolute URLs outside of an HTTP request.
 - v1.11.0 — `neo install` adds the missing variables to an existing `.env`.

@@ -17,6 +17,8 @@ class FilesystemAdapter extends AbstractAdapter
 
     public const LOCK_DIRECTORY = '.locks';
 
+    public const NAMESPACE_PREFIX = 'ns-';
+
     protected string $directory;
 
     protected array $locks = [];
@@ -154,7 +156,7 @@ class FilesystemAdapter extends AbstractAdapter
             return true;
         }
 
-        $directory = $this->directory . DIRECTORY_SEPARATOR . self::LOCK_DIRECTORY;
+        $directory = $this->root() . DIRECTORY_SEPARATOR . self::LOCK_DIRECTORY;
 
         if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
             return false;
@@ -192,20 +194,28 @@ class FilesystemAdapter extends AbstractAdapter
     {
         $hash = sha1($this->namespace . "\0" . $id);
 
-        return $this->directory . DIRECTORY_SEPARATOR . substr($hash, 0, 2) . DIRECTORY_SEPARATOR . substr($hash, 2, 2) . DIRECTORY_SEPARATOR . $hash . self::EXTENSION;
+        return $this->root() . DIRECTORY_SEPARATOR . substr($hash, 0, 2) . DIRECTORY_SEPARATOR . substr($hash, 2, 2) . DIRECTORY_SEPARATOR . $hash . self::EXTENSION;
+    }
+
+    protected function root(): string
+    {
+        return $this->namespace === '' ? $this->directory : $this->directory . DIRECTORY_SEPARATOR . self::NAMESPACE_PREFIX . substr(sha1($this->namespace), 0, 16);
     }
 
     protected function files(): iterable
     {
-        if (!is_dir($this->directory)) {
+        $root = $this->root();
+
+        if (!is_dir($root)) {
             return [];
         }
 
         $files = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->directory, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+        $namespaces = $root . DIRECTORY_SEPARATOR . self::NAMESPACE_PREFIX;
 
         foreach ($iterator as $file) {
-            if ($file instanceof SplFileInfo && $file->isFile()) {
+            if ($file instanceof SplFileInfo && $file->isFile() && ($this->namespace !== '' || !str_starts_with($file->getPathname(), $namespaces))) {
                 $files[] = $file;
             }
         }

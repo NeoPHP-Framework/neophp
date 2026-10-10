@@ -28,9 +28,9 @@ class Bootstrap5Theme extends DefaultTheme
         $attr = $this->addClass((array) ($vars['row_attr'] ?? []), 'mb-3 form-check');
 
         return '<div' . $this->attributes($attr) . '>'
-            . $renderer->widget($view)
-            . $renderer->label($view, null, ['label_attr' => $this->addClass((array) ($vars['label_attr'] ?? []), 'form-check-label')])
-            . $renderer->help($view)
+            . $renderer->widget($view, $this->rowWidgetVars($vars))
+            . $renderer->label($view, null, ['label_attr' => $this->addClass((array) ($vars['label_attr'] ?? []), 'form-check-label')] + $this->rowLabelVars($vars))
+            . $renderer->help($view, $this->rowHelpVars($vars))
             . $renderer->errors($view)
             . '</div>';
     }

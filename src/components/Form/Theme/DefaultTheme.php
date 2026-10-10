@@ -51,36 +51,36 @@ class DefaultTheme implements ThemeInterface
 
     public function formRow(FormView $view, array $vars, FormRenderer $renderer): string
     {
-        $widgetVars = [];
+        $widgetVars = $this->rowWidgetVars($vars);
 
         if (!empty($vars['help'])) {
-            $widgetVars['attr'] = ['aria-describedby' => $vars['id'] . '_help'];
+            $widgetVars['attr']['aria-describedby'] = $vars['id'] . '_help';
         }
 
         return '<div' . $this->attributes($this->rowAttributes($view, $vars)) . '>'
-            . $renderer->label($view)
+            . $renderer->label($view, null, $this->rowLabelVars($vars))
             . $renderer->widget($view, $widgetVars)
-            . $renderer->help($view)
+            . $renderer->help($view, $this->rowHelpVars($vars))
             . ($vars['compound'] ? '' : $renderer->errors($view))
             . '</div>';
     }
 
     public function hiddenRow(FormView $view, array $vars, FormRenderer $renderer): string
     {
-        return $renderer->widget($view);
+        return $renderer->widget($view, $this->rowWidgetVars($vars));
     }
 
     public function buttonRow(FormView $view, array $vars, FormRenderer $renderer): string
     {
-        return '<div' . $this->attributes((array) ($vars['row_attr'] ?? [])) . '>' . $renderer->widget($view) . '</div>';
+        return '<div' . $this->attributes((array) ($vars['row_attr'] ?? [])) . '>' . $renderer->widget($view, $this->rowWidgetVars($vars) + ['label' => $vars['label'] ?? null]) . '</div>';
     }
 
     public function checkboxRow(FormView $view, array $vars, FormRenderer $renderer): string
     {
         return '<div' . $this->attributes($this->rowAttributes($view, $vars)) . '>'
-            . $renderer->widget($view)
-            . ' ' . $renderer->label($view)
-            . $renderer->help($view)
+            . $renderer->widget($view, $this->rowWidgetVars($vars))
+            . ' ' . $renderer->label($view, null, $this->rowLabelVars($vars))
+            . $renderer->help($view, $this->rowHelpVars($vars))
             . $renderer->errors($view)
             . '</div>';
     }
@@ -315,6 +315,21 @@ class DefaultTheme implements ThemeInterface
     protected function rowAttributes(FormView $view, array $vars): array
     {
         return (array) ($vars['row_attr'] ?? []);
+    }
+
+    protected function rowWidgetVars(array $vars): array
+    {
+        return ['attr' => (array) ($vars['attr'] ?? [])];
+    }
+
+    protected function rowLabelVars(array $vars): array
+    {
+        return ['label' => $vars['label'] ?? null, 'label_attr' => (array) ($vars['label_attr'] ?? []), 'translation_domain' => false];
+    }
+
+    protected function rowHelpVars(array $vars): array
+    {
+        return ['help' => $vars['help'] ?? null, 'help_attr' => (array) ($vars['help_attr'] ?? []), 'translation_domain' => false];
     }
 
     protected function scalar(mixed $value): string

@@ -217,6 +217,10 @@ class YamlServiceLoader
         $path = preg_match('#^([a-zA-Z]:)?[/\\\\]#', $path) === 1 ? $path : dirname($file) . '/' . $path;
         $real = realpath(rtrim($path, '/\\'));
 
+        if ($real === false && preg_match('#^(.*?)[/\\\\]([^/\\\\]*[*?\[].*)$#', $path, $m) === 1 && ($base = realpath($m[1])) !== false) {
+            $real = $base . '/' . $m[2];
+        }
+
         return str_replace('\\', '/', $real !== false ? $real : $path);
     }
 

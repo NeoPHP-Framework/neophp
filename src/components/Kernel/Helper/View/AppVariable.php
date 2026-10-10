@@ -39,7 +39,7 @@ class AppVariable
 
     public function getRequest(): ?Request
     {
-        return $this->container->has(Request::class) ? $this->container->get(Request::class) : null;
+        return $this->container->bound(Request::class) ? $this->container->get(Request::class) : null;
     }
 
     public function getSession(): ?SessionManagerInterface

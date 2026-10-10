@@ -118,7 +118,7 @@ class Form implements FormInterface
 
         $child->setParent($this);
         $this->children[$child->getName()] = $child;
-        $this->view = null;
+        $this->clearView();
 
         return $this;
     }
@@ -138,7 +138,7 @@ class Form implements FormInterface
         if (isset($this->children[$name])) {
             $this->children[$name]->setParent(null);
             unset($this->children[$name]);
-            $this->view = null;
+            $this->clearView();
         }
 
         return $this;
@@ -161,7 +161,7 @@ class Form implements FormInterface
         }
 
         $this->modelData = $data;
-        $this->view = null;
+        $this->clearView();
 
         if ($this->isCompound()) {
             $this->viewData = $data;
@@ -234,7 +234,7 @@ class Form implements FormInterface
         }
 
         $this->submitted = true;
-        $this->view = null;
+        $this->clearView();
 
         if ($this->isButton()) {
             $this->clicked = $data !== null;
@@ -360,7 +360,7 @@ class Form implements FormInterface
         }
 
         $this->errors[] = $error;
-        $this->view = null;
+        $this->clearView();
 
         return $this;
     }
@@ -540,6 +540,13 @@ class Form implements FormInterface
         $id = $this->getOption('csrf_token_id');
 
         return is_string($id) && $id !== '' ? $id : ($this->name !== '' ? $this->name : 'form');
+    }
+
+    protected function clearView(): void
+    {
+        for ($form = $this; $form instanceof self; $form = $form->parent) {
+            $form->view = null;
+        }
     }
 
     protected function submitCompound(array $data, bool $clearMissing): void

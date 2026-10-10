@@ -160,6 +160,7 @@ Any other value throws a `ControllerException`.
 | Trait | Methods |
 |---|---|
 | `Api/Helper/Controller/ApiController` | `paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()` |
+| `Cache/Helper/Controller/CacheController` | `cache()` |
 | `Container/Helper/Controller/ContainerController` | `setContainer()`, `get()`, `has()` |
 | `Cookie/Helper/Controller/CookieController` | `getCookies()` |
 | `Csrf/Helper/Controller/CsrfController` | `getCsrfToken()`, `isCsrfTokenValid()` |
@@ -168,12 +169,16 @@ Any other value throws a `ControllerException`.
 | `Flash/Helper/Controller/FlashController` | `addFlash()` |
 | `Form/Helper/Controller/FormController` | `createForm()`, `createFormBuilder()` |
 | `Http/Helper/Controller/HttpController` | `json()`, `redirect()`, `createNotFoundException()`, `createAccessDeniedException()` |
+| `HttpClient/Helper/Controller/HttpClientController` | `httpClient()` |
 | `Mailer/Helper/Controller/MailerController` | `sendEmail()` |
 | `Orm/Helper/Controller/OrmController` (package) | `getOrm()`, `getRepository()` |
+| `Queue/Helper/Controller/QueueController` (package) | `dispatchMessage()` |
 | `Routing/Helper/Controller/RoutingController` | `generateUrl()`, `redirectToRoute()` |
 | `Security/Helper/Controller/SecurityController` (package) | `getUser()`, `isGranted()`, `denyAccessUnlessGranted()`, `loginUser()`, `logoutUser()`, `getLastUsername()`, `getLastAuthenticationError()` |
 | `Serializer/Helper/Controller/SerializerController` | `serialize()`, `deserialize()` |
 | `Session/Helper/Controller/SessionController` | `getSession()` |
+| `Translation/Helper/Controller/TranslationController` (package) | `translate()`, `switchLocale()` |
+| `Upload/Helper/Controller/UploadController` | `storeUpload()`, `deleteUpload()`, `uploadUrl()` |
 | `Validator/Helper/Controller/ValidatorController` | `validate()` |
 | `View/Helper/Controller/ViewController` | `render()`, `renderView()` |
 

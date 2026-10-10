@@ -9,6 +9,7 @@ use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Form\Contract\FormInterface;
 use NeoPHP\Component\Form\Contract\FormTypeInterface;
 use NeoPHP\Component\Form\Exception\FormException;
+use NeoPHP\Component\Form\Exception\InvalidTypeException;
 use NeoPHP\Component\Form\Model\FormBuilder;
 use NeoPHP\Component\Form\Provider\FormProvider;
 use NeoPHP\Component\Form\Renderer\FormRenderer;
@@ -84,7 +85,7 @@ final class FormManager implements FormManagerInterface
 
         while ($class !== null) {
             if (!class_exists($class) || !is_subclass_of($class, FormTypeInterface::class)) {
-                throw new FormException('The form type "{type}" does not exist or does not implement {interface}.', 0, null, [
+                throw new InvalidTypeException('The form type "{type}" does not exist or does not implement {interface}.', 0, null, [
                     'type' => $class,
                     'interface' => FormTypeInterface::class,
                 ]);
@@ -145,7 +146,7 @@ final class FormManager implements FormManagerInterface
         }
 
         if (!$instance instanceof FormTypeInterface) {
-            throw new FormException('The form type "{type}" must implement {interface}.', 0, null, ['type' => $class, 'interface' => FormTypeInterface::class]);
+            throw new InvalidTypeException('The form type "{type}" must implement {interface}.', 0, null, ['type' => $class, 'interface' => FormTypeInterface::class]);
         }
 
         return $instance;
