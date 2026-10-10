@@ -145,9 +145,11 @@ final class MarkdownManager implements MarkdownManagerInterface
 
         try {
             return $view->render($name, $parameters);
-        } catch (MarkdownException $exception) {
-            throw $exception;
         } catch (Throwable $exception) {
+            if ($exception instanceof MarkdownException) {
+                throw $exception;
+            }
+
             throw new MarkdownException('Unable to render the template "{template}": {error}', 0, $exception, ['template' => $name, 'error' => $exception->getMessage()]);
         }
     }
