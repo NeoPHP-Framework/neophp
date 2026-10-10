@@ -87,7 +87,7 @@ public function cover(Project $project, Request $request, EntityManagerInterface
 |---|---|
 | `max_size` | maximum size for this upload |
 | `mime_types` | allowed MIME types for this upload (`['application/pdf' => 'pdf']`) |
-| `name` | file name without extension (sanitized), a random name by default |
+| `name` | file name without extension (sanitized), a random name by default; an existing file with the same name is replaced |
 
 An `UploadException` is thrown when the file is invalid, too large or of a type that is not allowed. Elsewhere, inject `NeoPHP\Component\Upload\UploadManagerInterface` (also `uploader` in the container).
 

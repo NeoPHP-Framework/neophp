@@ -126,32 +126,32 @@ Line breaks are replaced by spaces: one message is always one line.
 
 ```yaml
 channels:
-  app:
-    enabled: true
-    extension: log
-  framework:
-    enabled: true
-    extension: log
-    minimum_level: warning
+    app:
+        enabled: true
+        extension: log
+    framework:
+        enabled: true
+        extension: log
+        minimum_level: warning
 
 rotation:
-  enabled: true
-  max_files: 30
-  when:
-    filesize: 10M
-    every: day
+    enabled: true
+    max_files: 30
+    when:
+        filesize: 10M
+        every: day
 
 archive:
-  enabled: true
-  extension: zip
+    enabled: true
+    extension: zip
 
 settings:
-  path: '%kernel.root_path%/var/log'
-  format_message: '[%datetime%] %channel%.%type% %message% %context%'
-  date_format: 'Y-m-d H:i:s'
-  timezone: Europe/Paris
-  minimum_level: debug
-  default_channel: app
+    path: '%kernel.root_path%/var/log'
+    format_message: '[%datetime%] %channel%.%type% %message% %context%'
+    date_format: 'Y-m-d H:i:s'
+    timezone: Europe/Paris
+    minimum_level: debug
+    default_channel: app
 ```
 
 | Option | Description |
@@ -241,9 +241,10 @@ class MemoryLogger extends AbstractLogger
 
 ## Exceptions
 
-`NeoPHP\Component\Logger\Exception\LoggerException` extends `FrameworkException`. It is thrown for an unknown level, channel, rotation period, archive extension or timezone, an empty `channels` list, a missing PHP extension, or a file that cannot be written.
+`NeoPHP\Component\Logger\Exception\LoggerException` extends `FrameworkException`. It is thrown for an unknown level, channel, rotation period, archive extension or timezone, an empty `channels` list, a missing PHP extension, or a file that cannot be written by `FileWriter`. A channel never throws while logging: a message that cannot be written is sent to the PHP `error_log`.
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `rotation.max_files` only removes the rotated files of the channel (a channel named `app` removed the files of `app-audit`).
 - v2.0.0 — `LoggerManager` is the `final` entry point of the module, declared with `#[Component]`; `LoggerManagerInterface` moves from `Contract\` to the root of the module; `LogLevel` moves to `Contract\LogLevel`; the internal classes are marked `@internal`.
 - v1.1.0 — PSR-3 compatible logger, channels, rotation by size or period, zip / gz archives, `config/framework/logger.yaml`.

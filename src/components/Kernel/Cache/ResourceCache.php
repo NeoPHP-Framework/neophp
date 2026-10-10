@@ -8,6 +8,8 @@ use NeoPHP\Component\Kernel\Exception\KernelException;
 
 class ResourceCache
 {
+    public const MISSING = -1;
+
     public function __construct(protected string $file, protected bool $debug = false)
     {
     }
@@ -52,6 +54,14 @@ class ResourceCache
     protected function isFresh(array $resources): bool
     {
         foreach ($resources as $path => $time) {
+            if ((int) $time === self::MISSING) {
+                if (file_exists((string) $path)) {
+                    return false;
+                }
+
+                continue;
+            }
+
             if (!file_exists((string) $path) || (int) filemtime((string) $path) !== (int) $time) {
                 return false;
             }

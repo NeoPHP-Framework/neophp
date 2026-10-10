@@ -7,8 +7,8 @@ It has no dependency and is used by the kernel, the routing and the controllers.
 
 - [Module](#module)
 - [Request](#request)
-- [Reverse proxies and trusted hosts](#reverse-proxies-and-trusted-hosts)
 - [Security headers](#security-headers)
+- [Reverse proxies and trusted hosts](#reverse-proxies-and-trusted-hosts)
 - [Application in a sub-directory](#application-in-a-sub-directory)
 - [Bags](#bags)
 - [Uploaded files](#uploaded-files)
@@ -59,7 +59,7 @@ public function search(Request $request): Response
 | Property | Content |
 |---|---|
 | `query` | GET parameters (`ParameterBag`) |
-| `request` | POST parameters, and the JSON body for POST, PUT, PATCH, DELETE (`ParameterBag`) |
+| `request` | POST parameters, and the JSON body for POST, PUT, PATCH, DELETE (`ParameterBag`); filled from the body by `fromGlobals()`, not by `create()` |
 | `attributes` | route parameters, `_route`, `_controller` (`ParameterBag`) |
 | `cookies` | cookies (`ParameterBag`) |
 | `files` | uploaded files (`FileBag`) |
@@ -86,19 +86,19 @@ public function search(Request $request): Response
 
 ## Security headers
 
-`config/framework/app.yaml` adds security headers to every response (pages, error pages, API):
+`config/framework/app.yaml` adds security headers to every response (pages, error pages, API). Example with a `Content-Security-Policy` and HSTS (the generated file keeps them commented out / `~`):
 
 ```yaml
 security_headers:
-  enabled: true
-  headers:
-    X-Content-Type-Options: nosniff
-    X-Frame-Options: SAMEORIGIN
-    Referrer-Policy: strict-origin-when-cross-origin
-    Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
-    Content-Security-Policy: "default-src 'self'"
-  hsts: 31536000
-  excluded_paths: ['^/_profiler', '^/_wdt']
+    enabled: true
+    headers:
+        X-Content-Type-Options: nosniff
+        X-Frame-Options: SAMEORIGIN
+        Referrer-Policy: strict-origin-when-cross-origin
+        Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+        Content-Security-Policy: "default-src 'self'"
+    hsts: 31536000
+    excluded_paths: ['^/_profiler', '^/_wdt']
 ```
 
 | Option | Default | Description |
@@ -206,7 +206,7 @@ new RedirectResponse('/login');
 | `prepare($request)` | fixes the headers for the request (default `Content-Type`, `HEAD`, empty responses) |
 | `send()`, `sendHeaders()`, `sendContent()` | sends the response |
 
-`JsonResponse($data, $status, $headers, $flags)` encodes `$data` (`getData()`, `setData()`); `JsonResponse::DEFAULT_FLAGS` keeps slashes and unicode unescaped. `RedirectResponse($url, $status = 302, $headers)` sets the `Location` header (`getTargetUrl()`).
+`JsonResponse($data, $status, $headers, $flags)` encodes `$data` (`getData()`, `setData()`), with `Content-Type: application/json` unless `$headers` gives one (`application/problem+json`...); `JsonResponse::DEFAULT_FLAGS` keeps slashes and unicode unescaped. `RedirectResponse($url, $status = 302, $headers)` sets the `Location` header (`getTargetUrl()`).
 
 ## HTTP service
 
@@ -258,6 +258,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `JsonResponse` keeps the `Content-Type` given in `$headers`; the regular expressions of `trusted_hosts` keep their upper-case escapes (`\D`, `\W`...), only the host names are lower-cased.
 - v2.0.0 — `HttpManager` is the `final` entry point of the module, declared with `#[Component]`; `HttpManagerInterface` replaces `Contract\HttpInterface`; `Contract\AbstractHttp` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.31.0 — security headers (`security_headers` in `app.yaml`, `SecurityHeaders`); application in a sub-directory: `getBasePath()`, `getRequestPath()`; `getPath()` no longer contains the sub-directory.
 - v1.30.0 — trusted proxies (`trusted_proxies`: `X-Forwarded-For`, `-Proto`, `-Host`, `-Port`) and trusted hosts (`trusted_hosts`), `isFromTrustedProxy()`, `Request::ipMatches()`.

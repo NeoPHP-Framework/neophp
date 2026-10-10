@@ -272,7 +272,7 @@ $cachePath = (string) $this->get('kernel.cache_path');
 
 ```yaml
 settings:
-  path: '%kernel.root_path%/var/log'
+    path: '%kernel.root_path%/var/log'
 ```
 
 ## Kernel events
@@ -400,6 +400,7 @@ php bin/neo cc --env=prod -v
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `app.request` is `null` outside of an HTTP request; the module cache is rebuilt in debug when `config/config.php` is created after the first boot.
 - v2.0.0 — `KernelManagerInterface` replaces `Contract\KernelInterface`; `AppVariable` moves to `Helper\View\AppVariable`; modules: `#[Component]`, `#[Package]` and `#[Process]` attributes on `final` managers, automatic discovery of the framework modules and of the Composer packages (`extra.neophp.modules`), providers sorted by `requires`, `config/config.php` to disable modules per project and per environment, `getModules()` and `isEnabled()`, classes of disabled modules ignored by the discoveries, `Helper/<Module>/` convention; `KernelManager` is `final`, the application kernel extends `AbstractKernel`.
 - v1.32.0 — global `app` template variable (`AppVariable`): request, session, user, flashes, locale, environment, debug, current route and its parameters.
 - v1.9.1 — `ClassFinder` and `ResourceCache` shared with the other features (routing uses them).

@@ -144,7 +144,12 @@ class FileWriter
         }
 
         $info = pathinfo($this->file);
-        $files = glob($info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '-*') ?: [];
+        $extension = isset($info['extension']) ? '\\.' . preg_quote($info['extension'], '/') : '';
+        $pattern = '/^' . preg_quote($info['filename'], '/') . '-\\d{4}[-_\\dW]*' . $extension . '(\\.(zip|gz))?$/i';
+        $files = array_values(array_filter(
+            glob($info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '-*') ?: [],
+            static fn (string $file): bool => preg_match($pattern, basename($file)) === 1,
+        ));
 
         usort($files, static fn (string $a, string $b): int => filemtime($b) <=> filemtime($a) ?: strcmp($b, $a));
 

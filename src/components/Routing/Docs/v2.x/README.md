@@ -47,8 +47,8 @@ The public API of the module is its manager and its interface, `Contract\`, the 
 
 ```yaml
 controllers:
-  resource: ../src/Controller/
-  type: attribute
+    resource: ../src/Controller/
+    type: attribute
 ```
 
 ```php
@@ -98,10 +98,10 @@ On the class, `#[Route]` is a prefix: its `path` and `name` are prepended to eve
 
 ```yaml
 admin_controllers:
-  resource: ../src/Admin/Controller/
-  type: attribute
-  prefix: /admin
-  name_prefix: admin_
+    resource: ../src/Admin/Controller/
+    type: attribute
+    prefix: /admin
+    name_prefix: admin_
 ```
 
 ## YAML routes
@@ -110,24 +110,24 @@ admin_controllers:
 
 ```yaml
 home:
-  path: /
-  controller: App\Controller\HomeController::index
-  methods: [GET]
+    path: /
+    controller: App\Controller\HomeController::index
+    methods: [GET]
 
 user_show:
-  path: /user/{id}
-  controller: App\Controller\UserController::show
-  requirements: { id: '\d+' }
+    path: /user/{id}
+    controller: App\Controller\UserController::show
+    requirements: { id: '\d+' }
 
 page:
-  path: /page/{slug}
-  controller: App\Controller\PageController::show
-  defaults: { slug: home }
+    path: /page/{slug}
+    controller: App\Controller\PageController::show
+    defaults: { slug: home }
 
 admin:
-  resource: routes/admin.yaml
-  prefix: /admin
-  name_prefix: admin_
+    resource: routes/admin.yaml
+    prefix: /admin
+    name_prefix: admin_
 ```
 
 | Key | Description |
@@ -145,7 +145,7 @@ admin:
 
 Configuration placeholders (`%env(...)%`, `%kernel.*%`...) are resolved in the routes files (see the Config documentation).
 
-A route name must be unique: a name defined twice (in YAML, in attributes, or both) throws a `RoutingException` that gives both locations.
+A route name must be unique: a name defined twice in the routes of the application (`config/routes.yaml`, its imports and the attributes they load) throws a `RoutingException` that gives both locations. A route added later with `RoutingManager::add()` replaces the route of the same name.
 
 ## Matching
 
@@ -161,7 +161,7 @@ $this->generateUrl('blog_index', ['page' => 2]);
 $this->redirectToRoute('blog_show', ['slug' => 'hello'], 301);
 ```
 
-The first call returns `/user/42`; the parameters that are not placeholders are added to the query string (`/blog/?page=2`). A trailing placeholder equal to its default value is removed. A missing parameter, or a value that does not match its requirement, throws a `RouteNotDefinedException`.
+The first call returns `/user/42`; the parameters that are not placeholders are added to the query string (`/blog?page=2`). A trailing placeholder equal to its default value is removed. A missing parameter, or a value that does not match its requirement, throws a `RouteNotDefinedException`.
 
 `RoutingController` trait (part of `AbstractController`):
 

@@ -276,7 +276,9 @@ final class AssetManager implements AssetManagerInterface
 
     protected function resolveDependency(string $path): ?string
     {
-        return is_file($this->sourcePath . '/' . $path) ? $this->resolve($path) : null;
+        $override = $this->sourceFiles[$path] ?? null;
+
+        return ($override !== null && is_file($override)) || is_file($this->sourcePath . '/' . $path) ? $this->resolve($path) : null;
     }
 
     protected function compilerFor(string $path): ?CompilerInterface

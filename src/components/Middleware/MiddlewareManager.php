@@ -46,7 +46,7 @@ final class MiddlewareManager implements MiddlewareManagerInterface
 
     public function handle(Request $request, array $middlewares, callable $handler): Response
     {
-        return (new Pipeline($middlewares, $handler, fn (string $class): object => $this->instantiate($class)))->handle($request);
+        return (new Pipeline($this->resolve($middlewares), $handler, fn (string $class): object => $this->instantiate($class)))->handle($request);
     }
 
     public function resolve(array $middlewares): array

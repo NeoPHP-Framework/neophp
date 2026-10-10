@@ -41,7 +41,7 @@ class ExecutionContext
             $message,
             $parameters,
             $path === null ? $this->path : static::join($this->path, $path),
-            $invalidValue ?? $this->value,
+            func_num_args() >= 4 ? $invalidValue : $this->value,
             $this->constraint,
         ));
     }
@@ -74,7 +74,7 @@ class ExecutionContext
 
     public function markValidated(object $object, string $path): bool
     {
-        $key = spl_object_id($object) . '@' . $path;
+        $key = spl_object_id($object);
 
         if (isset($this->validated[$key])) {
             return false;

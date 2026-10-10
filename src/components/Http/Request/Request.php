@@ -129,14 +129,14 @@ class Request
         self::$trustedHostPatterns = [];
 
         foreach ($hosts as $host) {
-            $host = strtolower(trim((string) $host));
+            $host = trim((string) $host);
 
             if ($host === '') {
                 continue;
             }
 
-            if (preg_match('/^[a-z0-9.\-*]+$/', $host) === 1) {
-                $host = '^' . str_replace('\\*', '[a-z0-9-]+', preg_quote($host, '#')) . '$';
+            if (preg_match('/^[a-z0-9.\-*]+$/i', $host) === 1) {
+                $host = '^' . str_replace('\\*', '[a-z0-9-]+', preg_quote(strtolower($host), '#')) . '$';
             }
 
             self::$trustedHostPatterns[] = '#' . str_replace('#', '\\#', $host) . '#i';
