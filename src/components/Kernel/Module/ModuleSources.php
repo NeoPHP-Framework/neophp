@@ -22,7 +22,7 @@ final class ModuleSources
         $sources = [];
 
         foreach ($kernel->getModules() as $class => $module) {
-            if (!is_string($class) || !class_exists($class)) {
+            if (!class_exists($class)) {
                 continue;
             }
 
@@ -39,7 +39,7 @@ final class ModuleSources
                 continue;
             }
 
-            $namespace = (string) ($module['namespace'] ?? $reflection->getNamespaceName());
+            $namespace = $module['namespace'] !== '' ? $module['namespace'] : $reflection->getNamespaceName();
             $sources[$directory] = rtrim($namespace, '\\') . '\\';
         }
 

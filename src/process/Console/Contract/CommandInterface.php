@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Process\Console\Contract;
 
+use NeoPHP\Process\Console\Exception\InvalidInputException;
 use NeoPHP\Process\Console\IO\InputDefinition;
 
 interface CommandInterface
@@ -28,5 +29,13 @@ interface CommandInterface
 
     public function getDefinition(OutputInterface $output): InputDefinition;
 
+    /**
+     * Runs the command: binds the input to the definition of the command, then executes it.
+     *
+     * @param InputInterface $input The input of the command line
+     * @param OutputInterface $output The output
+     * @return int The exit code: SUCCESS, FAILURE or INVALID
+     * @throws InvalidInputException When an argument is missing, or an option does not exist, does not accept a value or requires one
+     */
     public function run(InputInterface $input, OutputInterface $output): int;
 }
