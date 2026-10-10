@@ -67,45 +67,45 @@ php bin/neo security:hash-password secret
 
 ```yaml
 providers:
-  users:
-    entity:
-      class: App\Entity\User
-      property: email
+    users:
+        entity:
+            class: App\Entity\User
+            property: email
 
 password_hashers:
-  default: auto
+    default: auto
 
 firewalls:
-  assets:
-    pattern: ^/builds/
-    security: false
-  main:
-    pattern: ^/
-    provider: users
-    form_login:
-      login_path: app_login
-      enable_csrf: true
-      default_target_path: /
-    logout:
-      path: app_logout
-      target: /
-    remember_me:
-      lifetime: 604800
-    login_throttling:
-      max_attempts: 5
-      interval: 60
+    assets:
+        pattern: ^/builds/
+        security: false
+    main:
+        pattern: ^/
+        provider: users
+        form_login:
+            login_path: app_login
+            enable_csrf: true
+            default_target_path: /
+        logout:
+            path: app_logout
+            target: /
+        remember_me:
+            lifetime: 604800
+        login_throttling:
+            max_attempts: 5
+            interval: 60
 
 role_hierarchy:
-  ROLE_ADMIN: [ROLE_USER]
+    ROLE_ADMIN: [ROLE_USER]
 
 access_control:
-  - { path: ^/admin, roles: ROLE_ADMIN }
-  - { path: ^/profile, roles: IS_AUTHENTICATED }
+    - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/profile, roles: IS_AUTHENTICATED }
 
 access_decision_manager:
-  strategy: affirmative
-  allow_if_all_abstain: false
-  allow_if_equal_granted_denied: true
+    strategy: affirmative
+    allow_if_all_abstain: false
+    allow_if_equal_granted_denied: true
 
 voters: []
 ```
@@ -191,10 +191,10 @@ A provider that also implements `PasswordUpgraderInterface` (`upgradePassword(Pa
 
 ```yaml
 password_hashers:
-  App\Entity\User: auto
-  App\Entity\Admin: { algorithm: bcrypt, cost: 12 }
-  App\Entity\Legacy: { id: App\Security\LegacyHasher }
-  default: auto
+    App\Entity\User: auto
+    App\Entity\Admin: { algorithm: bcrypt, cost: 12 }
+    App\Entity\Legacy: { id: App\Security\LegacyHasher }
+    default: auto
 ```
 
 | Value | Hasher |
@@ -310,14 +310,14 @@ Disabled unless declared:
 
 ```yaml
 logout:
-  path: /logout
-  target: /
-  invalidate_session: true
-  enable_csrf: false
-  csrf_parameter: _csrf_token
-  csrf_token_id: logout
-  clear_cookies: []
-  methods: [GET, POST]
+    path: /logout
+    target: /
+    invalidate_session: true
+    enable_csrf: false
+    csrf_parameter: _csrf_token
+    csrf_token_id: logout
+    clear_cookies: []
+    methods: [GET, POST]
 ```
 
 The request on `path` is handled by the firewall (the route needs no code). `logout_path()` in views returns the URL, with the CSRF token when enabled.
@@ -337,10 +337,10 @@ The request on `path` is handled by the firewall (the route needs no code). `log
 
 ```yaml
 remember_me:
-  lifetime: 604800
-  storage: database      # signature (default) or database
-  connection: ~          # database connection (database.yaml), ~ = default
-  table: remember_me_tokens
+    lifetime: 604800
+    storage: database      # signature (default) or database
+    connection: ~          # database connection (database.yaml), ~ = default
+    table: remember_me_tokens
 ```
 
 | `storage` | Cookie | Revocation |
@@ -383,11 +383,11 @@ The logout removes the device of the current browser. Switching from `signature`
 
 ```yaml
 access_token:
-  token_handler: App\Security\ApiTokenHandler
-  header: Authorization
-  token_type: Bearer
-  query_parameter: ~
-  realm: ~
+    token_handler: App\Security\ApiTokenHandler
+    header: Authorization
+    token_type: Bearer
+    query_parameter: ~
+    realm: ~
 ```
 
 ```php
@@ -545,14 +545,14 @@ Rules are checked on every request; the first matching rule applies (`path`, `ho
 
 ```yaml
 access_control:
-  - { path: ^/login, roles: PUBLIC_ACCESS }
-  - { path: ^/api, methods: [POST, DELETE], roles: ROLE_API }
-  - { path: ^/admin, ips: [127.0.0.1], roles: [ROLE_ADMIN, ROLE_SUPER_ADMIN] }
+    - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api, methods: [POST, DELETE], roles: ROLE_API }
+    - { path: ^/admin, ips: [127.0.0.1], roles: [ROLE_ADMIN, ROLE_SUPER_ADMIN] }
 ```
 
 ## Voters
 
-A voter is a class of `src/` with `#[AsVoter(priority: 0)]` extending `AbstractVoter`. `make:voter Post` generates `src/Security/Voter/PostVoter.php` with `POST_VIEW`, `POST_EDIT` and `POST_DELETE`.
+A voter is a class of `src/`, or of a NeoPHP package installed with Composer (see the Package documentation), with `#[AsVoter(priority: 0)]` extending `AbstractVoter`. `make:voter Post` generates `src/Security/Voter/PostVoter.php` with `POST_VIEW`, `POST_EDIT` and `POST_DELETE`.
 
 ```php
 <?php
@@ -688,6 +688,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v2.1.0 — The voters of the NeoPHP packages are discovered.
 - v2.0.0 — `SecurityManager` is the `final` entry point of the module, declared with `#[Package]`; `SecurityManagerInterface` replaces `Contract\SecurityInterface`; `Contract\AbstractSecurity` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.31.0 — remember-me `storage: database` (`DatabaseTokenProvider`, `TokenProviderInterface`, revocation per device with `getRememberMeTokens()`, `revokeRememberMeToken()`, `revokeAllRememberMeTokens()`); the redirections (login, logout, target path) contain the sub-directory of the application; logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.
 - v1.30.0 — login throttling: empty files deleted and expired files garbage collected (`LoginThrottler::gc()`); the client IP follows `trusted_proxies`.

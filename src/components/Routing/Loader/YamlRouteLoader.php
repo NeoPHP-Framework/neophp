@@ -21,9 +21,12 @@ class YamlRouteLoader
 
     protected mixed $resolver;
 
-    public function __construct(protected YamlManagerInterface $yaml, ?callable $resolver = null)
+    protected mixed $packages;
+
+    public function __construct(protected YamlManagerInterface $yaml, ?callable $resolver = null, ?callable $packages = null)
     {
         $this->resolver = $resolver;
+        $this->packages = $packages;
     }
 
     public function load(string $file): RouteCollection
@@ -122,7 +125,17 @@ class YamlRouteLoader
         $this->assertKeys($name, $definition, self::IMPORT_KEYS, $file);
 
         $resource = (string) $definition['resource'];
-        $path = preg_match('#^([a-zA-Z]:)?[/\\\\]#', $resource) === 1 ? $resource : dirname($file) . DIRECTORY_SEPARATOR . $resource;
+
+        if (str_starts_with($resource, '@')) {
+            $path = $this->packageResource(substr($resource, 1), $name, $file);
+
+            if ($path === null) {
+                return new RouteCollection();
+            }
+        } else {
+            $path = preg_match('#^([a-zA-Z]:)?[/\\\\]#', $resource) === 1 ? $resource : dirname($file) . DIRECTORY_SEPARATOR . $resource;
+        }
+
         $imported = $this->loadResource($name, $path, $definition['type'] ?? null, $file);
 
         $prefix = trim((string) ($definition['prefix'] ?? ''), '/');
@@ -148,6 +161,21 @@ class YamlRouteLoader
         }
 
         return $collection;
+    }
+
+    private function packageResource(string $package, string $name, string $file): ?string
+    {
+        $resource = $this->packages !== null ? ($this->packages)($package) : null;
+
+        if ($resource === false) {
+            return null;
+        }
+
+        if (!is_string($resource) || $resource === '') {
+            throw new RoutingException(sprintf('The import "%s" in "%s" refers to "@%s", which is not an installed NeoPHP package with routes.', $name, $file, $package));
+        }
+
+        return $resource;
     }
 
     private function loadResource(string $name, string $path, mixed $type, string $file): RouteCollection

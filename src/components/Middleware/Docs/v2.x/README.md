@@ -110,7 +110,7 @@ groups:
 | `aliases` | short name => class |
 | `groups` | name => list of middlewares (classes, aliases or other groups) |
 
-A middleware can also declare itself with `#[AsMiddleware]`, discovered in `src/`:
+A middleware can also declare itself with `#[AsMiddleware]`, discovered in `src/` and in the NeoPHP packages installed with Composer (see the Package documentation):
 
 | Argument | Default | Description |
 |---|---|---|
@@ -123,7 +123,7 @@ A middleware can also declare itself with `#[AsMiddleware]`, discovered in `src/
 class MaintenanceMiddleware implements MiddlewareInterface
 ```
 
-The global middlewares of `middleware.yaml` run first, in their order, then the global middlewares declared with `#[AsMiddleware]`. An alias of `middleware.yaml` wins over an alias declared with the attribute. The discovery is cached in `var/cache/middleware/` (rebuilt in debug when a file of `src/` changes).
+The global middlewares of `middleware.yaml` run first, in their order, then the global middlewares declared with `#[AsMiddleware]`. An alias of `middleware.yaml` wins over an alias declared with the attribute. The discovery is cached in `var/cache/middleware/` (rebuilt in debug when a file of `src/` changes or when a package is installed or removed).
 
 ## Aliases and groups
 
@@ -223,6 +223,7 @@ Other classes:
 
 ## Changelog
 
+- v2.1.0 — The `#[AsMiddleware]` middlewares of the NeoPHP packages are discovered.
 - v2.0.1 — Bugfix: `MiddlewareManager::handle()` resolves the aliases and groups it receives (an unknown alias throws a `MiddlewareException`).
 - v2.0.0 — `MiddlewareManager` is the `final` entry point of the module, declared with `#[Component]`; `MiddlewareManagerInterface` moves from `Contract\` to the root of the module; `Contract\AbstractMiddlewareManager` is merged into the manager; the internal classes are marked `@internal`.
 - v1.7.0 — Middlewares: PSR-15 style interfaces, global middlewares (`middleware.yaml`, `#[AsMiddleware]`), aliases and groups, route middlewares (`#[Middleware]`, `#[Route(middlewares)]`, `routes.yaml`), `middleware:list` command.

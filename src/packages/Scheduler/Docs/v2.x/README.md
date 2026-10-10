@@ -122,7 +122,7 @@ class PurgeTokens
 | `description` | `''` | free text |
 | `arguments` | `''` | arguments of a command (`'--env=prod --force'`) |
 
-The attribute is repeatable. Classes are discovered in `src/` and cached in `var/cache/scheduler/tasks.{env}.php`.
+The attribute is repeatable. Classes are discovered in `src/` and in the NeoPHP packages installed with Composer (see the Package documentation), and cached in `var/cache/scheduler/tasks.{env}.php`.
 
 ### Configuration
 
@@ -137,7 +137,7 @@ Keys: one of `command` (with optional `arguments`), `message` (a class built wit
 
 ### Schedule provider
 
-A class implementing `ScheduleProviderInterface` (discovered in `src/`, or listed in `providers:`) receives a fluent `Schedule`:
+A class implementing `ScheduleProviderInterface` (discovered in `src/` and in the NeoPHP packages, or listed in `providers:`) receives a fluent `Schedule`:
 
 ```php
 namespace App\Task;
@@ -284,5 +284,6 @@ All in `NeoPHP\Package\Scheduler\Exception\`, extending `SchedulerException` (it
 
 ## Changelog
 
+- v2.1.0 — The tasks and schedule providers of the NeoPHP packages are discovered.
 - v2.0.0 — `SchedulerManager` is the `final` entry point of the module, declared with `#[Package]`; new `SchedulerManagerInterface`; `Scheduler` is renamed `SchedulerManager`; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Schedule` moves to `Schedule\Schedule`; `Task` moves to `Schedule\Task`; the internal classes are marked `@internal`.
 - v1.37.0 — Scheduler package: `CronExpression` (lists, ranges, steps, names, aliases, `@every`, timezones, next / previous dates), tasks from `#[AsScheduledTask]` classes and commands, `config/packages/scheduler.yaml` and `ScheduleProviderInterface` with a fluent `Schedule`, frequencies, `when()` / `skip()` / `between()`, overlap locks, run history, `schedule:run`, `schedule:list`, `schedule:work`, `schedule:test`, `schedule:next` commands, Scheduler panel of the WebProfiler.

@@ -9,6 +9,7 @@ use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\WebProfiler\Contract\BlockRendererInterface;
 use NeoPHP\Package\WebProfiler\Contract\ProfileStorageInterface;
 use NeoPHP\Package\WebProfiler\Discovery\ProfilerDiscovery;
@@ -108,12 +109,13 @@ class WebProfilerProvider extends AbstractProvider
     {
         $frameworkPath = dirname(__DIR__, 3);
         $sources = array_map(static fn (string $directory): string => $frameworkPath . DIRECTORY_SEPARATOR . $directory, self::FRAMEWORK_SOURCES);
-        $applications = $container->has('kernel.root_path') ? [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'] : [];
+        $applications = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
 
-        $builder = static function () use ($sources, $applications): array {
+        $builder = static function () use ($sources, $applications, $resources): array {
             $discovery = new ProfilerDiscovery($sources, $applications);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

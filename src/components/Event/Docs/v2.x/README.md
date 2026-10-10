@@ -144,7 +144,7 @@ class UserSubscriber implements EventSubscriberInterface
 }
 ```
 
-Listeners and subscribers are discovered in `src/` and in the framework (`Feature/Helper/Event/`), built by the container (their dependencies are autowired) and instantiated only when their event is dispatched. The discovery is cached in `var/cache/event/`.
+Listeners and subscribers are discovered in `src/`, in the framework (`Feature/Helper/Event/`) and in the sources of the NeoPHP packages installed with Composer (see the Package documentation), built by the container (their dependencies are autowired) and instantiated only when their event is dispatched. The discovery is cached in `var/cache/event/`; in debug, it is rebuilt when a file changes or when a package is installed or removed.
 
 ## Configuration
 
@@ -169,7 +169,7 @@ php bin/neo event:list User
 
 `event:list [filter]` lists the events and their listeners in the order they are called; `filter` keeps the events whose name contains the text.
 
-An invalid listener (unknown event, missing method...) throws an `EventException`.
+An invalid listener (a class listener without method, a parameter without class type, a subscriber that does not implement `EventSubscriberInterface`, a listener that is not callable) throws an `EventException`. The event name is not checked: a listener of an event that is never dispatched is simply never called.
 
 ## Kernel events
 
@@ -185,6 +185,7 @@ They are in `NeoPHP\Component\Kernel\Event\` and give access to `getKernel()` an
 
 ## Changelog
 
+- v2.1.0 — The listeners and subscribers of the NeoPHP packages installed with Composer are discovered.
 - v2.0.0 — `EventManager` is the `final` entry point of the module, declared with `#[Component]`; `EventManagerInterface` replaces `Contract\EventDispatcherInterface`; `Contract\AbstractEventDispatcher` is merged into the manager; the internal classes are marked `@internal`.
 - v1.15.0 — `event:list` rewritten for the new console.
 - v1.9.0 — Event component: dispatcher, `#[AsListener]`, subscribers, `event.yaml`, stoppable events, kernel events, `dispatch()` in controllers, `event:list` command.

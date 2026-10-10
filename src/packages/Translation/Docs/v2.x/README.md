@@ -144,7 +144,9 @@ XLIFF 1.2 (the key is the `resname` attribute, or the `source` when there is non
 
 An empty message (`""` or an empty `<target>`) is considered untranslated: the fallback locales are tried, then the key is returned.
 
-Priority, from the lowest: the files added with `addResource()`, then the application files of `translations/`. The framework ships no translation file. A bundle can register its own files or messages in a provider:
+Priority, from the lowest: the files added with `addResource()` and the files of the NeoPHP packages, then the application files of `translations/`.
+
+The `translations/` directory of a NeoPHP package installed with Composer (`extra.neophp.translations`, see the Package documentation) is loaded automatically when the package is enabled: `translations/billing.fr.yaml` of the package gives the domain `billing`, and the same key in `translations/billing.fr.yaml` of the project replaces it. The framework ships no translation file. A bundle can register its own files or messages in a provider:
 
 ```php
 $translator->addResource(__DIR__ . '/../Resources/translations/shop.fr.yaml');
@@ -289,15 +291,18 @@ The login error is translated when the login fails: it is stored in the session 
 
 | Command | Description |
 |---|---|
-| `translation:generate [--locale=fr]... [--domain=] [--format=yaml\|xliff] [--dry-run] [--clean]` | extracts the keys and adds the missing ones to the files |
+| `translation:generate [--locale=fr]... [--domain=] [--format=yaml\|xliff] [--dry-run] [--clean] [--package=]` | extracts the keys and adds the missing ones to the files |
 | `translation:debug [locale] [--domain=] [--only-missing] [--only-unused]` | table of the keys with their state per locale |
 | `translation:lint` | checks that every file can be parsed and that every message has a valid syntax (exit code 1 on error) |
 
 `translation:generate` scans `extract.paths` for literal keys: `translate('key')` and `'key'|trans` in Twig, `$this->translate('key')` in PHP templates, `->translate('key')` and `translate('key')` in PHP code; the domain is read from the third argument of `translate()` (second of `trans()`) or a named `domain:` argument when it is a literal. For each locale (all enabled ones by default) and domain, the missing keys are added to `translations/{domain}.{locale}.{ext}` (created when needed): the value is the key for the default locale and `""` for the others. Existing translations are kept, an existing file keeps its format and `--clean` removes the keys that are not found in the code (only in the domains found in the code). `--dry-run` lists the changes without writing.
 
+`--package=billing` scans `templates/` and `src/` of the NeoPHP package instead and writes its `translations/` directory: use it while developing a package. The templates of a package overridden in `templates/packages/<name>/` of the project are scanned like the other templates of the project.
+
 ```bash
 php bin/neo translation:generate --dry-run
 php bin/neo translation:generate --locale=fr --format=xliff
+php bin/neo translation:generate --package=billing
 php bin/neo translation:debug fr --only-missing
 php bin/neo translation:lint
 ```
@@ -351,6 +356,7 @@ $trace?->getMessages(TranslationTrace::STATE_MISSING);
 
 ## Changelog
 
+- v2.1.0 — Translations of the NeoPHP packages loaded automatically (overridden by the project), `translation:generate --package`.
 - v2.0.0 — `TranslationManager` is the `final` entry point of the module, declared with `#[Package]`; `TranslationManagerInterface` replaces `Contract\TranslatorInterface`; `Contract\AbstractTranslator` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; `LocaleDetector` moves to `Locale\LocaleDetector`; the internal classes are marked `@internal`.
 - v1.31.3 — `translation:generate` indents the YAML files with 4 spaces, like the other YAML files of the framework.
 - v1.25.3 — profiler integration: `TranslationProfiler` toolbar item and panel, opt-in `TranslationTrace` on the translator (defined / fallback / missing messages with counts, parameters and results), locale detection source, loaded catalogues, `AbstractTranslator::setTrace()` / `getTrace()` / `getLoadedCatalogues()`.

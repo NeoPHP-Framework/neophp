@@ -10,6 +10,8 @@ use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Event\EventManagerInterface;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Orm\ArgumentResolver\EntityValueResolver;
 use NeoPHP\Package\Orm\Contract\EntityManagerInterface;
 use NeoPHP\Package\Orm\Maker\EntityMaker;
@@ -20,6 +22,7 @@ use NeoPHP\Package\Orm\Migration\Migrator;
 use NeoPHP\Package\Orm\OrmManager;
 use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Proxy\ProxyFactory;
+use NeoPHP\Package\Orm\Schema\SchemaFactory;
 use NeoPHP\Package\Orm\Schema\SchemaTool;
 
 /**
@@ -43,7 +46,7 @@ class OrmProvider extends AbstractProvider
 
             return new OrmManager(
                 $container->get(DatabaseManagerInterface::class)->connection($config['connection']),
-                new MetadataFactory([$config['entity']['path']]),
+                new MetadataFactory([$config['entity']['path'], ...array_column(self::packages($container, 'entities'), 'entities')]),
                 new ProxyFactory($config['proxy']['path'], $debug),
                 $container->has(EventManagerInterface::class) ? $container->get(EventManagerInterface::class) : null,
                 $container,
@@ -55,7 +58,15 @@ class OrmProvider extends AbstractProvider
             $config = $container->get(self::CONFIG_ID);
             $orm = $container->get(OrmManagerInterface::class);
 
-            return new Migrator($orm->getConnection(), $orm->getPlatform(), $config['migration']['path'], $config['migration']['namespace'], $config['migration']['table']);
+            $migrator = new Migrator($orm->getConnection(), $orm->getPlatform(), $config['migration']['path'], $config['migration']['namespace'], $config['migration']['table']);
+
+            foreach (self::packages($container, 'migrations') as $package) {
+                if ($package['migrations_namespace'] !== null) {
+                    $migrator->addSource($package['migrations'], $package['migrations_namespace'], $package['name']);
+                }
+            }
+
+            return $migrator;
         });
 
         $container->singleton(MigrationGenerator::class, static function (ContainerManagerInterface $container): MigrationGenerator {
@@ -67,7 +78,10 @@ class OrmProvider extends AbstractProvider
         $container->singleton(SchemaTool::class, static function (ContainerManagerInterface $container): SchemaTool {
             $config = $container->get(self::CONFIG_ID);
 
-            return new SchemaTool($container->get(OrmManagerInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables']]);
+            $entities = array_column(self::packages($container, 'entities'), 'entities');
+            $packageTables = $entities === [] ? [] : array_keys((new SchemaFactory(new MetadataFactory($entities)))->create()->tables);
+
+            return new SchemaTool($container->get(OrmManagerInterface::class), [$config['migration']['table'], ...self::FRAMEWORK_TABLES, ...$config['ignore_tables'], ...$packageTables]);
         });
 
         $container->singleton(EntityMaker::class, static function (ContainerManagerInterface $container): EntityMaker {
@@ -92,6 +106,18 @@ class OrmProvider extends AbstractProvider
         $container->singleton(EntityValueResolver::class, static fn (ContainerManagerInterface $container): EntityValueResolver => new EntityValueResolver($container));
         $resolvers = $container->has(ArgumentResolverInterface::SERVICES_ID) ? (array) $container->get(ArgumentResolverInterface::SERVICES_ID) : [];
         $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, EntityValueResolver::class]);
+    }
+
+    public static function packages(ContainerManagerInterface $container, string $directory): array
+    {
+        if (!$container->has('kernel.root_path')) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            InstalledPackages::enabled((string) $container->get('kernel.root_path'), ModuleSources::kernel($container)),
+            static fn (array $package): bool => ($package[$directory] ?? null) !== null,
+        ));
     }
 
     public static function configure(ContainerManagerInterface $container): array

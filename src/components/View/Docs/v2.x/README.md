@@ -12,6 +12,7 @@ View helpers written once work in both engines and are discovered automatically 
 - [Twig templates](#twig-templates)
 - [View helpers](#view-helpers)
 - [Configuration](#configuration)
+- [Package templates](#package-templates)
 - [API](#api)
 - [Changelog](#changelog)
 
@@ -206,7 +207,7 @@ class PriceViewHelper implements ViewFunctionInterface, ViewFilterInterface
 
 ### Discovery
 
-The View component contains no helper: it discovers every `Helper/View/` directory of the framework and of the application (`src/**/Helper/View/`). Dependencies are autowired. An application helper with the same name as a framework helper replaces it.
+The View component contains no helper: it discovers every `Helper/View/` directory of the framework, of the application (`src/**/Helper/View/`) and of the NeoPHP packages installed with Composer (`src/**/Helper/View/` of the package). Dependencies are autowired. An application helper with the same name as a framework helper replaces it.
 
 The file name must match the class (PSR-4): in debug, a helper file that declares another class (e.g. `MardownViewHelper.php` containing `MarkdownViewHelper`) throws an error naming the file; in production it is ignored.
 
@@ -256,6 +257,20 @@ twig:
 | `helpers` | additional helper classes |
 | `twig.enabled` | `false` disables Twig even when it is installed |
 | `twig.*` | Twig options: `cache`, `debug`, `auto_reload`, `strict_variables`, `autoescape`, `charset` |
+
+## Package templates
+
+The `templates/` directory of a NeoPHP package installed with Composer is registered under the name of the package (`extra.neophp.name`, see the Package documentation):
+
+```php
+return $this->render('@billing/invoice', ['invoice' => $invoice]);
+```
+
+```twig
+{% include '@billing/invoice_line.html.twig' %}
+```
+
+A template of `templates/packages/<name>/` of the project replaces the template of the package with the same name: `templates/packages/billing/invoice.php` is rendered in place of `invoice.php` of the package. A namespace with the same name declared in `namespaces` of `view.yaml` is searched first. The templates of a disabled package are not registered.
 
 ## API
 
@@ -317,6 +332,7 @@ $view->addFilter('shout', static fn (string $text): string => strtoupper($text))
 
 ## Changelog
 
+- v2.1.0 — Templates of the NeoPHP packages rendered with `@<name>/` and overridden in `templates/packages/<name>/`; the view helpers of the packages are discovered.
 - v2.0.0 — `ViewManager` is the `final` entry point of the module, declared with `#[Component]`; `ViewManagerInterface` replaces `Contract\ViewInterface`; `Contract\AbstractView` is merged into the manager; the internal classes are marked `@internal`.
 - Bugfix after v1.17.0 — In debug, a view helper file whose name does not match its class throws an error.
 - v1.4.0 — `render()` and `renderView()` provided by the `ViewController` trait.

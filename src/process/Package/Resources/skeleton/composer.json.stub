@@ -1,0 +1,27 @@
+{
+    "name": "{{ package }}",
+    "description": "{{ description }}",
+    "type": "neophp-package",
+    "license": "MIT",
+    "keywords": [
+        "neophp",
+        "neophp-package"
+    ],
+    "require": {
+        "php": ">=8.2",
+        "neophp/framework": "{{ framework }}"
+    },
+    "autoload": {
+        "psr-4": {
+            "{{ namespace_json }}\\": "src/"
+        }
+    },
+    "extra": {
+        "neophp": {
+            "name": "{{ alias }}",
+            "modules": [
+                "{{ namespace_json }}\\{{ class }}Manager"
+            ]
+        }
+    }
+}

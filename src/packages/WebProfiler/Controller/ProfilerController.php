@@ -8,7 +8,9 @@ use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 use NeoPHP\Package\WebProfiler\Renderer\TemplateRenderer;
+use NeoPHP\Package\WebProfiler\Util\ModuleInspector;
 use NeoPHP\Package\WebProfiler\WebProfilerManagerInterface;
 
 class ProfilerController
@@ -17,7 +19,7 @@ class ProfilerController
 
     public const HEADERS = ['Content-Type' => 'text/html; charset=UTF-8', 'X-Robots-Tag' => 'noindex, nofollow', 'Cache-Control' => 'no-store'];
 
-    public function __construct(protected WebProfilerManagerInterface $profiler, protected TemplateRenderer $templates)
+    public function __construct(protected WebProfilerManagerInterface $profiler, protected TemplateRenderer $templates, protected ?KernelManagerInterface $kernel = null)
     {
     }
 
@@ -44,6 +46,18 @@ class ProfilerController
         $latest = $this->profiler->find(1)[0] ?? null;
 
         return new RedirectResponse($latest === null ? $this->profiler->getPublicPath() : $this->profiler->getProfileUrl((string) $latest['token']));
+    }
+
+    public function packages(): Response
+    {
+        $inspector = $this->kernel !== null ? new ModuleInspector($this->kernel) : null;
+
+        return $this->html('packages', [
+            'title' => 'Packages',
+            'environment' => $inspector?->getEnvironment() ?? '',
+            'packages' => $inspector?->packages() ?? [],
+            'modules' => $inspector?->modules() ?? [],
+        ]);
     }
 
     public function show(string $token, Request $request): Response

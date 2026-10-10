@@ -2,53 +2,54 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v2.x/README.md`, `Docs/v1.x/README.md` for NeoPHP 1). See the [versioning policy](docs/v2.x/README.md#versions-and-support).
 
-- v2.0.1 — Bugfixes found by the PHPUnit test suite (Container, Config, Http, Csrf, Cookie, Middleware, Service, Session, Validator, Kernel, Logger, Form, Asset, Cache)
-- v2.0.0 — Modules: one `final` manager per module, automatic discovery, `config/config.php`. See [UPGRADE-2.0.md](UPGRADE-2.0.md)
-- v1.40.0 — Upload component
-- v1.39.2 — Bugfix: `make:migration` keeps the queue tables
-- v1.39.1 — Bugfix: CSRF field of the forms created with `createNamed()`
-- v1.39.0 — WebProfiler: Auto / Light / Dark theme
-- v1.38.0 — WebProfiler: flash messages in the Session panel
-- v1.37.0 — Queue and Scheduler packages
-- v1.36.0 — `make:controller` command
-- v1.35.0 — ORM: mapped superclasses and inherited mapping
-- v1.34.0 — WebProfiler: Session / Cookies / Flash and Ajax panels
-- v1.33.3 — Generated YAML files indented with 4 spaces
-- v1.33.2 — `locales()` Twig function
-- v1.33.1 — Changelog update
-- v1.33.0 — No more `.gitkeep` files in the generated projects
-- v1.32.0 — Global `app` template variable
-- v1.31.3 — Bugfix: YAML indentation of `translation:generate`
-- v1.31.2 — PHPStan level 5 and fixes reported by the analysis
-- v1.31.1 — PHPStan level 3 and fixes reported by the analysis
-- v1.31.0 — Stabilization: logout protection, entities in controller arguments, sub-directory installs, security headers
-- v1.30.0 — Security fixes, trusted proxies and trusted hosts
-- v1.29.0 — NeoAI package
+- v2.1.0 — NeoPHP packages: `neophp:package:*` commands; routes, templates, translations, assets, entities, migrations, commands, listeners and the other discoveries of the packages; Packages page of the WebProfiler
+- v2.0.1 — Bugfixes found by the new PHPUnit test suite (`composer test`, run on PHP 8.2 to 8.5): Container `make()` through a binding to another id and circular aliases refused; Config keeps an escaped `%%` literal and `loadFile()` resolves its own keys; `JsonResponse` keeps the given `Content-Type`; trusted host regular expressions keep their escapes; `#[Csrf]` no longer reads the token from the query string; `MiddlewareManager::handle()` resolves aliases and groups; relative `*` patterns in the `exclude` of `services.yaml`; Session throws when the id cannot be regenerated; Validator circular references and the invalid value of a missing `Collection` field; `app.request` is `null` outside of an HTTP request and the module cache notices a new `config/config.php`; Logger `max_files` only removes the files of its channel; `form_row()` variables, refreshed views and `InvalidTypeException` for unknown form types; CSS references to overridden assets; filesystem cache pools scoped to their namespace
+- v2.0.0 — Modules: `#[Component]` / `#[Package]` / `#[Process]` attributes on the `final` manager of every component, package and process, automatic discovery by the kernel (framework and Composer packages with `extra.neophp.modules`), providers sorted by `requires`, `config/config.php` to disable modules per project and per environment with a clear error when a required module is disabled, the discoveries ignore the classes of disabled modules; one public entry point per module: `<Module>Manager` (`final`) and `<Module>ManagerInterface` at its root (replaces the main interface of `Contract\`), the other classes of the root moved into sub-folders (`Exception\FrameworkException`, `Form\Model\Form`, `Logger\Contract\LogLevel`...), the abstract class of every manager merged into it, new `ApiManagerInterface`, `ExceptionManagerInterface`, `NeoAiManagerInterface`, `SchedulerManagerInterface`, `WebProfilerManagerInterface`, `Scheduler` renamed `SchedulerManager`, `Profiler` renamed `WebProfilerManager`, `App\Kernel` extends `AbstractKernel`; providers, discoveries, traces and helpers marked `@internal`, helper folders named after the module they plug into (`Helper/WebProfiler`, `Helper/Event`), Flash panel of the profiler moved to the Flash component; `ext-ctype`, `ext-json`, `ext-mbstring` and `ext-tokenizer` required; documentation of every module in `Docs/v2.x`. See [UPGRADE-2.0.md](UPGRADE-2.0.md)
+- v1.40.0 — Upload component: files stored in `public/uploads/` with a random name and a MIME type detected from the content, size limit, `upload()` view function, `storeUpload()` / `deleteUpload()` / `uploadUrl()` controller helpers, `config/framework/upload.yaml`
+- v1.39.2 — Bugfix: `make:migration` ignores the queue tables (`neo_queue_jobs`, `neo_queue_failed`) instead of dropping them
+- v1.39.1 — Bugfix: `createNamed()` adds the CSRF field like `create()` (forms created with a custom or empty name were posted without a token)
+- v1.39.0 — WebProfiler: Auto / Light / Dark theme switcher shared by the toolbar, the profiler and the NeoAI chat
+- v1.38.0 — WebProfiler: flash messages added and read during the request in the Session panel (opt-in `FlashTrace` of the Flash component)
+- v1.37.0 — Queue package (messages, `#[AsMessageHandler]` handlers, `JobInterface` jobs, `sync` / `database` / `filesystem` / `redis` transports, HMAC-signed payloads, delays, priorities, retries with exponential backoff, failed messages, `queue:*` commands, `make:message`, `dispatchMessage()`) and Scheduler package (`CronExpression`, `#[AsScheduledTask]`, `scheduler.yaml` tasks, `ScheduleProviderInterface`, overlap locks, run history, `schedule:run` / `schedule:list` / `schedule:work` / `schedule:test` / `schedule:next`), Queue and Scheduler panels of the WebProfiler
+- v1.36.0 — `make:controller` command: controller and its template (PHP or Twig), JSON or plain response, sub-namespaces (`Admin/Post`)
+- v1.35.0 — ORM: `#[ORM\MappedSuperclass]` and inherited mapping (callbacks and indexes of parent classes), injectable `EntityManagerInterface`
+- v1.34.0 — WebProfiler: Session / Cookies / Flash panel, Ajax panel listing the calls of a page, "Back to the site" link in the profiler
+- v1.33.3 — Generated YAML configuration files use a 4-space indentation and spaced flow collections (`[ a, b ]`, `[ ]`, `{ }`)
+- v1.33.2 — Added the `locales()` Twig function to retrieve available locales
+- v1.33.1 — Update changelog
+- v1.33.0 — Generated projects no longer include `.gitkeep` files
+- v1.32.0 — Global `app` template variable, like Symfony: `app.request`, `app.session`, `app.user`, `app.flashes`, `app.locale`, `app.environment`, `app.debug`, `app.current_route`, `app.current_route_parameters`, `app.name`
+- v1.31.3 — Bugfix: `translation:generate` indents the YAML files with 4 spaces
+- v1.31.2 — PHPStan level 5 on every pull request; fixes reported by the analysis: controllers can use `translate()` and `switchLocale()` (the `TranslationController` trait was missing from `AbstractController`), `tailwind:install` reads the response headers without `$http_response_header`, `UserClass::of()` accepts any user object
+- v1.31.1 — PHPStan level 3 on every pull request (`phpstan.neon.dist`, `composer phpstan`, GitHub workflow); fixes reported by the analysis: `ChainUserProvider::upgradePassword()` only calls user providers, `translation:generate` passes the right arguments, `tailwind:install` reads the response headers with `http_get_last_response_headers()` on PHP 8.4+, a PHP template variable named `__template` can no longer replace the included file
+- v1.31.0 — Stabilization: the generated `security.yaml` protects the logout with CSRF and POST (`methods` option, `logout_form()`), entities in controller arguments (`show(Post $post)`, `#[MapEntity]`, 404 when not found), applications in a sub-directory (`Request::getBasePath()`, generated URLs, assets, redirections), security headers on every response (`security_headers` in `app.yaml`), remember-me tokens stored in database and revocable per device (`storage: database`), `make:migration` ignores the framework tables; `SECURITY.md`, `CHANGELOG.md` and versioning policy
+- v1.30.0 — Bugfix and security: ORM `findBy()` / `findOneBy()` / `count()` refuse unknown fields (SQL injection), `UploadedFile::move()` random name and executable extensions refused, PHP execution limited to `index.php` in `public/.htaccess`, CORS `allow_credentials` with `'*'` refused, trusted proxies and trusted hosts (`TRUSTED_PROXIES`, `TRUSTED_HOSTS`), profiler and NeoAI restricted to local networks (`allowed_ips`), `markdown` filter escapes raw HTML by default, cache entries signed with `APP_SECRET`, directories created in `0775`, login throttling files cleaned, CSRF tokens limited in the session, `RateLimitListener` file name, NeoAI `ai:test` and default models, commented configuration files and `.env`. Existing projects: run `php bin/neo install` to add the new variables to `.env`, then add `trusted_proxies` / `trusted_hosts` to `config/framework/app.yaml`
+- v1.29.0 — NeoAI package (development assistant enabled only in debug: OpenAI, OpenAI-compatible (Mistral, Groq, OpenRouter, LM Studio, vLLM), Anthropic, Gemini and Ollama providers, read-only `neo-tool` loop in a sandbox with secret redaction, `ai:start` chat with patch review, `ai:scan` audit with Markdown report, `ai:test`, toolbar chat and profiler panel, `config/packages/neo_ai.yaml`); WebProfiler `ToolbarAssetInterface` to add CSS / JavaScript to the toolbar
 - v1.28.2 — Bugfix: translation profiler
 - v1.28.1 — Bugfix: missing `translation:generate` command
-- v1.28.0 — Translation profiler
-- v1.27.0 — Security profiler
-- v1.26.0 — Database and ORM profiler
+- v1.28.0 — Translation profiler (toolbar item and panel, opt-in `TranslationTrace`: defined / fallback / missing messages, locale detection source, loaded catalogues)
+- v1.27.0 — Security profiler (toolbar item and panel, opt-in `SecurityTrace`: access decisions, voter votes, `access_control`, login / logout events)
+- v1.26.0 — Database and ORM profiler (query logger with transactions, Database panel, unit of work statistics, ORM panel)
 - v1.25.2 — Bugfix: WebProfiler controller helper location
 - v1.25.1 — Bugfix: YAML indentation of the generated configuration files
-- v1.25.0 — WebProfiler package
-- v1.24.0 — Api component
-- v1.23.0 — Serializer component
-- v1.22.0 — Cache component
-- v1.21.0 — HttpClient component
-- v1.20.0 — Translation package
-- v1.19.0 — Markdown package
-- v1.18.0 — Tailwind package
-- Bugfix after v1.17.0 — Absolute URLs, `make:auth` layout, misnamed view helpers
-- v1.17.0 — Interactive console, `make:entity` wizard
+- v1.25.0 — WebProfiler package (web debug toolbar and `/_profiler` interface, elements discovered in `Helper/Profiler` of every feature and with `#[AsProfiler]`, panels and blocks, `Stopwatch`, Ajax requests tracking, `profiler:list` and `profiler:clear`, `config/packages/web_profiler.yaml`)
+- v1.24.0 — Api component (CORS, rate limiter with fixed window / sliding window / token bucket policies, `#[RateLimit]`, pagination with `Link` / `X-Total-Count` headers and `#[MapPagination]`, RFC 7807 problem details, OpenAPI 3.1 generation with `#[OA\Operation]` / `#[OA\Response]` / `#[OA\Tag]`, `openapi:dump`, `/api/doc`), `TooManyRequestsHttpException`
+- v1.23.0 — Serializer component (JSON / XML / CSV / YAML, normalizers for objects, dates, enums and ORM entities, `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments, `json()` with a serializer context, `serialize()` in controllers, `serializer:debug`)
+- v1.22.0 — Cache component (pools with filesystem / APCu / database / array adapters, `get()` with callback and stampede protection, tags, `cache()` in controllers, `cache:pool:*` commands, HttpClient `cache` option)
+- v1.21.0 — HttpClient component (requests with JSON / form / multipart bodies, curl and stream transports, parallel requests, downloads, retries, named clients, `httpClient()`, `http:request`)
+- v1.20.0 — Translation package (YAML / XLIFF catalogues, ICU-lite plurals, locale detection, `translate()` / `trans`, translated validation and security messages, `translation:generate`, `translation:debug`, `translation:lint`)
+- v1.19.0 — Markdown package (parser, document API, HTML to Markdown, `markdown` filter, `markdown:convert`)
+- v1.18.0 — Tailwind package (`tailwind:install`, `tailwind:run`)
+- Bugfix after v1.17.0 — absolute URLs (`url()`, `APP_URL`), `make:auth` base layout, `make:migration` description, misnamed view helpers reported in debug
+- v1.17.0 — interactive console, `make:entity` wizard
 - v1.16.0 — Mailer
-- v1.15.0 — Console refactor
+- v1.15.0 — Console refactor (`#[AsCommand]`, `AbstractConsole`)
 - v1.14.0 — Debug (`dump()`, `dd()`)
 - v1.13.0 — Security
 - v1.12.0 — Forms and CSRF
 - v1.11.0 — Database and ORM
 - v1.10.0 — Validator
-- v1.9.0 — Events
+- v1.9.0 — Events (v1.9.1: routing uses the kernel class discovery)
 - v1.8.0 — `#[Autowire]`, `#[Inject]`, `config/services.yaml`
 - v1.7.0 — Middlewares
 - v1.6.0 — Session, cookies and flash messages

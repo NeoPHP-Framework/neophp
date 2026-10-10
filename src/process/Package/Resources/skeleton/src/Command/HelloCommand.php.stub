@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Command;
+
+use NeoPHP\Process\Console\Attribute\AsCommand;
+use NeoPHP\Process\Console\Contract\AbstractConsole;
+use NeoPHP\Process\Console\Contract\InputInterface;
+use NeoPHP\Process\Console\Contract\OutputInterface;
+use NeoPHP\Process\Console\IO\InputArgument;
+use {{ namespace }}\{{ class }}ManagerInterface;
+
+#[AsCommand(name: '{{ alias }}:hello', description: 'Says hello with the greeting of config/packages/{{ alias }}/{{ alias }}.yaml')]
+class HelloCommand extends AbstractConsole
+{
+    public function __construct(protected {{ class }}ManagerInterface ${{ property }})
+    {
+    }
+
+    protected function configure(InputInterface $input, OutputInterface $output): void
+    {
+        $input->addArgument('name', InputArgument::OPTIONAL, 'The name to greet', 'NeoPHP');
+        $this->addExample('{{ alias }}:hello');
+        $this->addExample('{{ alias }}:hello Neo');
+    }
+
+    protected function do(InputInterface $input, OutputInterface $output): int
+    {
+        $output->success($this->{{ property }}->greet((string) $input->getArgument('name')));
+
+        return self::SUCCESS;
+    }
+}

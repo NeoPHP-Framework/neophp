@@ -9,6 +9,7 @@ use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
 use NeoPHP\Package\Security\Authorization\AccessDecisionManager;
 use NeoPHP\Package\Security\Authorization\AccessMap;
@@ -156,11 +157,12 @@ class SecurityProvider extends AbstractProvider
             return [];
         }
 
-        $source = (string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src';
-        $builder = static function () use ($source): array {
-            $discovery = new VoterDiscovery([$source]);
+        $paths = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
+        $builder = static function () use ($paths, $resources): array {
+            $discovery = new VoterDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

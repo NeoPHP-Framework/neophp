@@ -11,6 +11,7 @@ Templates get the compiled URL with the `asset()` view helper; CSS references ar
 - [Compilation modes](#compilation-modes)
 - [Command](#command)
 - [CSS rewriting](#css-rewriting)
+- [Package assets](#package-assets)
 - [Configuration](#configuration)
 - [PHP API](#php-api)
 - [Custom compilers](#custom-compilers)
@@ -102,6 +103,16 @@ php bin/neo asset:reload --minify
 
 In CSS files, `url(...)` and `@import` pointing to another file of `assets/` are rewritten to the compiled URL: `url('../img/logo.png')` becomes `url('../img/logo-d07ec8c2.png')` (a path relative to the compiled CSS file, so it works in a sub-directory and on a CDN). External URLs, absolute paths and files outside `assets/` are kept as is.
 
+## Package assets
+
+The `assets/` directory of a NeoPHP package installed with Composer (`extra.neophp.assets`, see the Package documentation) is available under the name of the package:
+
+```twig
+<link rel="stylesheet" href="{{ asset('@billing/css/billing.css') }}">
+```
+
+It is compiled into `public/builds/packages/billing/` (`/builds/packages/billing/css/billing-3f2a9c1b.css`) and its CSS references are rewritten. A file of `assets/packages/billing/` of the project replaces the file of the package with the same path. `asset:reload` compiles the assets of the enabled packages too.
+
 ## Configuration
 
 `config/framework/asset.yaml` (key `framework.asset`):
@@ -113,8 +124,8 @@ public_url: /builds
 auto_compile: '%kernel.debug%'
 
 hash:
-    algorithm: xxh128
-    length: 8
+  algorithm: xxh128
+  length: 8
 ```
 
 | Option | Default | Description |
@@ -139,6 +150,8 @@ Inject `NeoPHP\Component\Asset\AssetManagerInterface` (implemented by `AssetMana
 | `addCompiler(CompilerInterface $compiler): static` | registers a compiler |
 | `setSourceFile(string $path, ?string $file): static` | compiles `$file` in place of `assets/$path`; `null` removes the override |
 | `getSourceFile(string $path): string` | file actually compiled for `$path` |
+| `addNamespace(string $name, string $directory): static` | makes `$directory` available as `@name/...` (`assets/packages/<name>/` of the project overrides it) |
+| `getNamespaces(): array` | name => directory |
 | `getSourcePath(): string` / `getBuildPath(): string` | configured directories |
 | `getManifest(): Manifest` | the manifest |
 
@@ -207,6 +220,7 @@ $asset->addCompiler(new SvgCompiler());
 
 ## Changelog
 
+- v2.1.0 — Assets of the NeoPHP packages (`asset('@name/...')`, overridden in `assets/packages/<name>/`), `addNamespace()` and `getNamespaces()`.
 - v2.0.1 — Bugfix: a CSS `url()` / `@import` of an asset overridden with `setSourceFile()` is rewritten.
 - v2.0.0 — `AssetManager` is the `final` entry point of the module, declared with `#[Component]`; `AssetManagerInterface` replaces `Contract\AssetInterface`; `Contract\AbstractAsset` is merged into the manager; the internal classes are marked `@internal`.
 - v1.31.0 — `asset()` adds the sub-directory of the application (`setBasePath()`); URLs rewritten in CSS files are relative to the compiled file.

@@ -12,6 +12,8 @@ use NeoPHP\Component\Event\EventManager;
 use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 
 /**
  * @internal
@@ -68,14 +70,26 @@ class EventProvider extends AbstractProvider
             $paths[] = $frameworkPath . DIRECTORY_SEPARATOR . $directory;
         }
 
+        $resources = [];
+
         if ($container->has('kernel.root_path')) {
-            $paths[] = (string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src';
+            $rootPath = (string) $container->get('kernel.root_path');
+            $paths[] = $rootPath . DIRECTORY_SEPARATOR . 'src';
+
+            $installed = InstalledPackages::file($rootPath);
+            $resources[$installed] = is_file($installed) ? (int) filemtime($installed) : ResourceCache::MISSING;
         }
 
-        $builder = static function () use ($paths): array {
+        $kernel = $container->bound(KernelManagerInterface::class) ? $container->get(KernelManagerInterface::class) : null;
+
+        foreach (array_keys(ModuleSources::external($kernel)) as $directory) {
+            $paths[] = (string) $directory;
+        }
+
+        $builder = static function () use ($paths, $resources): array {
             $discovery = new ListenerDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

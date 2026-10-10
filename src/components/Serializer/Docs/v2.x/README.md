@@ -504,7 +504,7 @@ class MoneyNormalizer implements NormalizerInterface, DenormalizerInterface
 }
 ```
 
-- `#[AsNormalizer(priority: 0)]` classes of `src/` are discovered (cached in `var/cache/serializer/`, refreshed in debug), like `#[AsListener]` listeners.
+- `#[AsNormalizer(priority: 0)]` classes of `src/` and of the NeoPHP packages installed with Composer are discovered (cached in `var/cache/serializer/`, refreshed in debug), like `#[AsListener]` listeners.
 - Or list them in `config/framework/serializer.yaml` (`normalizers: [App\Serializer\MoneyNormalizer]`, or `{ class: ..., priority: 10 }`).
 - They are built by the container (constructor autowiring). The highest priority is asked first; the built-in normalizers have negative priorities:
 
@@ -560,5 +560,6 @@ Exceptions (`NeoPHP\Component\Serializer\Exception\*`, all extend `SerializerExc
 
 ## Changelog
 
+- v2.1.0 — The normalizers of the NeoPHP packages are discovered.
 - v2.0.0 — `SerializerManager` is the `final` entry point of the module, declared with `#[Component]`; `SerializerManagerInterface` replaces `Contract\SerializerInterface`; `Contract\AbstractSerializer` is merged into the manager; the internal classes are marked `@internal`.
 - v1.23.0 — Serializer component: JSON / XML / CSV / YAML encoders, object, date, enum, `JsonSerializable`, array and ORM entity normalizers, attributes `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, name converters, circular reference and max depth handling, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments with validation (400 / 415 / 422), custom normalizers (`#[AsNormalizer]` or configuration), `serialize()` / `deserialize()` in controllers, `json()` with a serializer context, `serializer:debug`.

@@ -121,7 +121,7 @@ final class SessionManager implements SessionManagerInterface
 |---|---|
 | `#[Component]` | component of the framework (`src/components/`) |
 | `#[Package]` | package, of the framework (`src/packages/`) or installed with Composer |
-| `#[Process]` | process (`src/process/`): Console, Installer |
+| `#[Process]` | process (`src/process/`): Console, Installer, Package |
 
 The kernel discovers the modules by itself (nothing to register) and loads them in the order of their `requires`. Every module is enabled; `config/config.php` only lists what the project changes:
 
@@ -158,6 +158,20 @@ public function __construct(
 The public API of a module is its manager and its interface, its `Contract\` folder (interfaces and base classes to extend), its attributes, its exceptions and its events. The classes marked `@internal` (providers, discoveries, traces, helpers of other modules) can change in any version.
 
 The integration of a module with another one lives in `Helper/<Module>/` of the module, for example `src/components/Flash/Helper/WebProfiler/FlashProfiler.php` (the Flash panel of the profiler): it is loaded only when both modules are enabled and uses only the public API of the other module. See the Kernel documentation.
+
+### NeoPHP packages
+
+A NeoPHP package is a Composer package of type `neophp-package` that adds modules to the project: its manager declared with `#[Package]`, its configuration, templates, commands, listeners and view helpers.
+
+```bash
+php bin/neo neophp:package:install acme/neo-billing
+php bin/neo neophp:package:list
+php bin/neo neophp:package:update
+php bin/neo neophp:package:remove acme/neo-billing
+php bin/neo neophp:package:create acme/neo-billing --link
+```
+
+The configuration of a package is copied into `config/packages/<name>/`, its routes are imported in `config/routes.yaml` (`resource: '@<name>'`), its templates are rendered with `@<name>/`, its assets with `asset('@<name>/...')`, and its translations, commands, listeners, entities and migrations are loaded with the ones of the project. The page `/_profiler/packages` of the profiler lists the packages and modules with their status per environment. See the Package documentation.
 
 ## First page
 
@@ -327,25 +341,25 @@ php bin/neo make:auth --twig
 
 ```yaml
 providers:
-  users:
-    entity:
-      class: App\Entity\User
-      property: email
+    users:
+        entity:
+            class: App\Entity\User
+            property: email
 
 firewalls:
-  main:
-    pattern: ^/
-    provider: users
-    form_login:
-      login_path: app_login
-      enable_csrf: true
-    logout:
-        path: app_logout
-        enable_csrf: true
-        methods: [POST]
+    main:
+        pattern: ^/
+        provider: users
+        form_login:
+            login_path: app_login
+            enable_csrf: true
+        logout:
+            path: app_logout
+            enable_csrf: true
+            methods: [POST]
 
 access_control:
-  - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/admin, roles: ROLE_ADMIN }
 ```
 
 In controllers: `$this->getUser()`, `$this->denyAccessUnlessGranted('ROLE_ADMIN')`, `#[IsGranted('ROLE_ADMIN')]`. In templates: `app_user()`, `is_granted('ROLE_ADMIN')`, `logout_path()`, `logout_form('Logout')` (the logout is a POST form protected by a CSRF token). See the Security documentation.
@@ -369,8 +383,8 @@ Enable the locales in `config/packages/translation.yaml` (`locales: [en, fr]`) a
 
 ```yaml
 home:
-  title: Bienvenue
-  posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
+    title: Bienvenue
+    posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
 ```
 
 ```twig
@@ -390,6 +404,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 | `php bin/neo make:entity` (also `make:form`, `make:command`, `make:user`, `make:auth`, `make:voter`, `make:email`) | code generators (they ask the missing values) |
 | `php bin/neo make:migration` / `migration:migrate` | database migrations |
 | `php bin/neo cache:clear` | clears `var/cache/` |
+| `php bin/neo neophp:package:install vendor/name` (also `neophp:package:list`, `update`, `remove`, `create`) | NeoPHP packages |
 | `php bin/neo cache:pool:clear --all` | clears the cache pools (also `cache:pool:list`, `cache:pool:prune`) |
 | `php bin/neo serializer:debug "App\Entity\Post"` | serialization metadata of a class |
 | `php bin/neo asset:reload --minify` | compiles `assets/` into `public/builds/` |
@@ -414,7 +429,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 |---|---|
 | components | Api, Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Upload, Validator, View |
 | packages | Debug, Dotenv, Markdown, NeoAI, Orm, Queue, Scheduler, Security, Tailwind, Translation, WebProfiler, Yaml |
-| process | Console, Installer |
+| process | Console, Installer, Package |
 
 The documentation of a feature is in `src/<group>/<Feature>/Docs/v2.x/README.md`, for example `src/components/Routing/Docs/v2.x/README.md`. The documentation of NeoPHP 1 stays next to it, in `Docs/v1.x/`.
 

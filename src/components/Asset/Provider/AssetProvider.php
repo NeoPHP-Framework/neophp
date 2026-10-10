@@ -10,6 +10,8 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Http\Request\Request;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 
 /**
  * @internal
@@ -31,6 +33,12 @@ class AssetProvider extends AbstractProvider
                 'public_url' => '/builds',
                 'auto_compile' => $container->has('kernel.debug') && (bool) $container->get('kernel.debug'),
             ]);
+
+            foreach (InstalledPackages::enabled($rootPath, ModuleSources::kernel($container)) as $package) {
+                if ($package['assets'] !== null) {
+                    $asset->addNamespace($package['alias'], $package['assets']);
+                }
+            }
 
             return $asset->setBasePath(static fn (): string => $container->has(Request::class) ? $container->get(Request::class)->getBasePath() : '');
         });

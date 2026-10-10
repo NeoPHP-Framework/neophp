@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+interface {{ class }}ManagerInterface
+{
+    public function greet(string $name): string;
+
+    public function getConfig(): array;
+}

@@ -1,7 +1,7 @@
 # Console
 
 The Console process (`src/process/Console`) runs the `php bin/neo` command line: commands declared with `#[AsCommand]`, typed arguments and options, interactive questions, styled output and progress bars.
-Commands are discovered in `src/` and in every framework feature, and their constructor is autowired.
+Commands are discovered in `src/`, in every framework feature and in the NeoPHP packages installed with Composer, and their constructor is autowired.
 
 ## Summary
 
@@ -111,7 +111,7 @@ Commands of the Console process:
 | `route:list [filter]` (`routes`) | lists the routes |
 | `make:command Class [name]` | generates a console command in `src/Command/` |
 
-Other features add their own commands (`cache:clear`, `make:entity`, `make:auth`, `mailer:test`...): see their documentation. The `make:*` commands never overwrite an existing file, unless `--force` is used.
+Other features add their own commands (`cache:clear`, `make:entity`, `make:auth`, `mailer:test`, `neophp:package:install`...): see their documentation. The `make:*` commands never overwrite an existing file, unless `--force` is used.
 
 ## Writing a command
 
@@ -193,7 +193,7 @@ class SendReportCommand extends AbstractConsole
 
 ### Discovery
 
-Commands are discovered (`CommandDiscovery`) in `src/` (any instantiable class with `#[AsCommand]` implementing `CommandInterface`) and in the `Helper/Console/` directory of each framework feature.
+Commands are discovered (`CommandDiscovery`) in `src/` (any instantiable class with `#[AsCommand]` implementing `CommandInterface`), in the `Helper/Console/` directory of each framework feature, and in the sources of the NeoPHP packages installed with Composer (any `#[AsCommand]` class, like in `src/`; see the Package documentation). The commands of a disabled module are ignored.
 
 ### AbstractConsole
 
@@ -202,7 +202,11 @@ Commands are discovered (`CommandDiscovery`) in `src/` (any instantiable class w
 | `configure(InputInterface $input, OutputInterface $output): void` | declares arguments, options, help and examples |
 | `interact(InputInterface $input, OutputInterface $output): void` | asks custom questions before the missing values are asked |
 | `do(InputInterface $input, OutputInterface $output): int` | abstract: the work, returns `SUCCESS`, `FAILURE` or `INVALID` |
-| `setHelp(string $help)andInterface` directly (constants `SUCCESS = 0`, `FAILURE = 1`, `INVALID = 2`).
+| `setHelp(string $help)`, `addExample(string $example)` | help and examples shown by `--help` |
+| `getName()`, `getDescription()`, `getAliases()`, `isHidden()`, `getHelp()`, `getExamples()`, `getDefinition()` | metadata (`CommandInterface`) |
+| `run(InputInterface $input, OutputInterface $output): int` | runs the command (called by the console manager) |
+
+A command can also implement `CommandInterface` directly (constants `SUCCESS = 0`, `FAILURE = 1`, `INVALID = 2`).
 
 ### Arguments and options
 
@@ -332,6 +336,7 @@ In `NeoPHP\Process\Console\Exception`:
 
 ## Changelog
 
+- v2.1.0 — The commands of the NeoPHP packages installed with Composer are discovered.
 - v2.0.0 — `ConsoleManager` is the `final` entry point of the module, declared with `#[Process]`; `ConsoleManagerInterface` replaces `Contract\ConsoleInterface`; `Contract\AbstractConsoleManager` is merged into the manager; the internal classes are marked `@internal`.
 - v1.17.0 — interactive console: missing arguments are asked, questions declared by `addArgument()` / `addOption()`, `interact()` hook, `select()` (`?` to list, numbers, prefixes), `isArgumentProvided()` / `isOptionProvided()`, `setArgument()` / `setOption()`.
 - v1.15.0 — console rewritten: `#[AsCommand]` and `AbstractConsole` (`configure()` / `do()`), argument and option definitions with validation, global options, unified help with examples, styled output, questions (`ask`, `confirm`, `choice`, `secret`), progress bar, namespaces, abbreviations, "Did you mean" suggestions, aliases, `make:command`, discovery in `src/`, `--env` read by `bin/neo`; `AbstractCommand` removed.

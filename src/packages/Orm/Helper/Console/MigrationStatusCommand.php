@@ -48,6 +48,7 @@ class MigrationStatusCommand extends AbstractConsole
 
         $rows = [];
         $pending = 0;
+        $sources = $this->migrator->getSources() !== [];
 
         foreach ($status as $migration) {
             $state = match (true) {
@@ -56,16 +57,22 @@ class MigrationStatusCommand extends AbstractConsole
                 default => '<comment>pending</comment>',
             };
             $pending += $migration['available'] && $migration['executed_at'] === null ? 1 : 0;
-            $rows[] = [
+            $row = [
                 'Migration_' . $migration['version'],
                 $migration['description'],
                 $state,
                 (string) ($migration['executed_at'] ?? ''),
                 $migration['execution_time'] !== null ? $migration['execution_time'] . ' ms' : '',
             ];
+
+            if ($sources) {
+                array_splice($row, 1, 0, [$migration['source'] ?? ($migration['available'] ? 'app' : '')]);
+            }
+
+            $rows[] = $row;
         }
 
-        $output->table(['Migration', 'Description', 'Status', 'Executed at', 'Time'], $rows);
+        $output->table($sources ? ['Migration', 'Source', 'Description', 'Status', 'Executed at', 'Time'] : ['Migration', 'Description', 'Status', 'Executed at', 'Time'], $rows);
         $output->text(sprintf('%d migration(s), %d pending.', count($status), $pending));
 
         return self::SUCCESS;

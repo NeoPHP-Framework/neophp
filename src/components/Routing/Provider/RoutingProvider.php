@@ -8,6 +8,8 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Http\Request\Request;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Component\Routing\Cache\RouteCache;
 use NeoPHP\Component\Routing\Loader\YamlRouteLoader;
 use NeoPHP\Component\Routing\RoutingManager;
@@ -45,21 +47,25 @@ class RoutingProvider extends AbstractProvider
                 return $routing;
             }
 
+            $rootPath = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : dirname($file, 2);
+            $packages = self::packages($rootPath, $container);
+
             if (!$container->has('kernel.cache_path')) {
-                return $routing->loadYaml($file);
+                $routing->getRoutes()->addCollection((new YamlRouteLoader($yaml, $resolver, $packages))->load($file));
+
+                return $routing;
             }
 
             $environment = $container->has('kernel.environment') ? (string) $container->get('kernel.environment') : 'dev';
             $debug = $container->has('kernel.debug') && (bool) $container->get('kernel.debug');
-            $rootPath = $container->has('kernel.root_path') ? (string) $container->get('kernel.root_path') : dirname($file, 2);
             $cacheFile = (string) $container->get('kernel.cache_path') . DIRECTORY_SEPARATOR . self::CACHE_DIRECTORY . DIRECTORY_SEPARATOR . 'routes.' . $environment . '.php';
 
-            $routes = (new RouteCache($cacheFile, $debug))->load(static function () use ($yaml, $resolver, $file, $rootPath): array {
-                $loader = new YamlRouteLoader($yaml, $resolver);
+            $routes = (new RouteCache($cacheFile, $debug))->load(static function () use ($yaml, $resolver, $packages, $file, $rootPath): array {
+                $loader = new YamlRouteLoader($yaml, $resolver, $packages);
                 $routes = $loader->load($file);
                 $resources = $loader->getResources();
 
-                $files = [...(glob($rootPath . DIRECTORY_SEPARATOR . '.env*') ?: []), $rootPath . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR . 'installed.json'];
+                $files = [...(glob($rootPath . DIRECTORY_SEPARATOR . '.env*') ?: []), InstalledPackages::file($rootPath), dirname($file) . DIRECTORY_SEPARATOR . 'config.php'];
 
                 foreach ($files as $path) {
                     if (is_file($path)) {
@@ -76,6 +82,19 @@ class RoutingProvider extends AbstractProvider
         });
 
         $container->alias(RoutingManager::class, RoutingManagerInterface::class);
+    }
+
+    protected static function packages(string $rootPath, ContainerManagerInterface $container): callable
+    {
+        return static function (string $alias) use ($rootPath, $container): string|false|null {
+            $package = InstalledPackages::find($rootPath, $alias);
+
+            if ($package === null || $package['routes'] === null) {
+                return null;
+            }
+
+            return InstalledPackages::isEnabled($package, ModuleSources::kernel($container)) ? $package['routes'] : false;
+        };
     }
 
     protected static function basePath(ContainerManagerInterface $container): string
