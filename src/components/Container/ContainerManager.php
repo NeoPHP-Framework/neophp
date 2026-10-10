@@ -71,6 +71,14 @@ final class ContainerManager implements ContainerManagerInterface
 
         $this->aliases[$alias] = $id;
 
+        try {
+            $this->resolveAlias($alias);
+        } catch (ContainerException $exception) {
+            unset($this->aliases[$alias]);
+
+            throw $exception;
+        }
+
         return $this;
     }
 
@@ -167,7 +175,9 @@ final class ContainerManager implements ContainerManagerInterface
                 $attributes = $property->getAttributes(Inject::class);
 
                 if ($attributes !== []) {
-                    $property->setValue($object, $this->injectedValue($attributes[0]->newInstance(), $property));
+                    /** @var Inject $attributes */
+                    $instance = $attributes[0]->newInstance();
+                    $property->setValue($object, $this->injectedValue($instance, $property));
                 }
             }
 
@@ -255,7 +265,9 @@ final class ContainerManager implements ContainerManagerInterface
         $autowire = $parameter->getAttributes(Autowire::class);
 
         if ($autowire !== []) {
-            return $this->autowiredValue($autowire[0]->newInstance(), $parameter->allowsNull(), '$' . $parameter->getName());
+            /** @var Autowire $instance */
+            $instance = $autowire[0]->newInstance();
+            return $this->autowiredValue($instance, $parameter->allowsNull(), '$' . $parameter->getName());
         }
 
         foreach ($this->classTypesOf($parameter) as $class) {
@@ -308,7 +320,7 @@ final class ContainerManager implements ContainerManagerInterface
             throw NotFoundException::forId($id);
         }
 
-        $object = $this->build($binding['concrete'] ?? $id, $parameters, $id);
+        $object = $this->build($binding['concrete'] ?? $id, $parameters, $id, $forceNew);
         $shared = $binding !== null ? $binding['shared'] : $this->autoShared($id);
 
         if (!$forceNew && $shared) {
@@ -318,7 +330,7 @@ final class ContainerManager implements ContainerManagerInterface
         return $object;
     }
 
-    protected function build(mixed $concrete, array $parameters, string $id): mixed
+    protected function build(mixed $concrete, array $parameters, string $id, bool $forceNew = false): mixed
     {
         if ($concrete instanceof Closure) {
             return $concrete($this, $parameters);
@@ -330,7 +342,7 @@ final class ContainerManager implements ContainerManagerInterface
 
         if (!class_exists($concrete)) {
             if ($concrete !== $id) {
-                return $this->resolve($concrete, $parameters, false);
+                return $this->resolve($concrete, $parameters, $forceNew);
             }
 
             throw NotFoundException::forId($concrete);

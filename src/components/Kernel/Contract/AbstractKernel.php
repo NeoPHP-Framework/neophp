@@ -367,9 +367,7 @@ abstract class AbstractKernel implements KernelManagerInterface
             $resources = $discovery->getResources();
 
             foreach ([$this->getConfigPath(), $file] as $path) {
-                if (file_exists($path)) {
-                    $resources[$path] = (int) filemtime($path);
-                }
+                $resources[$path] = file_exists($path) ? (int) filemtime($path) : ResourceCache::MISSING;
             }
 
             return [$data, $resources];

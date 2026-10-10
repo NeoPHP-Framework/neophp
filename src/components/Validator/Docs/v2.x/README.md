@@ -172,13 +172,13 @@ All the constraints are in `NeoPHP\Component\Validator\Constraint`.
 | `File` | `maxSize` (`500k`, `2M`, `1Gi` or bytes), `mimeTypes` (`['application/pdf', 'image/*']`), `extensions` (`['pdf']`); validates an `UploadedFile`, a `SplFileInfo` or a path |
 | `Image` | the `File` options (`mimeTypes` defaults to `image/*`), `minWidth`, `maxWidth`, `minHeight`, `maxHeight` |
 
-Every constraint accepts `groups`. Except `NotBlank`, `NotNull` and `IsNull`, constraints accept `null` and `''`: add `NotBlank` to make a value required.
+Every constraint accepts `groups`. Except `NotBlank`, `NotNull` and `IsNull`, constraints accept `null`, and the string constraints (`Length`, `Email`, `Url`, `Regex`, `Uuid`, `Ip`, `Date`, `DateTime`...) also accept `''`: add `NotBlank` to make a value required. An object reached several times through `Valid` (a circular reference) is validated once.
 
 `File::parseSize(int|string $size): int` converts a size (`2M`, `1Gi`) into bytes.
 
 ## Messages
 
-Every constraint accepts `message`, or its specific messages (`minMessage`, `maxMessage`, `exactMessage`, `typeMessage`, `notInRangeMessage`, `multipleMessage`, `missingFieldsMessage`, `extraFieldsMessage`, `maxSizeMessage`, `mimeTypesMessage`...).
+The constraints accept `message` (the constraints with several messages, such as `Length`, `Count`, `Range`, `Collection`, `File` and `Image`, take only their specific messages), or their specific messages (`minMessage`, `maxMessage`, `exactMessage`, `typeMessage`, `notInRangeMessage`, `multipleMessage`, `missingFieldsMessage`, `extraFieldsMessage`, `maxSizeMessage`, `mimeTypesMessage`...).
 
 ```php
 #[Assert\Length(min: 3, minMessage: 'At least {{ limit }} characters.')]
@@ -387,6 +387,7 @@ class UniqueUsernameValidator extends AbstractConstraintValidator
 
 ## Changelog
 
+- v2.0.1 — Bugfix: an object reached again through `Valid` (circular reference) is validated once instead of recursing until memory is exhausted; the invalid value of a missing `Collection` field is `null`.
 - v2.0.0 — `ValidatorManager` is the `final` entry point of the module, declared with `#[Component]`; `ValidatorManagerInterface` replaces `Contract\ValidatorInterface`; `Contract\AbstractValidator` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.20.0 — Messages translated through the Translation package (domain validators).
 - v1.12.0 — `File` and `Image` constraints.

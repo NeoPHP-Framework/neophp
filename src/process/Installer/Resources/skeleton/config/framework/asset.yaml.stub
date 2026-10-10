@@ -6,7 +6,7 @@ public_url: /builds
 # Compiles the changed files on each request (development); in production run `php bin/neo asset:reload --minify`
 auto_compile: '%kernel.debug%'
 
-# Hash added to the file names (cache busting): app.3f9c1a2b.css
+# Hash added to the file names (cache busting): app-3f9c1a2b.css
 hash:
     algorithm: xxh128
     length: 8

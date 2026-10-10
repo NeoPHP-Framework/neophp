@@ -122,7 +122,10 @@ final class SessionManager implements SessionManagerInterface
     public function regenerate(bool $destroy = true): static
     {
         $this->start();
-        session_regenerate_id($destroy);
+
+        if (!session_regenerate_id($destroy)) {
+            throw new SessionException('Unable to regenerate the session id.');
+        }
 
         return $this;
     }
@@ -131,7 +134,10 @@ final class SessionManager implements SessionManagerInterface
     {
         $this->start();
         $_SESSION = [];
-        session_regenerate_id(true);
+
+        if (!session_regenerate_id(true)) {
+            throw new SessionException('Unable to regenerate the session id.');
+        }
 
         return $this;
     }

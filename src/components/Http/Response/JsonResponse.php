@@ -14,7 +14,10 @@ class JsonResponse extends Response
     {
         parent::__construct('', $status, $headers);
 
-        $this->headers->set('Content-Type', 'application/json');
+        if (!$this->headers->has('Content-Type')) {
+            $this->headers->set('Content-Type', 'application/json');
+        }
+
         $this->setData($data ?? new \ArrayObject());
     }
 

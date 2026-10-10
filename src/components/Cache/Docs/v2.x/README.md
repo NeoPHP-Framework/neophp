@@ -75,9 +75,9 @@ The first call runs the callback and stores its result for 600 seconds; the next
 default_pool: app
 
 pools:
-  app:
-    adapter: filesystem
-    default_ttl: 3600
+    app:
+        adapter: filesystem
+        default_ttl: 3600
 ```
 
 A complete example:
@@ -86,28 +86,28 @@ A complete example:
 default_pool: app
 
 pools:
-  app:
-    adapter: filesystem
-    default_ttl: 3600                              # seconds, ~ = forever
-    directory: '%kernel.root_path%/var/cache/pools/app'
-  fast:
-    adapter: apcu
-    namespace: myapp                               # key prefix (default: the pool name)
-    default_ttl: 300
-  shared:
-    adapter: database
-    connection: default                            # connection of config/framework/database.yaml (default connection when omitted)
-    table: cache_items
-    default_ttl: ~
-  runtime:
-    adapter: array
+    app:
+        adapter: filesystem
+        default_ttl: 3600                              # seconds, ~ = forever
+        directory: '%kernel.root_path%/var/cache/pools/app'
+    fast:
+        adapter: apcu
+        namespace: myapp                               # key prefix (default: the pool name)
+        default_ttl: 300
+    shared:
+        adapter: database
+        connection: default                            # connection of config/framework/database.yaml (default connection when omitted)
+        table: cache_items
+        default_ttl: ~
+    runtime:
+        adapter: array
 ```
 
 | Pool option | Default | Description |
 |---|---|---|
 | `adapter` | `filesystem` | `filesystem`, `apcu`, `database` or `array` |
 | `default_ttl` | `~` | TTL used when `set()` / `get()` receive none; `~` = no expiration |
-| `namespace` | pool name | prefix of the keys, so that pools sharing a storage do not collide |
+| `namespace` | pool name | prefix of the keys, so that pools sharing a storage do not collide (filesystem: a sub-directory of `directory`) |
 | `lock_timeout` | `5` | seconds a process waits for the lock of [computed values](#computing-values) |
 | `directory` | `%kernel.root_path%/var/cache/pools/<pool>` | `filesystem` only; a relative path is relative to the project root |
 | `connection` | default connection | `database` only |
@@ -294,6 +294,7 @@ Custom storages implement `Contract\AdapterInterface` (usually by extending `Con
 
 ## Changelog
 
+- v2.0.1 — Bugfix: a filesystem pool with a namespace stores its items in its own sub-directory, so `clear()` and `prune()` never touch the other pools sharing the directory (the existing filesystem items are rebuilt once).
 - v2.0.0 — `CacheManager` is the `final` entry point of the module, declared with `#[Component]`; `CacheManagerInterface` moves from `Contract\` to the root of the module; `CachePool` moves to `Pool\CachePool`; the internal classes are marked `@internal`.
 - v1.30.0 — entries signed with `APP_SECRET` (HMAC SHA-256) and checked before `unserialize()`; `CacheManager` and `CachePool` accept a `$secret` argument.
 - v1.22.0 — Cache component: `CacheInterface` (`get()` with callback and stampede protection, `set()`, `has()`, `delete()`, `getMany()` / `setMany()` / `deleteMany()`, `clear()`, `invalidateTags()`, `prune()`), `CacheManager` with named pools `cache.<pool>`, filesystem / APCu / database / array adapters, tags, `cache()` in controllers, `cache:pool:list` / `cache:pool:clear` / `cache:pool:delete` / `cache:pool:invalidate-tags` / `cache:pool:prune` commands, `config/framework/cache.yaml`.

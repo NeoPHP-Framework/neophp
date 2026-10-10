@@ -17,6 +17,8 @@ final class ConfigManager implements ConfigManagerInterface
 
     protected array $items = [];
 
+    protected array $raw = [];
+
     public function __construct(
         protected YamlManagerInterface $yaml,
         array $parameters = [],
@@ -28,21 +30,7 @@ final class ConfigManager implements ConfigManagerInterface
 
     public function get(string $key, mixed $default = null): mixed
     {
-        if ($key === '') {
-            return $this->items;
-        }
-
-        $current = $this->items;
-
-        foreach (explode('.', $key) as $segment) {
-            if (!is_array($current) || !array_key_exists($segment, $current)) {
-                return $default;
-            }
-
-            $current = $current[$segment];
-        }
-
-        return $current;
+        return static::read($this->items, $key, $default);
     }
 
     public function has(string $key): bool
@@ -54,17 +42,8 @@ final class ConfigManager implements ConfigManagerInterface
 
     public function set(string $key, mixed $value): void
     {
-        $current = &$this->items;
-
-        foreach (explode('.', $key) as $segment) {
-            if (!isset($current[$segment]) || !is_array($current[$segment])) {
-                $current[$segment] = [];
-            }
-
-            $current = &$current[$segment];
-        }
-
-        $current = $value;
+        static::write($this->items, $key, $value);
+        static::write($this->raw, $key, $value);
     }
 
     public function all(): array
@@ -114,7 +93,7 @@ final class ConfigManager implements ConfigManagerInterface
             $this->loadFile($path, $key, false);
         }
 
-        $this->items = $this->resolve($this->items);
+        $this->items = $this->resolve($this->raw);
 
         return $this;
     }
@@ -127,18 +106,19 @@ final class ConfigManager implements ConfigManagerInterface
             throw new ConfigException('The configuration file "{file}" must contain a mapping.', 0, null, ['file' => $file]);
         }
 
-        if ($resolve) {
-            $data = $this->resolve($data);
-        }
-
         if ($key === '') {
-            $this->items = $this->merge($this->items, $data);
+            $this->raw = $this->merge($this->raw, $data);
+            $this->items = $this->merge($this->items, $resolve ? $this->resolve($data) : $data);
 
             return $this;
         }
 
+        $existing = static::read($this->raw, $key);
+        static::write($this->raw, $key, is_array($existing) ? $this->merge($existing, $data) : $data);
+
+        $data = $resolve ? $this->resolve($data) : $data;
         $existing = $this->get($key);
-        $this->set($key, is_array($existing) ? $this->merge($existing, $data) : $data);
+        static::write($this->items, $key, is_array($existing) ? $this->merge($existing, $data) : $data);
 
         return $this;
     }
@@ -188,11 +168,14 @@ final class ConfigManager implements ConfigManagerInterface
             throw new ConfigException(sprintf('Circular reference detected for placeholder "%%%s%%".', $placeholder));
         }
 
-        if (!$this->has($placeholder)) {
+        $marker = new \stdClass();
+        $value = static::read($this->raw, $placeholder, $marker);
+
+        if ($value === $marker) {
             throw new ConfigException(sprintf('Unknown configuration key "%s" used as a placeholder.', $placeholder));
         }
 
-        return $this->resolveValue($this->get($placeholder), $resolving + [$placeholder => true]);
+        return $this->resolveValue($value, $resolving + [$placeholder => true]);
     }
 
     protected function readEnv(string $name): ?string
@@ -232,5 +215,39 @@ final class ConfigManager implements ConfigManagerInterface
         }
 
         return $base;
+    }
+
+    protected static function read(array $tree, string $key, mixed $default = null): mixed
+    {
+        if ($key === '') {
+            return $tree;
+        }
+
+        $current = $tree;
+
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($current) || !array_key_exists($segment, $current)) {
+                return $default;
+            }
+
+            $current = $current[$segment];
+        }
+
+        return $current;
+    }
+
+    protected static function write(array &$tree, string $key, mixed $value): void
+    {
+        $current = &$tree;
+
+        foreach (explode('.', $key) as $segment) {
+            if (!isset($current[$segment]) || !is_array($current[$segment])) {
+                $current[$segment] = [];
+            }
+
+            $current = &$current[$segment];
+        }
+
+        $current = $value;
     }
 }

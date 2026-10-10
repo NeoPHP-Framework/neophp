@@ -92,7 +92,7 @@ class SmtpMailer implements MailerInterface
 
 | Argument | Injected value |
 |---|---|
-| `value` (first argument) | a value; placeholders (`%env(...)%`, `%kernel.*%`, `%config.key%`) are resolved |
+| `value` (first argument) | a value; placeholders (`%env(...)%`, `%kernel.*%`, `%config.key%`) are resolved by the configuration (in an application; a container used alone keeps the value as written) |
 | `service` | the service with this id |
 | `config` | a configuration value (`framework.app.name`) |
 | `env` | an environment variable |
@@ -133,31 +133,31 @@ Application services are declared in `config/services.yaml` (read by the Service
 
 ```yaml
 services:
-  _defaults:
-    shared: true
+    _defaults:
+        shared: true
 
-  App\:
-    resource: ../src/
-    exclude:
-      - ../src/Kernel.php
+    App\:
+        resource: ../src/
+        exclude:
+            - ../src/Kernel.php
 
-  App\Service\SmtpMailer:
-    arguments:
-      $host: '%env(MAIL_HOST)%'
-      $logger: '@NeoPHP\Component\Logger\Contract\LoggerInterface'
-    calls:
-      - [setFrom, ['noreply@example.com']]
+    App\Service\SmtpMailer:
+        arguments:
+          $host: '%env(MAIL_HOST)%'
+          $logger: '@NeoPHP\Component\Logger\Contract\LoggerInterface'
+        calls:
+            - [setFrom, ['noreply@example.com']]
 
-  mailer: '@App\Service\SmtpMailer'
+    mailer: '@App\Service\SmtpMailer'
 
-  App\Service\NotifierInterface: '@App\Service\SmsNotifier'
+    App\Service\NotifierInterface: '@App\Service\SmsNotifier'
 
-  app.api_client:
-    class: App\Service\ApiClient
-    factory: ['@App\Service\ApiClientFactory', 'create']
-    arguments:
-      $baseUrl: 'https://api.example.com'
-    shared: false
+    app.api_client:
+        class: App\Service\ApiClient
+        factory: ['@App\Service\ApiClientFactory', 'create']
+        arguments:
+            $baseUrl: 'https://api.example.com'
+        shared: false
 ```
 
 | Entry | Description |
@@ -186,13 +186,13 @@ Inject `NeoPHP\Component\Container\ContainerManagerInterface` (implemented by `C
 |---|---|
 | `get(string $id): mixed` | returns a service (built and autowired when needed) |
 | `has(string $id): bool` | whether the id is bound, aliased or an existing class |
-| `bind(string $id, mixed $concrete = null, bool $shared = false): static` | binds an id to a class, a closure `fn (ContainerManagerInterface $c)` or a value |
+| `bind(string $id, mixed $concrete = null, bool $shared = false): static` | binds an id to a class, another id, a closure `fn (ContainerManagerInterface $c)` or a non-string value (a string is a class or an id: register a string value with `instance()`) |
 | `singleton(string $id, mixed $concrete = null): static` | `bind()` with `shared: true` |
 | `instance(string $id, mixed $value): static` | registers an existing value |
-| `alias(string $alias, string $id): static` | makes `$alias` point to `$id` |
+| `alias(string $alias, string $id): static` | makes `$alias` point to `$id`; an alias to itself or a circular alias (`a` → `b` → `a`) is refused |
 | `bound(string $id): bool` | whether the id is bound or registered |
 | `resolved(string $id): bool` | whether a shared instance already exists |
-| `make(string $id, array $parameters = []): mixed` | builds a new instance, with named parameters |
+| `make(string $id, array $parameters = []): mixed` | builds a new instance, with named parameters, also through a binding to another id |
 | `instantiate(string $class, array $parameters = []): object` | builds a class with autowiring and `#[Inject]` |
 | `inject(object $object): object` | fills the `#[Inject]` properties of an object |
 | `call(callable\|array\|string $callable, array $parameters = []): mixed` | calls a callable with autowired arguments (`'Class::method'`, `[$object, 'method']`...) |
@@ -242,11 +242,12 @@ class ClockProvider extends AbstractProvider
 
 | Exception | Thrown when |
 |---|---|
-| `NeoPHP\Component\Container\Exception\ContainerException` | a class cannot be built, a parameter cannot be resolved, an alias points to itself |
+| `NeoPHP\Component\Container\Exception\ContainerException` | a class cannot be built, a parameter cannot be resolved, an alias points to itself or creates a loop |
 | `NeoPHP\Component\Container\Exception\NotFoundException` | an id is not found (`NotFoundException::forId($id)`); extends `ContainerException` |
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `make()` builds a new instance when the id is bound to another id (it returned the shared instance); a circular alias is refused by `alias()` instead of failing at the next `get()`.
 - v2.0.0 — `ContainerManager` is the `final` entry point of the module, declared with `#[Component]`; `ContainerManagerInterface` replaces `Contract\ContainerInterface`; `Contract\AbstractContainer` is merged into the manager; the internal classes are marked `@internal`.
 - v1.14.0 — `getDefinitions()` and `getAliases()` on the container.
 - v1.8.0 — `#[Autowire]` on parameters and classes, `#[Inject]` on properties, `config/services.yaml`, shared services by default, interfaces bound to their single implementation, `service:list` command.

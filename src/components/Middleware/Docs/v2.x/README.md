@@ -95,13 +95,13 @@ Global middlewares run on every request, before the routing (they also run for a
 
 ```yaml
 global:
-  - App\Middleware\MaintenanceMiddleware
+    - App\Middleware\MaintenanceMiddleware
 
 aliases:
-  auth: App\Middleware\AuthMiddleware
+    auth: App\Middleware\AuthMiddleware
 
 groups:
-  admin: [auth, App\Middleware\AdminMiddleware]
+    admin: [auth, App\Middleware\AdminMiddleware]
 ```
 
 | Key | Description |
@@ -162,15 +162,15 @@ With the `middlewares` option of `#[Route]` or of `config/routes.yaml` (see the 
 
 ```yaml
 admin:
-  resource: ../src/Admin/Controller/
-  type: attribute
-  prefix: /admin
-  middlewares: [admin]
+    resource: ../src/Admin/Controller/
+    type: attribute
+    prefix: /admin
+    middlewares: [admin]
 
 legacy:
-  path: /legacy
-  controller: App\Controller\LegacyController::index
-  middlewares: [auth]
+    path: /legacy
+    controller: App\Controller\LegacyController::index
+    middlewares: [auth]
 ```
 
 ## Order of execution
@@ -223,5 +223,6 @@ Other classes:
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `MiddlewareManager::handle()` resolves the aliases and groups it receives (an unknown alias throws a `MiddlewareException`).
 - v2.0.0 — `MiddlewareManager` is the `final` entry point of the module, declared with `#[Component]`; `MiddlewareManagerInterface` moves from `Contract\` to the root of the module; `Contract\AbstractMiddlewareManager` is merged into the manager; the internal classes are marked `@internal`.
 - v1.7.0 — Middlewares: PSR-15 style interfaces, global middlewares (`middleware.yaml`, `#[AsMiddleware]`), aliases and groups, route middlewares (`#[Middleware]`, `#[Route(middlewares)]`, `routes.yaml`), `middleware:list` command.

@@ -134,7 +134,7 @@ public function edit(Request $request, PostRepository $posts, ?int $id = null): 
 | `getErrors($deep = false)`, `addError($error)`, `clearErrors($deep = false)` | `FormError` list (`getMessage()`, `getParameters()`, `getOrigin()`, `getCause()`) |
 | `createView()`, `getView()` | `FormView` for the templates (`vars`, `children`, `isRendered()`) |
 
-`FormManagerInterface` (implemented by `FormManager`) creates forms in a service: `create($type, $data, $options)`, `createNamed($name, $type, $data, $options)`, `createBuilder()`, `createNamedBuilder()`, `getType()`, `getRenderer()`, `getValidator()`, `getCsrf()`, `getConfig()`.
+`FormManagerInterface` (implemented by `FormManager`) creates forms in a service: `create($type, $data, $options)`, `createNamed($name, $type, $data, $options)`, `createBuilder()`, `createNamedBuilder()` (builder of a field or a sub-form: no CSRF token, use `createNamed()` or `createBuilder()` for a root form), `getType()`, `getRenderer()`, `getValidator()`, `getCsrf()`, `getConfig()`.
 
 `FormBuilder`: `add()`, `create()`, `get()`, `has()`, `remove()`, `all()`, `getData()`, `setData()`, `getOption()`, `setOption()`, `getForm()`.
 
@@ -286,6 +286,7 @@ The theme of one form is set with the option `'theme' => 'bootstrap5'`. A theme 
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `form_row()` passes `attr`, `label`, `label_attr`, `help` and `help_attr` to the parts of the row; changing a field (error, child) refreshes the view of the root form; an unknown form type throws an `InvalidTypeException`.
 - v2.0.0 — `FormManager` is the `final` entry point of the module, declared with `#[Component]`; `FormManagerInterface` moves from `Contract\` to the root of the module; `Contract\AbstractFormManager` is merged into the manager; `Form` moves to `Model\Form`; `FormBuilder` moves to `Model\FormBuilder`; `FormError` moves to `Model\FormError`; `FormView` moves to `Model\FormView`; `ResolvedType` moves to `Type\ResolvedType`; the internal classes are marked `@internal`.
 - v1.20.0 — Messages translated through the Translation package (domain validators); `translation_domain` option for labels, helps and choices.
 - v1.17.0 — `make:form` asks for its values when they are missing.

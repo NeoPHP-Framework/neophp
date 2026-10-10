@@ -49,17 +49,17 @@ The session is configured in `config/framework/app.yaml`. The session cookie als
 
 ```yaml
 session:
-  name: NEOSESSID
-  lifetime: 0
-  gc_maxlifetime: 1440
-  save_path: '%kernel.root_path%/var/sessions'
+    name: NEOSESSID
+    lifetime: 0
+    gc_maxlifetime: 1440
+    save_path: '%kernel.root_path%/var/sessions'
 
 cookie:
-  path: /
-  domain: ~
-  secure: auto
-  httponly: true
-  samesite: Lax
+    path: /
+    domain: ~
+    secure: auto
+    httponly: true
+    samesite: Lax
 ```
 
 | Option | Default | Description |
@@ -190,9 +190,10 @@ Starting the session after the headers were sent throws a `SessionException`.
 | `SessionManager(array $options = [], bool $previous = false)` | options: `name`, `lifetime`, `gc_maxlifetime`, `save_path`, `cookie_path`, `cookie_domain`, `cookie_secure`, `cookie_httponly`, `cookie_samesite`; `$previous`: the request has a session cookie |
 | `Provider\SessionProvider` | builds the manager from `framework.app.session` and `framework.app.cookie` |
 | `Helper\Event\SessionListener` | saves the session on `ResponseEvent` |
-| `Exception\SessionException` | the session cannot be started or its directory cannot be created |
+| `Exception\SessionException` | the session cannot be started, its directory cannot be created, or its id cannot be regenerated |
 
 ## Changelog
 
+- v2.0.1 — Bugfix: `regenerate()` and `invalidate()` throw a `SessionException` when the session id cannot be regenerated (it was ignored, keeping the old id valid).
 - v2.0.0 — `SessionManager` is the `final` entry point of the module, declared with `#[Component]`; `SessionManagerInterface` replaces `Contract\SessionInterface`; `Contract\AbstractSession` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.6.0 — Session configured in `app.yaml`, lazy start, `getSession()` in controllers, `session()` view helper.

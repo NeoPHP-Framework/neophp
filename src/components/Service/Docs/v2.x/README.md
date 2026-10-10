@@ -97,33 +97,33 @@ class SmtpMailer implements MailerInterface
 
 ```yaml
 services:
-  _defaults:
-    shared: true
-
-  App\:
-    resource: ../src/
-    exclude:
-      - ../src/Kernel.php
-
-  App\Service\SmtpMailer:
-    arguments:
-      $host: '%env(MAIL_HOST)%'
-      $logger: '@NeoPHP\Component\Logger\Contract\LoggerInterface'
-    calls:
-      - [setFrom, ['noreply@example.com']]
-
-  App\Service\Slugger: ~
-
-  mailer: '@App\Service\SmtpMailer'
-
-  App\Service\NotifierInterface: '@App\Service\SmsNotifier'
-
-  app.api_client:
-    class: App\Service\ApiClient
-    factory: ['@App\Service\ApiClientFactory', 'create']
-    arguments:
-      $baseUrl: 'https://api.example.com'
-    shared: false
+    _defaults:
+        shared: true
+    
+    App\:
+        resource: ../src/
+        exclude:
+            - ../src/Kernel.php
+    
+    App\Service\SmtpMailer:
+        arguments:
+            $host: '%env(MAIL_HOST)%'
+            $logger: '@NeoPHP\Component\Logger\Contract\LoggerInterface'
+        calls:
+            - [setFrom, ['noreply@example.com']]
+    
+    App\Service\Slugger: ~
+    
+    mailer: '@App\Service\SmtpMailer'
+    
+    App\Service\NotifierInterface: '@App\Service\SmsNotifier'
+    
+    app.api_client:
+        class: App\Service\ApiClient
+        factory: ['@App\Service\ApiClientFactory', 'create']
+        arguments:
+            $baseUrl: 'https://api.example.com'
+        shared: false
 ```
 
 | Entry | Description |
@@ -161,7 +161,7 @@ When several registered classes implement it, resolving the interface throws a `
 
 ```yaml
 services:
-  App\Service\NotifierInterface: '@App\Service\SmsNotifier'
+    App\Service\NotifierInterface: '@App\Service\SmsNotifier'
 ```
 
 An interface already bound by the framework, or defined as a service or alias in the file, is never replaced automatically.
@@ -228,5 +228,6 @@ final class ServiceAudit
 
 ## Changelog
 
+- v2.0.1 — Bugfix: a relative `*` pattern in `exclude` (`../src/*Dto.php`) excludes the matching classes.
 - v2.0.0 — `ServiceManager` is the `final` entry point of the module, declared with `#[Component]`; `ServiceManagerInterface` replaces `Contract\ServiceInterface`; `Contract\AbstractService` is merged into the manager; the internal classes are marked `@internal`.
 - v1.8.0 — `#[Autowire]`, `#[Inject]`, `config/services.yaml` (resources, arguments, calls, factories, aliases), shared services by default, interfaces bound to their single implementation, `service:list` command.

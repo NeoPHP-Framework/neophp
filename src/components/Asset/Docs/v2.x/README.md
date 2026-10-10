@@ -113,8 +113,8 @@ public_url: /builds
 auto_compile: '%kernel.debug%'
 
 hash:
-  algorithm: xxh128
-  length: 8
+    algorithm: xxh128
+    length: 8
 ```
 
 | Option | Default | Description |
@@ -207,6 +207,7 @@ $asset->addCompiler(new SvgCompiler());
 
 ## Changelog
 
+- v2.0.1 — Bugfix: a CSS `url()` / `@import` of an asset overridden with `setSourceFile()` is rewritten.
 - v2.0.0 — `AssetManager` is the `final` entry point of the module, declared with `#[Component]`; `AssetManagerInterface` replaces `Contract\AssetInterface`; `Contract\AbstractAsset` is merged into the manager; the internal classes are marked `@internal`.
 - v1.31.0 — `asset()` adds the sub-directory of the application (`setBasePath()`); URLs rewritten in CSS files are relative to the compiled file.
 - v1.18.0 — `AssetInterface::setSourceFile()` (and `getSourceFile()`) to compile another file in place of an asset.
