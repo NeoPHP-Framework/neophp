@@ -8,6 +8,8 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Component\View\Contract\ViewHelperInterface;
 use NeoPHP\Component\View\Discovery\HelperDiscovery;
 use NeoPHP\Component\View\Engine\PhpEngine;
@@ -30,6 +32,8 @@ class ViewProvider extends AbstractProvider
     ];
 
     public const APPLICATION_NAMESPACE = 'App\\';
+
+    public const PACKAGE_OVERRIDES_DIRECTORY = 'packages';
 
     public function register(ContainerManagerInterface $container): void
     {
@@ -57,6 +61,8 @@ class ViewProvider extends AbstractProvider
             }
 
             $kernel = $container->bound(KernelManagerInterface::class) ? $container->get(KernelManagerInterface::class) : null;
+
+            self::addPackageTemplates($view, $rootPath, $templatesPath, $kernel);
 
             foreach (self::helpers($rootPath, $config, $debug, $kernel) as $class) {
                 $helper = $container->get($class);
@@ -88,6 +94,10 @@ class ViewProvider extends AbstractProvider
 
         $discovery->addSource($rootPath . DIRECTORY_SEPARATOR . 'src', self::APPLICATION_NAMESPACE);
 
+        foreach (ModuleSources::external($kernel) as $directory => $namespace) {
+            $discovery->addSource((string) $directory, (string) $namespace);
+        }
+
         $helpers = array_values(array_filter($discovery->discover(), static fn (string $class): bool => $kernel?->isEnabled($class) ?? true));
 
         foreach ((array) ($config['helpers'] ?? []) as $helper) {
@@ -95,6 +105,23 @@ class ViewProvider extends AbstractProvider
         }
 
         return array_values(array_unique($helpers));
+    }
+
+    protected static function addPackageTemplates(ViewManagerInterface $view, string $rootPath, string $templatesPath, ?KernelManagerInterface $kernel): void
+    {
+        foreach (InstalledPackages::all($rootPath) as $package) {
+            if ($package['templates'] === null || ($kernel !== null && $package['modules'] !== [] && !$kernel->isEnabled($package['modules'][0]))) {
+                continue;
+            }
+
+            $override = $templatesPath . DIRECTORY_SEPARATOR . self::PACKAGE_OVERRIDES_DIRECTORY . DIRECTORY_SEPARATOR . $package['alias'];
+
+            if (is_dir($override)) {
+                $view->addPath($override, $package['alias']);
+            }
+
+            $view->addPath($package['templates'], $package['alias']);
+        }
     }
 
     protected static function config(ContainerManagerInterface $container): array

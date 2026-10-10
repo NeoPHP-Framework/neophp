@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v2.x/README.md`, `Docs/v1.x/README.md` for NeoPHP 1). See the [versioning policy](docs/v2.x/README.md#versions-and-support).
 
+- v2.1.0 — NeoPHP packages: `neophp:package:*` commands, discovery of the packages installed with Composer
 - v2.0.1 — Bugfixes found by the PHPUnit test suite (Container, Config, Http, Csrf, Cookie, Middleware, Service, Session, Validator, Kernel, Logger, Form, Asset, Cache)
 - v2.0.0 — Modules: one `final` manager per module, automatic discovery, `config/config.php`. See [UPGRADE-2.0.md](UPGRADE-2.0.md)
 - v1.40.0 — Upload component

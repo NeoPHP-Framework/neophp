@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Provider;
+
+use NeoPHP\Component\Config\ConfigManagerInterface;
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Container\Contract\AbstractProvider;
+use {{ namespace }}\{{ class }}Manager;
+use {{ namespace }}\{{ class }}ManagerInterface;
+
+/**
+ * @internal
+ */
+class {{ class }}Provider extends AbstractProvider
+{
+    public function register(ContainerManagerInterface $container): void
+    {
+        $container->singleton({{ class }}ManagerInterface::class, static function (ContainerManagerInterface $container): {{ class }}ManagerInterface {
+            $config = $container->has(ConfigManagerInterface::class) ? (array) $container->get(ConfigManagerInterface::class)->get({{ class }}Manager::CONFIG_KEY, []) : [];
+
+            return new {{ class }}Manager($config);
+        });
+
+        $container->alias({{ class }}Manager::class, {{ class }}ManagerInterface::class);
+    }
+}
