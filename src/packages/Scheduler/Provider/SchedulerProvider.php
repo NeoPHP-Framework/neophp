@@ -8,6 +8,7 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Scheduler\Discovery\TaskDiscovery;
 use NeoPHP\Package\Scheduler\History\HistoryStore;
 use NeoPHP\Package\Scheduler\Lock\LockStore;
@@ -93,11 +94,12 @@ class SchedulerProvider extends AbstractProvider
 
     public static function discover(ContainerManagerInterface $container): array
     {
-        $paths = $container->has('kernel.root_path') ? [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'] : [];
-        $builder = static function () use ($paths): array {
+        $paths = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
+        $builder = static function () use ($paths, $resources): array {
             $discovery = new TaskDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

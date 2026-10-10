@@ -7,6 +7,7 @@ namespace NeoPHP\Process\Console\Provider;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Kernel\KernelManagerInterface;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Process\Console\Command\HelpCommand;
 use NeoPHP\Process\Console\Command\InstallCommand;
 use NeoPHP\Process\Console\Command\ListCommand;
@@ -65,6 +66,10 @@ class ConsoleProvider extends AbstractProvider
         }
 
         $discovery->addApplicationSource($rootPath . DIRECTORY_SEPARATOR . 'src');
+
+        foreach (array_keys(ModuleSources::external($kernel)) as $directory) {
+            $discovery->addApplicationSource((string) $directory);
+        }
 
         $discovered = array_filter($discovery->discover(), static fn (string $class): bool => $kernel?->isEnabled($class) ?? true);
 

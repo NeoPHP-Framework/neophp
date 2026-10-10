@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use NeoPHP\Component\Kernel\Attribute\Package;
+use {{ namespace }}\Provider\{{ class }}Provider;
+
+#[Package(provider: {{ class }}Provider::class)]
+final class {{ class }}Manager implements {{ class }}ManagerInterface
+{
+    public const CONFIG_KEY = 'packages.{{ alias }}.{{ alias }}';
+
+    public const DEFAULT_CONFIG = [
+        'greeting' => 'Hello',
+    ];
+
+    protected array $config;
+
+    public function __construct(array $config = [])
+    {
+        $this->config = array_replace(static::DEFAULT_CONFIG, $config);
+    }
+
+    public function greet(string $name): string
+    {
+        return sprintf('%s %s!', $this->config['greeting'], $name);
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+}

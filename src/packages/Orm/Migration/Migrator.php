@@ -21,6 +21,10 @@ class Migrator
 
     protected ?array $migrations = null;
 
+    protected array $sources = [];
+
+    protected array $origins = [];
+
     public function __construct(
         protected ConnectionInterface $connection,
         protected PlatformInterface $platform,
@@ -45,6 +49,26 @@ class Migrator
         return $this->table;
     }
 
+    public function addSource(string $directory, string $namespace, string $source): static
+    {
+        $this->sources[] = ['directory' => $directory, 'namespace' => $namespace, 'source' => $source];
+        $this->migrations = null;
+
+        return $this;
+    }
+
+    public function getSources(): array
+    {
+        return $this->sources;
+    }
+
+    public function getSource(string $version): ?string
+    {
+        $this->getMigrations();
+
+        return $this->origins[$version] ?? null;
+    }
+
     public function getMigrations(): array
     {
         if ($this->migrations !== null) {
@@ -52,10 +76,35 @@ class Migrator
         }
 
         $migrations = [];
+        $this->origins = [];
 
-        foreach (glob(rtrim($this->directory, '/\\') . DIRECTORY_SEPARATOR . AbstractMigration::PREFIX . '*.php') ?: [] as $file) {
+        foreach ([['directory' => $this->directory, 'namespace' => $this->namespace, 'source' => null], ...$this->sources] as $source) {
+            foreach ($this->load((string) $source['directory'], (string) $source['namespace']) as $version => $class) {
+                if (isset($migrations[$version])) {
+                    throw new MigrationException('The migration "{version}" is defined twice: in "{first}" and in "{second}".', 0, null, [
+                        'version' => $version,
+                        'first' => $this->origins[$version] ?? 'the application',
+                        'second' => $source['source'] ?? 'the application',
+                    ]);
+                }
+
+                $migrations[$version] = $class;
+                $this->origins[$version] = $source['source'];
+            }
+        }
+
+        ksort($migrations, SORT_STRING);
+
+        return $this->migrations = $migrations;
+    }
+
+    protected function load(string $directory, string $namespace): array
+    {
+        $migrations = [];
+
+        foreach (glob(rtrim($directory, '/\\') . DIRECTORY_SEPARATOR . AbstractMigration::PREFIX . '*.php') ?: [] as $file) {
             $version = substr(basename($file, '.php'), strlen(AbstractMigration::PREFIX));
-            $class = rtrim($this->namespace, '\\') . '\\' . AbstractMigration::PREFIX . $version;
+            $class = rtrim($namespace, '\\') . '\\' . AbstractMigration::PREFIX . $version;
 
             if (!class_exists($class, false)) {
                 require_once $file;
@@ -69,12 +118,10 @@ class Migrator
                 ]);
             }
 
-            $migrations[$version] = $class;
+            $migrations[(string) $version] = $class;
         }
 
-        ksort($migrations, SORT_STRING);
-
-        return $this->migrations = $migrations;
+        return $migrations;
     }
 
     public function getExecuted(): array
@@ -110,12 +157,13 @@ class Migrator
                 'executed_at' => $executed[$version]['executed_at'] ?? null,
                 'execution_time' => $executed[$version]['execution_time'] ?? null,
                 'available' => true,
+                'source' => $this->origins[$version] ?? null,
             ];
         }
 
         foreach ($executed as $version => $row) {
             if (!isset($status[$version])) {
-                $status[$version] = ['version' => $version, 'description' => '', 'executed_at' => $row['executed_at'], 'execution_time' => $row['execution_time'], 'available' => false];
+                $status[$version] = ['version' => $version, 'description' => '', 'executed_at' => $row['executed_at'], 'execution_time' => $row['execution_time'], 'available' => false, 'source' => null];
             }
         }
 

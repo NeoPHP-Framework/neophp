@@ -15,6 +15,7 @@
         <a href="<?= $this->e($this->siteUrl($profile)) ?>" title="Back to the profiled page">&larr; Back to the site</a>
         <a href="<?= $this->e($profilerPath) ?>">Last profiles</a>
         <a href="<?= $this->e($profilerPath . '/latest') ?>">Latest</a>
+        <a href="<?= $this->e($profilerPath . '/packages') ?>">Packages</a>
         <?php if ($profile !== null): ?>
             <a href="<?= $this->e($profilerPath . '/' . rawurlencode($profile->getToken()) . '.json') ?>">JSON</a>
         <?php endif; ?>

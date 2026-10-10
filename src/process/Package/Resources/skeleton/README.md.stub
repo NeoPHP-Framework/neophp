@@ -1,0 +1,79 @@
+# {{ package }}
+
+{{ description }}
+
+## Installation
+
+```bash
+php bin/neo neophp:package:install {{ package }}
+```
+
+The configuration is copied into `config/packages/{{ alias }}/`.
+
+## Configuration
+
+`config/packages/{{ alias }}/{{ alias }}.yaml` (key `packages.{{ alias }}.{{ alias }}`):
+
+```yaml
+greeting: Hello
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `greeting` | `Hello` | word used by `greet()` |
+
+## Usage
+
+Inject `{{ namespace }}\{{ class }}ManagerInterface` in a service, a command or a controller:
+
+```php
+use {{ namespace }}\{{ class }}ManagerInterface;
+
+public function __construct(private {{ class }}ManagerInterface ${{ property }})
+{
+}
+```
+
+```php
+$this->{{ property }}->greet('Neo');
+```
+
+Console:
+
+```bash
+php bin/neo {{ alias }}:hello Neo
+```
+
+Templates are rendered with the `@{{ alias }}` namespace and can be overridden in `templates/packages/{{ alias }}/` of the project:
+
+```php
+return $this->render('@{{ alias }}/hello', ['message' => $this->{{ property }}->greet('Neo')]);
+```
+
+## Disabling
+
+In `config/config.php`:
+
+```php
+{{ namespace }}\{{ class }}Manager::class => false,
+```
+
+## Development
+
+In a NeoPHP project, declare the directory of the package as a Composer path repository in `composer.json`:
+
+```json
+"repositories": [
+    { "type": "path", "url": "{{ directory }}", "options": { "symlink": true } }
+]
+```
+
+Then install it:
+
+```bash
+php bin/neo neophp:package:install {{ package }}:*@dev
+```
+
+## License
+
+MIT

@@ -60,20 +60,20 @@ The public API of the module is its manager and its interface, `Contract\`, the 
 connection: ~
 
 entity:
-  path: src/Entity
-  namespace: App\Entity
+    path: src/Entity
+    namespace: App\Entity
 
 repository:
-  path: src/Repository
-  namespace: App\Repository
+    path: src/Repository
+    namespace: App\Repository
 
 migration:
-  path: migrations
-  namespace: Migrations
-  table: neo_migrations
+    path: migrations
+    namespace: Migrations
+    table: neo_migrations
 
 proxy:
-  path: '%kernel.cache_path%/orm/proxies'
+    path: '%kernel.cache_path%/orm/proxies'
 
 ignore_tables: []
 ```
@@ -637,6 +637,21 @@ class Migration_01a0d70c0b0beeb3 extends AbstractMigration
 - On SQLite, a changed table is rebuilt (new table, copy of the data, rename), with the foreign keys disabled during the migration.
 - The generated SQL can be edited before `migration:migrate`; `$this->connection` is available for data migrations.
 
+### NeoPHP packages
+
+A NeoPHP package installed with Composer (see the Package documentation) can ship entities and migrations:
+
+| In the package | Default | Description |
+|---|---|---|
+| `extra.neophp.entities` | `src/Entity` | entities mapped by the ORM with the entities of the project |
+| `extra.neophp.migrations` | `migrations` | migrations executed by `migration:migrate` with the migrations of the project, in the order of their version |
+| `extra.neophp.migrations_namespace` | namespace of the module + `\Migrations` | namespace of the migration classes |
+
+- The tables of the package entities belong to the package: `make:migration` of the project never creates, changes nor drops them.
+- `make:migration --package=billing` generates a migration of the package from its entities, in its `migrations/` directory (development of a package in a project with a Composer path repository).
+- `migration:status` shows the source of each migration (`app` or the Composer name of the package).
+- The migrations of a disabled package are not executed.
+
 `AbstractMigration` (implements `MigrationInterface`):
 
 | Method | Description |
@@ -656,10 +671,10 @@ class Migration_01a0d70c0b0beeb3 extends AbstractMigration
 |---|---|
 | `make:entity` | `name` (e.g. `Post`, `Blog/Post`), `fields...`; global `--force` regenerates the entity |
 | `make:repository` | `entity` |
-| `make:migration` | `--empty`, `--description`/`-d` |
+| `make:migration` | `--empty`, `--description`/`-d`, `--package`/`-p` |
 | `migration:migrate` (alias `migrate`) | `--dry-run` shows the SQL without executing it |
 | `migration:rollback` (alias `rollback`) | `--steps`/`-s` (1), `--dry-run` |
-| `migration:status` | lists the migrations and whether they are executed |
+| `migration:status` | lists the migrations, their source and whether they are executed |
 
 ## Exceptions
 
@@ -685,6 +700,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.1.0 — Entities and migrations of the NeoPHP packages: package entities mapped, package tables ignored by `make:migration`, package migrations executed with the project ones, `make:migration --package`, source column in `migration:status`; `Migrator::addSource()`, `getSources()`, `getSource()`, `SchemaTool::forMetadata()`.
 - v2.0.0 — `OrmManager` is the `final` entry point of the module, declared with `#[Package]`; `OrmManagerInterface` replaces `Contract\OrmInterface`; `Contract\AbstractOrm` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; the internal classes are marked `@internal`.
 - v1.35.0 — `#[ORM\MappedSuperclass]` and inherited mapping (parent callbacks, even private, and indexes), abstract entities refused; `EntityManagerInterface` injectable in constructors and controller actions (alias of `OrmInterface`, service `entity_manager`).
 - v1.31.0 — `make:migration` ignores the framework tables `cache_items` and `remember_me_tokens`; entities in controller arguments (`EntityValueResolver`, `#[MapEntity]`), 404 when not found.

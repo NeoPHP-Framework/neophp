@@ -8,6 +8,7 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Component\Middleware\Discovery\MiddlewareDiscovery;
 use NeoPHP\Component\Middleware\MiddlewareManager;
 use NeoPHP\Component\Middleware\MiddlewareManagerInterface;
@@ -44,11 +45,12 @@ class MiddlewareProvider extends AbstractProvider
             return ['aliases' => [], 'global' => []];
         }
 
-        $source = (string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src';
-        $builder = static function () use ($source): array {
-            $discovery = new MiddlewareDiscovery([$source]);
+        $paths = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
+        $builder = static function () use ($paths, $resources): array {
+            $discovery = new MiddlewareDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

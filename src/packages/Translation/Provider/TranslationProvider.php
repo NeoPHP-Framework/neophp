@@ -7,6 +7,8 @@ namespace NeoPHP\Package\Translation\Provider;
 use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Translation\Locale\LocaleDetector;
 use NeoPHP\Package\Translation\Trace\TranslationTrace;
 use NeoPHP\Package\Translation\TranslationManager;
@@ -35,12 +37,38 @@ class TranslationProvider extends AbstractProvider
                 $container->has(YamlManagerInterface::class) ? $container->get(YamlManagerInterface::class) : null,
             );
 
+            self::addPackageResources($translator, $container);
+
             return self::profilingEnabled($container) ? $translator->setTrace(new TranslationTrace()) : $translator;
         });
 
         $container->singleton(LocaleDetector::class, static fn (ContainerManagerInterface $container): LocaleDetector => new LocaleDetector($container->get(TranslationManagerInterface::class)));
         $container->alias(TranslationManager::class, TranslationManagerInterface::class);
         $container->alias('translator', TranslationManagerInterface::class);
+    }
+
+    protected static function addPackageResources(TranslationManager $translator, ContainerManagerInterface $container): void
+    {
+        if (!$container->has('kernel.root_path')) {
+            return;
+        }
+
+        foreach (InstalledPackages::enabled((string) $container->get('kernel.root_path'), ModuleSources::kernel($container)) as $package) {
+            if ($package['translations'] === null) {
+                continue;
+            }
+
+            $files = scandir($package['translations']) ?: [];
+            sort($files);
+
+            foreach ($files as $name) {
+                $file = $package['translations'] . DIRECTORY_SEPARATOR . $name;
+
+                if (is_file($file) && TranslationManager::describe(str_replace('\\', '/', $file)) !== null) {
+                    $translator->addResource($file);
+                }
+            }
+        }
     }
 
     protected static function profilingEnabled(ContainerManagerInterface $container): bool

@@ -15,6 +15,7 @@ It also dispatches the kernel events and ships shared tools used by other module
 - [The app variable](#the-app-variable)
 - [Class discovery](#class-discovery)
 - [Resource cache](#resource-cache)
+- [Composer packages](#composer-packages)
 - [Clearing the cache](#clearing-the-cache)
 - [Exceptions](#exceptions)
 - [Changelog](#changelog)
@@ -181,6 +182,8 @@ The kernel registers every module it finds, nothing is listed by hand:
 }
 ```
 
+A NeoPHP package is a Composer package of type `neophp-package` declaring its modules in `extra.neophp.modules`. Its commands, listeners, view helpers and templates are discovered like the ones of the framework, and `neophp:package:install` copies its configuration into `config/packages/<name>/` (see the Package documentation).
+
 The providers are registered in the order of the dependencies: a module is always loaded after the modules it requires (then components, packages and processes, by class name). A dependency cycle throws a `KernelException`.
 
 The result is cached in `var/cache/kernel/modules.<env>.php`. In debug, it is rebuilt when a module, `config/config.php` or a `composer.json` changes; in production, run `php bin/neo cache:clear` after a deployment.
@@ -272,7 +275,7 @@ $cachePath = (string) $this->get('kernel.cache_path');
 
 ```yaml
 settings:
-    path: '%kernel.root_path%/var/log'
+  path: '%kernel.root_path%/var/log'
 ```
 
 ## Kernel events
@@ -385,6 +388,20 @@ $handlers = $cache->load(function () use ($rootPath): array {
 });
 ```
 
+## Composer packages
+
+`NeoPHP\Component\Kernel\Module\InstalledPackages` reads the NeoPHP packages installed with Composer (`vendor/composer/installed.json`): the packages of type `neophp-package` and the packages declaring modules in `extra.neophp.modules`.
+
+| Method | Description |
+|---|---|
+| `InstalledPackages::all(string $rootPath): array` | the packages by Composer name: `name`, `alias`, `version`, `description`, `type`, `path`, `modules`, `config` (directory or `null`), `templates` (directory or `null`) |
+| `InstalledPackages::find(string $rootPath, string $name): ?array` | a package by its Composer name or its alias |
+| `InstalledPackages::isNeoPhpPackage(array $package): bool` | whether a Composer package definition is a NeoPHP package |
+| `InstalledPackages::alias(string $package, mixed $alias = null): string` | the short name of a package: `extra.neophp.name`, or the Composer name without vendor and `neo-` / `neophp-` prefix in snake_case (`acme/neo-billing` → `billing`) |
+| `InstalledPackages::file(string $rootPath): string` | path of `installed.json` |
+
+`NeoPHP\Component\Kernel\Module\ModuleSources::external(?KernelManagerInterface $kernel): array` returns the directory of the manager of each enabled module installed outside of the framework and of `src/` => its namespace. The Console, Event and View components use it to discover the commands, listeners and view helpers of the packages.
+
 ## Clearing the cache
 
 ```bash
@@ -400,6 +417,7 @@ php bin/neo cc --env=prod -v
 
 ## Changelog
 
+- v2.1.0 — NeoPHP packages: `InstalledPackages` and `ModuleSources`, the commands, listeners, view helpers and templates of the modules installed with Composer are discovered.
 - v2.0.1 — Bugfix: `app.request` is `null` outside of an HTTP request; the module cache is rebuilt in debug when `config/config.php` is created after the first boot.
 - v2.0.0 — `KernelManagerInterface` replaces `Contract\KernelInterface`; `AppVariable` moves to `Helper\View\AppVariable`; modules: `#[Component]`, `#[Package]` and `#[Process]` attributes on `final` managers, automatic discovery of the framework modules and of the Composer packages (`extra.neophp.modules`), providers sorted by `requires`, `config/config.php` to disable modules per project and per environment, `getModules()` and `isEnabled()`, classes of disabled modules ignored by the discoveries, `Helper/<Module>/` convention; `KernelManager` is `final`, the application kernel extends `AbstractKernel`.
 - v1.32.0 — global `app` template variable (`AppVariable`): request, session, user, flashes, locale, environment, debug, current route and its parameters.

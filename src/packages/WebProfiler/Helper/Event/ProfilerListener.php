@@ -27,6 +27,8 @@ class ProfilerListener
 
     public const ROUTE_LATEST = '_profiler_latest';
 
+    public const ROUTE_PACKAGES = '_profiler_packages';
+
     public const ROUTE_JSON = '_profiler_json';
 
     public const ROUTE_SHOW = '_profiler_show';
@@ -164,6 +166,7 @@ class ProfilerListener
 
         $routing->add(new Route(self::ROUTE_INDEX, $path, ProfilerController::class . '::index', ['GET']));
         $routing->add(new Route(self::ROUTE_LATEST, $path . '/latest', ProfilerController::class . '::latest', ['GET']));
+        $routing->add(new Route(self::ROUTE_PACKAGES, $path . '/packages', ProfilerController::class . '::packages', ['GET']));
         $routing->add(new Route(self::ROUTE_JSON, $path . '/{token}.json', ProfilerController::class . '::json', ['GET'], $token));
         $routing->add(new Route(self::ROUTE_SHOW, $path . '/{token}', ProfilerController::class . '::show', ['GET'], $token));
         $routing->add(new Route(self::ROUTE_TOOLBAR, $profiler->getToolbarPath() . '/{token}', ProfilerController::class . '::toolbar', ['GET'], $token));

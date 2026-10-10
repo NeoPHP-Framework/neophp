@@ -98,10 +98,10 @@ On the class, `#[Route]` is a prefix: its `path` and `name` are prepended to eve
 
 ```yaml
 admin_controllers:
-    resource: ../src/Admin/Controller/
-    type: attribute
-    prefix: /admin
-    name_prefix: admin_
+  resource: ../src/Admin/Controller/
+  type: attribute
+  prefix: /admin
+  name_prefix: admin_
 ```
 
 ## YAML routes
@@ -110,24 +110,24 @@ admin_controllers:
 
 ```yaml
 home:
-    path: /
-    controller: App\Controller\HomeController::index
-    methods: [GET]
+  path: /
+  controller: App\Controller\HomeController::index
+  methods: [GET]
 
 user_show:
-    path: /user/{id}
-    controller: App\Controller\UserController::show
-    requirements: { id: '\d+' }
+  path: /user/{id}
+  controller: App\Controller\UserController::show
+  requirements: { id: '\d+' }
 
 page:
-    path: /page/{slug}
-    controller: App\Controller\PageController::show
-    defaults: { slug: home }
+  path: /page/{slug}
+  controller: App\Controller\PageController::show
+  defaults: { slug: home }
 
 admin:
-    resource: routes/admin.yaml
-    prefix: /admin
-    name_prefix: admin_
+  resource: routes/admin.yaml
+  prefix: /admin
+  name_prefix: admin_
 ```
 
 | Key | Description |
@@ -139,11 +139,21 @@ admin:
 | `defaults` | default values; a trailing placeholder with a default is optional |
 | `options` | free options |
 | `middlewares` | middlewares of the route; on an import, they run before the ones of the imported routes |
-| `resource` | imports another routes file or a controllers directory (relative to the current file) |
+| `resource` | imports another routes file or a controllers directory (relative to the current file), or the routes of a NeoPHP package (`@name`) |
 | `type` | `yaml` or `attribute` (default: `attribute` for a directory or a `.php` file, `yaml` otherwise) |
 | `prefix` / `name_prefix` | prefix applied to the imported paths / names |
 
 Configuration placeholders (`%env(...)%`, `%kernel.*%`...) are resolved in the routes files (see the Config documentation).
+
+`resource: '@<name>'` imports the routes of a NeoPHP package installed with Composer (`extra.neophp.routes`: `src/Controller/` by default, or a YAML file; see the Package documentation). `neophp:package:install` adds the import; `prefix`, `name_prefix` and the other import keys work the same way:
+
+```yaml
+package_billing:
+  resource: '@billing'
+  prefix: /billing
+```
+
+The import of a disabled package is ignored; an unknown package throws a `RoutingException`.
 
 A route name must be unique: a name defined twice in the routes of the application (`config/routes.yaml`, its imports and the attributes they load) throws a `RoutingException` that gives both locations. A route added later with `RoutingManager::add()` replaces the route of the same name.
 
@@ -218,7 +228,7 @@ Routes are compiled into `var/cache/routing/routes.{env}.php`.
 
 | Mode | Behavior |
 |---|---|
-| debug | the cache is rebuilt when a routes file, a controller, a `.env` file or the installed packages change |
+| debug | the cache is rebuilt when a routes file, a controller, a `.env` file, `config/config.php` or the installed packages change |
 | production | the cache is built once, on the first request, and never checked again |
 
 In production, run `php bin/neo cache:clear` on every deployment (see the Kernel documentation).
@@ -281,7 +291,7 @@ $routing->add(new Route('health', '/health', HealthController::class, ['GET']));
 
 | Class | Description |
 |---|---|
-| `Loader\YamlRouteLoader` | `__construct(YamlManagerInterface $yaml, ?callable $resolver = null)`, `load(string $file): RouteCollection`, `getResources()` |
+| `Loader\YamlRouteLoader` | `__construct(YamlManagerInterface $yaml, ?callable $resolver = null, ?callable $packages = null)` (`$packages(string $name): string\|false\|null` resolves `@name`), `load(string $file): RouteCollection`, `getResources()` |
 | `Loader\AttributeRouteLoader` | `load(string $path): RouteCollection` (directory or file), `loadClass(string $class): RouteCollection`, `getResources()` |
 | `Cache\RouteCache` | `__construct(string $file, bool $debug = false)`, `load(callable $builder): RouteCollection`, `getFile()`, `clear()` |
 
@@ -296,6 +306,7 @@ $routing->add(new Route('health', '/health', HealthController::class, ['GET']));
 
 ## Changelog
 
+- v2.1.0 — `resource: '@name'` imports the routes of a NeoPHP package.
 - v2.0.0 — `RoutingManager` is the `final` entry point of the module, declared with `#[Component]`; `RoutingManagerInterface` replaces `Contract\RoutingInterface`; `Contract\AbstractRouting` is merged into the manager; the internal classes are marked `@internal`.
 - v1.31.0 — generated paths contain the sub-directory of the application (`setBasePath()`, `getBasePath()`).
 - Bugfix after v1.17.0 — Absolute URLs: `generate(..., true)`, `generateUrl(..., true)`, `url()` view helper, `framework.app.url` / `APP_URL` for the console, `setBaseUrl()`.

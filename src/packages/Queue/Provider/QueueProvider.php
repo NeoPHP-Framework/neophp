@@ -10,6 +10,7 @@ use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Event\EventManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Queue\Contract\MessageBusInterface;
 use NeoPHP\Package\Queue\Contract\TransportFactoryInterface;
 use NeoPHP\Package\Queue\Discovery\HandlerDiscovery;
@@ -175,11 +176,12 @@ class QueueProvider extends AbstractProvider
 
     public static function discover(ContainerManagerInterface $container): array
     {
-        $paths = $container->has('kernel.root_path') ? [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'] : [];
-        $builder = static function () use ($paths): array {
+        $paths = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
+        $builder = static function () use ($paths, $resources): array {
             $discovery = new HandlerDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {
