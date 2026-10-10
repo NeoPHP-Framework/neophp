@@ -65,7 +65,7 @@ class ProxyGenerator
         $lazy = [];
 
         foreach ($reflection->getProperties() as $property) {
-            if ($property->isPublic() && !$property->isStatic()) {
+            if ($property->isPublic() && !$property->isStatic() && $property->getName() !== $identifier) {
                 $lazy[] = var_export($property->getName(), true) . ' => true';
             }
         }
