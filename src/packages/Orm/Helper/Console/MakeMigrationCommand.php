@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Orm\Helper\Console;
 
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
+use NeoPHP\Package\Orm\Metadata\MetadataFactory;
 use NeoPHP\Package\Orm\Migration\MigrationGenerator;
 use NeoPHP\Package\Orm\Migration\Migrator;
 use NeoPHP\Package\Orm\OrmManagerInterface;
@@ -22,7 +25,7 @@ use Throwable;
 #[AsCommand(name: 'make:migration', description: 'Generates a migration from the differences between the entities and the database')]
 class MakeMigrationCommand extends AbstractConsole
 {
-    public function __construct(protected OrmManagerInterface $orm, protected SchemaTool $schemaTool, protected Migrator $migrator, protected MigrationGenerator $generator)
+    public function __construct(protected OrmManagerInterface $orm, protected SchemaTool $schemaTool, protected Migrator $migrator, protected MigrationGenerator $generator, protected ?ContainerManagerInterface $container = null)
     {
     }
 
@@ -30,16 +33,34 @@ class MakeMigrationCommand extends AbstractConsole
     {
         $input->addOption('empty', null, InputOption::VALUE_NONE, 'Generate an empty migration to write by hand');
         $input->addOption('description', 'd', InputOption::VALUE_REQUIRED, 'The description of the migration (asked when there are changes)', '');
+        $input->addOption('package', 'p', InputOption::VALUE_REQUIRED, 'Generate the migration of a NeoPHP package from its entities, in its migrations/ directory');
         $this->setHelp('The file is written in migrations/Migration_{hash}.php. The pending migrations must be executed first.');
         $this->addExample('make:migration');
         $this->addExample('make:migration --description="Add the post table"');
         $this->addExample('make:migration --empty');
+        $this->addExample('make:migration --package=billing');
     }
 
     protected function do(InputInterface $input, OutputInterface $output): int
     {
         $empty = (bool) $input->getOption('empty');
         $description = (string) $input->getOption('description');
+        $schemaTool = $this->schemaTool;
+        $generator = $this->generator;
+        $package = $input->getOption('package');
+
+        if (is_string($package) && $package !== '') {
+            $installed = $this->container !== null && $this->container->has('kernel.root_path') ? InstalledPackages::find((string) $this->container->get('kernel.root_path'), $package) : null;
+
+            if ($installed === null || $installed['path'] === '' || $installed['migrations_namespace'] === null) {
+                $output->error(sprintf('The NeoPHP package "%s" is not installed or declares no module.', $package));
+
+                return self::FAILURE;
+            }
+
+            $schemaTool = $this->schemaTool->forMetadata(new MetadataFactory([$installed['entities'] ?? $installed['path'] . '/src/Entity']), [$this->migrator->getTable()]);
+            $generator = new MigrationGenerator($installed['migrations'] ?? $installed['path'] . '/migrations', $installed['migrations_namespace']);
+        }
 
         try {
             $pending = $this->migrator->getPending();
@@ -51,7 +72,7 @@ class MakeMigrationCommand extends AbstractConsole
                 return self::FAILURE;
             }
 
-            [$up, $down] = $empty ? [[], []] : $this->schemaTool->getMigrationSql();
+            [$up, $down] = $empty ? [[], []] : $schemaTool->getMigrationSql();
 
             if ($up === [] && !$empty) {
                 $output->note('No changes detected: the database is in sync with the entities.');
@@ -63,7 +84,7 @@ class MakeMigrationCommand extends AbstractConsole
                 $description = trim((string) $output->ask('Description of the migration (optional, press <return> to skip)', ''));
             }
 
-            $file = $this->generator->generate($up, $down, $empty ? null : $this->orm->getPlatform()->getName(), $description);
+            $file = $generator->generate($up, $down, $empty ? null : $this->orm->getPlatform()->getName(), $description);
         } catch (Throwable $exception) {
             $output->error($exception->getMessage());
 

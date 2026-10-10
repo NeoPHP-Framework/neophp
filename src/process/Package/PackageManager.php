@@ -22,6 +22,8 @@ final class PackageManager implements PackageManagerInterface
 
     public const MODULES_FILE = 'config/config.php';
 
+    public const ROUTES_FILE = 'config/routes.yaml';
+
     public const CACHE_DIRECTORY = 'var/cache';
 
     public const MANIFEST = '.package.json';
@@ -65,6 +67,11 @@ final class PackageManager implements PackageManagerInterface
         }
 
         $files = $this->publish($installed, $force);
+
+        if ($this->addRoutesImport($installed)) {
+            $files[self::ROUTES_FILE] = self::STATUS_UPDATED;
+        }
+
         $this->clearCache();
 
         return ['package' => $installed, 'files' => $files];
@@ -99,18 +106,29 @@ final class PackageManager implements PackageManagerInterface
     {
         $installed = $this->installed($package);
         $modulesFile = $this->rootPath . DIRECTORY_SEPARATOR . self::MODULES_FILE;
-        $previous = is_file($modulesFile) ? (string) file_get_contents($modulesFile) : null;
+        $routesFile = $this->rootPath . DIRECTORY_SEPARATOR . self::ROUTES_FILE;
+        $previous = [];
         $files = [];
+
+        foreach ([$modulesFile, $routesFile] as $file) {
+            if (is_file($file)) {
+                $previous[$file] = (string) file_get_contents($file);
+            }
+        }
 
         if ($this->removeModuleEntries($modulesFile, $installed['modules'])) {
             $files[self::MODULES_FILE] = self::STATUS_UPDATED;
         }
 
+        if ($this->removeRoutesImport($installed)) {
+            $files[self::ROUTES_FILE] = self::STATUS_UPDATED;
+        }
+
         try {
             $this->composer(['remove', $installed['name']]);
         } catch (PackageException $exception) {
-            if ($previous !== null) {
-                file_put_contents($modulesFile, $previous);
+            foreach ($previous as $file => $content) {
+                file_put_contents($file, $content);
             }
 
             throw $exception;
@@ -280,6 +298,86 @@ final class PackageManager implements PackageManagerInterface
         if ($code !== 0) {
             throw new PackageException('Composer failed (exit code {code}): {command}.', 0, null, ['code' => $code, 'command' => $this->composer->display($arguments)]);
         }
+    }
+
+    protected function addRoutesImport(array $package): bool
+    {
+        if ($package['routes'] === null) {
+            return false;
+        }
+
+        $file = $this->rootPath . DIRECTORY_SEPARATOR . self::ROUTES_FILE;
+        $content = is_file($file) ? (string) file_get_contents($file) : '';
+
+        if (preg_match($this->routesImportPattern($package['alias']), $content) === 1) {
+            return false;
+        }
+
+        $block = sprintf("package_%s:\n    resource: '@%s'\n", $package['alias'], $package['alias']);
+        $this->write($file, trim($content) === '' ? $block : rtrim($content) . "\n\n" . $block);
+
+        return true;
+    }
+
+    protected function removeRoutesImport(array $package): bool
+    {
+        $file = $this->rootPath . DIRECTORY_SEPARATOR . self::ROUTES_FILE;
+
+        if (!is_file($file)) {
+            return false;
+        }
+
+        $pattern = $this->routesImportPattern($package['alias']);
+        $kept = [];
+        $block = [];
+        $removed = false;
+
+        foreach ([...explode("\n", (string) file_get_contents($file)), null] as $line) {
+            $boundary = $line === null || ($line !== '' && !ctype_space($line[0]));
+
+            if ($boundary && $block !== []) {
+                if (preg_match($pattern, implode("\n", $block)) === 1) {
+                    $removed = true;
+
+                    while ($kept !== [] && trim((string) end($kept)) === '') {
+                        array_pop($kept);
+                    }
+
+                    if ($line !== null && $kept !== []) {
+                        $kept[] = '';
+                    }
+                } else {
+                    array_push($kept, ...$block);
+                }
+
+                $block = [];
+            }
+
+            if ($line === null) {
+                break;
+            }
+
+            if ($boundary && !str_starts_with($line, '#')) {
+                $block[] = $line;
+            } elseif ($block !== [] && !$boundary) {
+                $block[] = $line;
+            } else {
+                $kept[] = $line;
+            }
+        }
+
+        if (!$removed) {
+            return false;
+        }
+
+        $this->write($file, rtrim(implode("\n", $kept)) . "\n");
+
+        return true;
+    }
+
+    protected function routesImportPattern(string $alias): string
+    {
+        return '/^[ \t]+resource:[ \t]*[\'"]?@' . preg_quote($alias, '/') . '[\'"]?[ \t]*$/m';
     }
 
     protected function removeModuleEntries(string $file, array $modules): bool

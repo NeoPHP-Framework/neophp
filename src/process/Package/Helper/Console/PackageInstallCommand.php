@@ -51,11 +51,28 @@ class PackageInstallCommand extends AbstractPackageCommand
             $details['Templates'] = '@' . $package['alias'] . '/... (override them in templates/packages/' . $package['alias'] . '/)';
         }
 
+        if ($package['routes'] !== null) {
+            $details['Routes'] = '@' . $package['alias'] . ' imported in config/routes.yaml';
+        }
+
+        if ($package['assets'] !== null) {
+            $details['Assets'] = "asset('@" . $package['alias'] . "/...')";
+        }
+
+        if ($package['translations'] !== null) {
+            $details['Translations'] = 'loaded from the package, overridden by translations/ of the project';
+        }
+
         if ($package['modules'] !== []) {
             $details['Modules'] = implode(', ', $package['modules']);
         }
 
         $output->definitionList($details);
+
+        if ($package['migrations'] !== null) {
+            $output->note('The package has database migrations: run php bin/neo migration:migrate');
+        }
+
         $output->success(sprintf('%s is ready. Read its README for the next steps: %s', $package['name'], $package['path'] . DIRECTORY_SEPARATOR . 'README.md'));
 
         return self::SUCCESS;

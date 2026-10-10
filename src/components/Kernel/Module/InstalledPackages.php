@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NeoPHP\Component\Kernel\Module;
 
 use NeoPHP\Component\Kernel\Exception\KernelException;
+use NeoPHP\Component\Kernel\KernelManagerInterface;
 
 final class InstalledPackages
 {
@@ -42,6 +43,26 @@ final class InstalledPackages
         }
 
         return null;
+    }
+
+    public static function enabled(string $rootPath, ?KernelManagerInterface $kernel): array
+    {
+        return array_filter(self::all($rootPath), static fn (array $package): bool => self::isEnabled($package, $kernel));
+    }
+
+    public static function isEnabled(array $package, ?KernelManagerInterface $kernel): bool
+    {
+        if ($kernel === null || $package['modules'] === []) {
+            return true;
+        }
+
+        foreach ($package['modules'] as $module) {
+            if (!isset($kernel->getModules()[$module])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static function file(string $rootPath): string
@@ -117,6 +138,10 @@ final class InstalledPackages
         $path = isset($package['install-path']) ? realpath($composerDirectory . DIRECTORY_SEPARATOR . $package['install-path']) : false;
         $path = $path !== false ? $path : '';
 
+        $modules = array_values(array_map(static fn (mixed $class): string => ltrim((string) $class, '\\'), (array) ($extra['modules'] ?? [])));
+        $namespace = $modules !== [] && str_contains($modules[0], '\\') ? substr($modules[0], 0, (int) strrpos($modules[0], '\\')) : null;
+        $migrationsNamespace = $extra['migrations_namespace'] ?? ($namespace !== null ? $namespace . '\\Migrations' : null);
+
         return [
             'name' => $name,
             'alias' => self::alias($name, $extra['name'] ?? null),
@@ -124,13 +149,20 @@ final class InstalledPackages
             'description' => (string) ($package['description'] ?? ''),
             'type' => (string) ($package['type'] ?? 'library'),
             'path' => $path,
-            'modules' => array_values(array_map(static fn (mixed $class): string => ltrim((string) $class, '\\'), (array) ($extra['modules'] ?? []))),
+            'modules' => $modules,
+            'namespace' => $namespace,
             'config' => self::directory($path, $extra['config'] ?? 'config'),
             'templates' => self::directory($path, $extra['templates'] ?? 'templates'),
+            'translations' => self::directory($path, $extra['translations'] ?? 'translations'),
+            'assets' => self::directory($path, $extra['assets'] ?? 'assets'),
+            'routes' => self::directory($path, $extra['routes'] ?? 'src/Controller', true),
+            'entities' => self::directory($path, $extra['entities'] ?? 'src/Entity'),
+            'migrations' => self::directory($path, $extra['migrations'] ?? 'migrations'),
+            'migrations_namespace' => is_string($migrationsNamespace) && $migrationsNamespace !== '' ? trim($migrationsNamespace, '\\') : null,
         ];
     }
 
-    private static function directory(string $path, mixed $relative): ?string
+    private static function directory(string $path, mixed $relative, bool $file = false): ?string
     {
         if ($path === '' || !is_string($relative) || trim($relative, '/\\') === '') {
             return null;
@@ -138,6 +170,6 @@ final class InstalledPackages
 
         $directory = $path . DIRECTORY_SEPARATOR . trim(str_replace('\\', '/', $relative), '/');
 
-        return is_dir($directory) ? $directory : null;
+        return is_dir($directory) || ($file && is_file($directory)) ? $directory : null;
     }
 }

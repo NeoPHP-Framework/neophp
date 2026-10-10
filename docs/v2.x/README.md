@@ -171,7 +171,7 @@ php bin/neo neophp:package:remove acme/neo-billing
 php bin/neo neophp:package:create acme/neo-billing --link
 ```
 
-The configuration of a package is copied into `config/packages/<name>/` and its templates are rendered with `@<name>/`. See the Package documentation.
+The configuration of a package is copied into `config/packages/<name>/`, its routes are imported in `config/routes.yaml` (`resource: '@<name>'`), its templates are rendered with `@<name>/`, its assets with `asset('@<name>/...')`, and its translations, commands, listeners, entities and migrations are loaded with the ones of the project. The page `/_profiler/packages` of the profiler lists the packages and modules with their status per environment. See the Package documentation.
 
 ## First page
 
@@ -341,25 +341,25 @@ php bin/neo make:auth --twig
 
 ```yaml
 providers:
-  users:
-    entity:
-      class: App\Entity\User
-      property: email
+    users:
+        entity:
+            class: App\Entity\User
+            property: email
 
 firewalls:
-  main:
-    pattern: ^/
-    provider: users
-    form_login:
-      login_path: app_login
-      enable_csrf: true
-    logout:
-        path: app_logout
-        enable_csrf: true
-        methods: [POST]
+    main:
+        pattern: ^/
+        provider: users
+        form_login:
+            login_path: app_login
+            enable_csrf: true
+        logout:
+            path: app_logout
+            enable_csrf: true
+            methods: [POST]
 
 access_control:
-  - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/admin, roles: ROLE_ADMIN }
 ```
 
 In controllers: `$this->getUser()`, `$this->denyAccessUnlessGranted('ROLE_ADMIN')`, `#[IsGranted('ROLE_ADMIN')]`. In templates: `app_user()`, `is_granted('ROLE_ADMIN')`, `logout_path()`, `logout_form('Logout')` (the logout is a POST form protected by a CSRF token). See the Security documentation.
@@ -383,8 +383,8 @@ Enable the locales in `config/packages/translation.yaml` (`locales: [en, fr]`) a
 
 ```yaml
 home:
-  title: Bienvenue
-  posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
+    title: Bienvenue
+    posts: "{count, plural, =0 {Aucun article} one {# article} other {# articles}}"
 ```
 
 ```twig

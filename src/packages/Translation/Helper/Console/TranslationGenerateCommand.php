@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Translation\Helper\Console;
 
+use NeoPHP\Component\Container\ContainerManagerInterface;
+use NeoPHP\Component\Kernel\Module\InstalledPackages;
 use NeoPHP\Package\Translation\Dumper\XliffDumper;
 use NeoPHP\Package\Translation\Dumper\YamlDumper;
 use NeoPHP\Package\Translation\Exception\TranslationException;
@@ -22,7 +24,9 @@ use NeoPHP\Process\Console\IO\InputOption;
 #[AsCommand(name: 'translation:generate', description: 'Extracts the translation keys of the templates and the code and adds the missing ones to the translation files')]
 class TranslationGenerateCommand extends AbstractConsole
 {
-    public function __construct(protected TranslationManagerInterface $translator)
+    protected ?string $directory = null;
+
+    public function __construct(protected TranslationManagerInterface $translator, protected ?ContainerManagerInterface $container = null)
     {
     }
 
@@ -33,16 +37,19 @@ class TranslationGenerateCommand extends AbstractConsole
         $input->addOption('format', null, InputOption::VALUE_REQUIRED, 'The format of the new files: yaml or xliff (default: packages.translation.format)');
         $input->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show the changes without writing any file');
         $input->addOption('clean', null, InputOption::VALUE_NONE, 'Remove the keys which are no longer used in the code');
+        $input->addOption('package', 'p', InputOption::VALUE_REQUIRED, 'Extract the keys of a NeoPHP package (templates/ and src/ of the package) into its translations/ directory');
         $this->setHelp(implode("\n", [
             'Scans packages.translation.extract.paths (templates/ and src/ by default) for translate(\'key\'), \'key\'|trans,',
             '$this->translate(\'key\') and ->translate(\'key\'), with an optional literal domain argument.',
             'The missing keys are added to translations/{domain}.{locale}.{yaml|xlf}: the value is the key for the default locale, "" otherwise.',
             'Existing translations are kept; an existing file keeps its format. --clean removes the unused keys of the extracted domains.',
+            'With --package, the templates/ and src/ of the NeoPHP package are scanned and its translations/ directory is updated.',
         ]));
         $this->addExample('translation:generate');
         $this->addExample('translation:generate --locale=fr --locale=de --format=xliff');
         $this->addExample('translation:generate --domain=admin --dry-run');
         $this->addExample('translation:generate --clean');
+        $this->addExample('translation:generate --package=billing');
     }
 
     protected function do(InputInterface $input, OutputInterface $output): int
@@ -71,8 +78,25 @@ class TranslationGenerateCommand extends AbstractConsole
             $locales[$normalized] = true;
         }
 
+        $paths = (array) ($config['extract']['paths'] ?? []);
+        $this->directory = null;
+        $package = $input->getOption('package');
+
+        if (is_string($package) && $package !== '') {
+            $installed = $this->container !== null && $this->container->has('kernel.root_path') ? InstalledPackages::find((string) $this->container->get('kernel.root_path'), $package) : null;
+
+            if ($installed === null || $installed['path'] === '') {
+                $output->error(sprintf('The NeoPHP package "%s" is not installed.', $package));
+
+                return self::FAILURE;
+            }
+
+            $paths = array_values(array_filter([$installed['path'] . '/templates', $installed['path'] . '/src'], 'is_dir'));
+            $this->directory = str_replace('\\', '/', $installed['translations'] ?? $installed['path'] . '/translations');
+        }
+
         $extractor = new TranslationExtractor($this->translator->getDefaultDomain());
-        $extracted = $extractor->extract((array) ($config['extract']['paths'] ?? []));
+        $extracted = $extractor->extract($paths);
         $domain = $input->getOption('domain');
 
         if (is_string($domain) && $domain !== '') {
@@ -129,7 +153,7 @@ class TranslationGenerateCommand extends AbstractConsole
         }
 
         if ($rows === []) {
-            $output->note('No translation key found in ' . implode(', ', array_map(fn (string $path): string => $this->relative($path), (array) ($config['extract']['paths'] ?? []))) . '.');
+            $output->note('No translation key found in ' . implode(', ', array_map(fn (string $path): string => $this->relative((string) $path), $paths)) . '.');
 
             return self::SUCCESS;
         }
@@ -157,6 +181,18 @@ class TranslationGenerateCommand extends AbstractConsole
 
     protected function file(string $domain, string $locale, string $format): array
     {
+        if ($this->directory !== null) {
+            foreach (['yaml' => 'yaml', 'yml' => 'yaml', 'xlf' => 'xliff', 'xliff' => 'xliff'] as $extension => $fileFormat) {
+                $file = $this->directory . '/' . $domain . '.' . $locale . '.' . $extension;
+
+                if (is_file($file)) {
+                    return [$file, $fileFormat, true];
+                }
+            }
+
+            return [$this->directory . '/' . $domain . '.' . $locale . '.' . ($format === 'xliff' ? 'xlf' : 'yaml'), $format, false];
+        }
+
         $path = $this->translator->getPath();
 
         foreach ($this->translator->getResources($locale) as $resource) {

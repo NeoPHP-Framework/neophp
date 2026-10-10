@@ -23,6 +23,10 @@ interface AssetManagerInterface
 
     public function getSourceFile(string $path): string;
 
+    public function addNamespace(string $name, string $directory): static;
+
+    public function getNamespaces(): array;
+
     public function getSourcePath(): string;
 
     public function getBuildPath(): string;

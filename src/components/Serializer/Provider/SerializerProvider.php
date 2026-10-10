@@ -9,6 +9,7 @@ use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Controller\Contract\ArgumentResolverInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
+use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Component\Serializer\ArgumentResolver\RequestPayloadResolver;
 use NeoPHP\Component\Serializer\Discovery\NormalizerDiscovery;
 use NeoPHP\Component\Serializer\Exception\SerializerException;
@@ -78,11 +79,12 @@ class SerializerProvider extends AbstractProvider
             return [];
         }
 
-        $paths = [(string) $container->get('kernel.root_path') . DIRECTORY_SEPARATOR . 'src'];
-        $builder = static function () use ($paths): array {
+        $paths = ModuleSources::paths($container);
+        $resources = ModuleSources::resources($container);
+        $builder = static function () use ($paths, $resources): array {
             $discovery = new NormalizerDiscovery($paths);
 
-            return [$discovery->discover(), $discovery->getResources()];
+            return [$discovery->discover(), $discovery->getResources() + $resources];
         };
 
         if (!$container->has('kernel.cache_path')) {

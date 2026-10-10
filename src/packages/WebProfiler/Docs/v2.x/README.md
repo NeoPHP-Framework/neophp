@@ -19,6 +19,7 @@ No external library is used: the pages and the toolbar are self-contained (inlin
 - [Storage](#storage)
 - [Configuration](#configuration)
 - [Routes](#routes)
+- [Packages page](#packages-page)
 - [Console](#console)
 - [WebProfilerManagerInterface](#webprofilermanagerinterface)
 - [Built-in elements](#built-in-elements)
@@ -76,7 +77,7 @@ In production (`kernel.debug` false) the package never collects, never registers
 Elements are discovered and cached in `var/cache/web_profiler/profilers.{env}.php` (refreshed automatically in debug when a file changes):
 
 - framework: every class in `src/{components|packages|process}/<Feature>/Helper/WebProfiler/*.php` implementing `ProfilerElementInterface` (path convention, no attribute needed);
-- application: every class of `src/` carrying `#[AsProfiler]` and implementing `ProfilerElementInterface`;
+- application and NeoPHP packages: every class of `src/` or of a package installed with Composer carrying `#[AsProfiler]` and implementing `ProfilerElementInterface`;
 - configuration: the classes listed in `panels:` of `config/packages/web_profiler.yaml`.
 
 Elements are resolved through the container (constructor autowiring) and sorted by priority (highest first); the priority is `#[AsProfiler(priority: …)]` when set, else `getPriority()`.
@@ -412,9 +413,19 @@ Registered at request time (only when enabled):
 |---|---|---|
 | `_profiler_index` | `/_profiler` | last profiles with search filters (`ip`, `url`, `method`, `status`, `token`, `limit`) |
 | `_profiler_latest` | `/_profiler/latest` | redirects to the last profile |
+| `_profiler_packages` | `/_profiler/packages` | NeoPHP packages and modules: active or inactive in the current environment, environments set in `config/config.php` |
 | `_profiler_json` | `/_profiler/{token}.json` | raw profile |
 | `_profiler_show` | `/_profiler/{token}?panel=name` | summary, menu of panels and selected panel |
 | `_profiler_toolbar` | `/_wdt/{token}` | toolbar HTML fragment |
+
+## Packages page
+
+`/_profiler/packages` (link **Packages** in the header of the profiler, not in the toolbar) shows:
+
+- the NeoPHP packages installed with Composer: Composer name, name, version, status (**Active** / **Inactive** in the current environment), environments (`all`, `dev, test`, `all except prod`, `none`), modules and what the package provides (`config`, `routes`, `templates`, `translations`, `assets`, `entities`, `migrations`), with a warning when its configuration is not copied into `config/packages/<name>/`;
+- every module (components, packages, processes, application and Composer modules): type, source, status and environments.
+
+The environments are read from `config/config.php` (see the Kernel documentation): a module that is not listed is enabled in every environment.
 
 ## Console
 
@@ -476,6 +487,7 @@ Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_k
 
 ## Changelog
 
+- v2.1.0 — Packages page (`/_profiler/packages`): NeoPHP packages and modules with their status and environments; the `#[AsProfiler]` elements of the NeoPHP packages are discovered.
 - v2.0.0 — `WebProfilerManager` is the `final` entry point of the module, declared with `#[Package]`; new `WebProfilerManagerInterface`; `Profiler` is renamed `WebProfilerManager`; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; the Session panel no longer shows the flash messages (the `FlashProfiler` of the Flash component shows them); the internal classes are marked `@internal`.
 - v1.39.0 — Theme switcher (Auto / Light / Dark) in the toolbar and the profiler header, `theme` icon.
 - v1.38.0 — Session panel: flash messages added and read during the request (Flash trace).

@@ -53,6 +53,7 @@ class PackageMaker
             'alias' => $alias,
             'class' => $class,
             'property' => lcfirst($class),
+            'route' => str_replace('_', '-', $alias),
             'namespace' => $namespace,
             'namespace_json' => str_replace('\\', '\\\\', $namespace),
             'description' => $description !== null && trim($description) !== '' ? trim($description) : sprintf('%s package for NeoPHP.', $class),

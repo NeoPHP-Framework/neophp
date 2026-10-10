@@ -1,7 +1,7 @@
 # Package
 
 The Package process installs, lists, updates and removes the NeoPHP packages with Composer, and generates the skeleton of a new package.
-A NeoPHP package is a Composer package of type `neophp-package` that adds modules to a project: its configuration is copied into `config/packages/<name>/`, its templates are rendered with `@<name>/`, and its commands, listeners and view helpers are discovered.
+A NeoPHP package is a Composer package of type `neophp-package` that adds modules to a project: its configuration is copied into `config/packages/<name>/`, its routes are imported in `config/routes.yaml`, its templates, translations, assets, entities and migrations are used with the ones of the project, and its commands, listeners and other classes are discovered.
 
 ## Summary
 
@@ -9,7 +9,10 @@ A NeoPHP package is a Composer package of type `neophp-package` that adds module
 - [Installing a package](#installing-a-package)
 - [Commands](#commands)
 - [Configuration files](#configuration-files)
-- [Templates](#templates)
+- [Routes](#routes)
+- [Templates, translations and assets](#templates-translations-and-assets)
+- [Database](#database)
+- [Profiler](#profiler)
 - [Creating a package](#creating-a-package)
 - [Composer](#composer)
 - [API](#api)
@@ -52,7 +55,10 @@ php bin/neo neophp:package:install acme/neo-billing
 1. Composer must know the package with the type `neophp-package`: any other type is refused before the installation, and checked again after it (the package is then removed).
 2. `composer require acme/neo-billing` runs in the project, with its output and its questions.
 3. The configuration files of the package are copied into `config/packages/billing/`.
-4. `var/cache/` is emptied.
+4. The import of its routes is added to `config/routes.yaml` (`resource: '@billing'`) when the package has routes.
+5. `var/cache/` is emptied.
+
+When the package has migrations, run `php bin/neo migration:migrate`.
 
 The package is then enabled like any module: its manager is registered by the kernel, its services can be injected, its commands appear in `php bin/neo list`. To disable it, add its manager to `config/config.php`:
 
@@ -60,7 +66,7 @@ The package is then enabled like any module: its manager is registered by the ke
 Acme\Billing\BillingManager::class => false,
 ```
 
-`composer require` alone installs a package too: the modules are discovered the same way, but the configuration is not copied (run `neophp:package:update <name>` to copy it).
+`composer require` alone installs a package too: the modules are discovered the same way, but the configuration is not copied (run `neophp:package:update <name>` to copy it) and the routes are not imported (add the import yourself, see [Routes](#routes)).
 
 ## Commands
 
@@ -69,12 +75,12 @@ Acme\Billing\BillingManager::class => false,
 | `neophp:package:install <package> [--dev]` | requires the package with Composer (`acme/neo-billing`, `acme/neo-billing:^1.2`), copies its configuration and clears the cache; `--dev` adds it to `require-dev` |
 | `neophp:package:list` | the installed NeoPHP packages: Composer name, name, version, status (enabled / disabled in `config/config.php`) and configuration directory |
 | `neophp:package:update [package]` | updates one package, or every NeoPHP package, with `composer update --with-dependencies`, then copies the new configuration files |
-| `neophp:package:remove <package> [--purge]` | removes the entries of the package from `config/config.php`, runs `composer remove`, clears the cache; `--purge` also deletes `config/packages/<name>/` |
+| `neophp:package:remove <package> [--purge]` | removes the entries of the package from `config/config.php` and the import of its routes from `config/routes.yaml`, runs `composer remove`, clears the cache; `--purge` also deletes `config/packages/<name>/` |
 | `neophp:package:create <package> [--path=] [--namespace=] [--description=] [--link]` | generates the skeleton of a package (see [Creating a package](#creating-a-package)) |
 
 A package is named by its Composer name (`acme/neo-billing`) or by its name (`billing`). `--force` overwrites the configuration files changed in the project (install, update) and the files of an existing directory (create). `neophp:package:remove` asks for a confirmation, except with `-n`.
 
-The entries of `config/config.php` are removed before `composer remove`, because the Composer scripts of the project boot the kernel, which refuses a key that is not a module; they are restored when Composer fails.
+The entries of `config/config.php` and `config/routes.yaml` are removed before `composer remove`, because the Composer scripts of the project boot the kernel, which refuses a key that is not a module; they are restored when Composer fails. The tables created by the migrations of a removed package are kept.
 
 ## Configuration files
 
@@ -90,15 +96,47 @@ The files of the `config/` directory of the package (`extra.neophp.config`) are 
 
 Merge a `.dist` file into the project file, then delete it; the next update removes it when both files are identical. `config/packages/<name>/.package.json` stores the fingerprint of the files copied by the last installation or update: commit it with the configuration.
 
-## Templates
+## Routes
 
-The `templates/` directory of the package (`extra.neophp.templates`) is registered under its name:
+The routes of a package are the `#[Route]` controllers of its `src/Controller/` directory, or the routes file given in `extra.neophp.routes`. `neophp:package:install` adds their import to `config/routes.yaml`:
 
-```php
-return $this->render('@billing/invoice', ['invoice' => $invoice]);
+```yaml
+package_billing:
+    resource: '@billing'
 ```
 
-`templates/packages/billing/invoice.php` of the project replaces `invoice.php` of the package (see the View documentation).
+Edit the import like any other one: `prefix: /billing`, `name_prefix: billing_`, `middlewares: [auth]`... The import of a disabled package is ignored (see the Routing documentation).
+
+## Templates, translations and assets
+
+| Element | In the package | Used with | Override in the project |
+|---|---|---|---|
+| templates | `templates/` | `render('@billing/invoice')` | `templates/packages/billing/invoice.php` |
+| translations | `translations/billing.fr.yaml` | `translate('key', {}, 'billing')` | `translations/billing.fr.yaml` (same keys) |
+| assets | `assets/css/billing.css` | `asset('@billing/css/billing.css')` | `assets/packages/billing/css/billing.css` |
+
+The assets are compiled into `public/builds/packages/billing/` (also by `asset:reload`). `php bin/neo translation:generate --package=billing` extracts the keys of the templates and the code of the package into its `translations/` directory. See the View, Translation and Asset documentation.
+
+## Database
+
+The entities of `src/Entity/` of the package (`extra.neophp.entities`) are mapped by the ORM, and the migrations of its `migrations/` directory (`extra.neophp.migrations`, namespace `extra.neophp.migrations_namespace`, `<namespace of the module>\Migrations` by default) run with the ones of the project:
+
+```bash
+php bin/neo migration:migrate
+php bin/neo migration:status
+```
+
+The tables of the package entities belong to the package: `make:migration` of the project never touches them. While developing a package, generate its migrations from its entities:
+
+```bash
+php bin/neo make:migration --package=billing
+```
+
+See the ORM documentation.
+
+## Profiler
+
+In debug, `/_profiler/packages` (link **Packages** of the profiler) lists the NeoPHP packages with their version, their status (**Active** / **Inactive** in the current environment), the environments set in `config/config.php` (`all`, `dev, test`, `all except prod`, `none`) and what they provide, then every module of the project (see the WebProfiler documentation).
 
 ## Creating a package
 
@@ -120,15 +158,20 @@ packages/neo-billing/
 ├── .gitignore
 ├── composer.json
 ├── README.md
+├── assets/
+│   └── css/billing.css
 ├── config/
 │   └── billing.yaml
 ├── src/
 │   ├── BillingManager.php
 │   ├── BillingManagerInterface.php
 │   ├── Command/HelloCommand.php
+│   ├── Controller/BillingController.php
 │   └── Provider/BillingProvider.php
-└── templates/
-    └── hello.php
+├── templates/
+│   └── hello.php
+└── translations/
+    └── billing.en.yaml
 ```
 
 With `--link`, the package works right away:
@@ -137,6 +180,8 @@ With `--link`, the package works right away:
 php bin/neo neophp:package:create acme/neo-billing --link
 php bin/neo billing:hello Neo
 ```
+
+and the page `/billing/hello/Neo` renders `@billing/hello` with its stylesheet and its translated message.
 
 ### composer.json
 
@@ -169,6 +214,12 @@ php bin/neo billing:hello Neo
 | `extra.neophp.name` | from the Composer name | name of the package (snake_case): `config/packages/<name>/`, `@<name>/` |
 | `extra.neophp.config` | `config` | directory of the configuration files to copy |
 | `extra.neophp.templates` | `templates` | directory of the templates |
+| `extra.neophp.translations` | `translations` | directory of the translation files |
+| `extra.neophp.assets` | `assets` | directory of the assets |
+| `extra.neophp.routes` | `src/Controller` | controllers directory or routes file imported with `@<name>` |
+| `extra.neophp.entities` | `src/Entity` | directory of the entities |
+| `extra.neophp.migrations` | `migrations` | directory of the migrations |
+| `extra.neophp.migrations_namespace` | `<namespace>\Migrations` | namespace of the migrations |
 
 ### Manager and provider
 
@@ -228,11 +279,21 @@ class BillingProvider extends AbstractProvider
 |---|---|
 | console commands | any `#[AsCommand]` class of `src/` |
 | listeners and subscribers | any `#[AsListener]` class or `EventSubscriberInterface` of `src/` |
+| middlewares | `#[AsMiddleware]` classes of `src/` |
+| queue handlers | `#[AsMessageHandler]` classes of `src/` |
+| scheduled tasks | `#[AsScheduledTask]` classes and `ScheduleProviderInterface` of `src/` |
+| voters | `#[AsVoter]` classes of `src/` |
+| normalizers | `#[AsNormalizer]` classes of `src/` |
+| profiler elements | `#[AsProfiler]` classes of `src/` |
 | view helpers | `src/**/Helper/View/` |
+| routes | `src/Controller/` or `extra.neophp.routes` (imported with `@<name>`) |
 | templates | `templates/` (`@<name>/`) |
+| translations | `translations/` |
+| assets | `assets/` (`asset('@<name>/...')`) |
+| entities and migrations | `src/Entity/`, `migrations/` |
 | configuration | `config/` (copied into `config/packages/<name>/`) |
 
-The elements of a disabled package are ignored.
+The elements of a disabled package are ignored. In debug, the caches of the discoveries are rebuilt when a package is installed or removed.
 
 ### Developing a package in a project
 
@@ -301,4 +362,4 @@ $configDirectory = $this->package->getConfigDirectory('billing');
 
 ## Changelog
 
-- v2.1.0 — Package process: `neophp:package:install`, `neophp:package:list`, `neophp:package:update`, `neophp:package:remove` and `neophp:package:create`, configuration copied into `config/packages/<name>/` with `.dist` files for the files changed in the project, `PackageManagerInterface`.
+- v2.1.0 — Package process: `neophp:package:install`, `neophp:package:list`, `neophp:package:update`, `neophp:package:remove` and `neophp:package:create`, configuration copied into `config/packages/<name>/` with `.dist` files for the files changed in the project, import of the routes in `config/routes.yaml`, skeleton with a controller, translations and assets, `PackageManagerInterface`.

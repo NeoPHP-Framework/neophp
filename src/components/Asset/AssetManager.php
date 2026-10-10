@@ -20,6 +20,8 @@ use SplFileInfo;
 #[Component(provider: AssetProvider::class)]
 final class AssetManager implements AssetManagerInterface
 {
+    public const NAMESPACE_DIRECTORY = 'packages';
+
     protected string $sourcePath = '';
 
     protected string $buildPath = '';
@@ -45,6 +47,8 @@ final class AssetManager implements AssetManagerInterface
     protected array $compiling = [];
 
     protected array $sourceFiles = [];
+
+    protected array $namespaces = [];
 
     public function __construct(
         string $sourcePath,
@@ -196,7 +200,30 @@ final class AssetManager implements AssetManagerInterface
         $path = $this->normalize($path);
         $file = $this->sourceFiles[$path] ?? null;
 
-        return $file !== null && is_file($file) ? $file : $this->sourcePath . '/' . $path;
+        if ($file !== null && is_file($file)) {
+            return $file;
+        }
+
+        $file = $this->sourcePath . '/' . $path;
+
+        return is_file($file) ? $file : ($this->namespaceFile($path) ?? $file);
+    }
+
+    public function addNamespace(string $name, string $directory): static
+    {
+        if (preg_match('/^[a-z][a-z0-9_]*$/', $name) !== 1) {
+            throw new AssetException('The asset namespace "{name}" must be snake_case.', 0, null, ['name' => $name]);
+        }
+
+        $this->namespaces[$name] = rtrim(str_replace('\\', '/', $directory), '/');
+        $this->resolved = [];
+
+        return $this;
+    }
+
+    public function getNamespaces(): array
+    {
+        return $this->namespaces;
     }
 
     public function getSourcePath(): string
@@ -276,9 +303,24 @@ final class AssetManager implements AssetManagerInterface
 
     protected function resolveDependency(string $path): ?string
     {
-        $override = $this->sourceFiles[$path] ?? null;
+        return is_file($this->getSourceFile($path)) ? $this->resolve($path) : null;
+    }
 
-        return ($override !== null && is_file($override)) || is_file($this->sourcePath . '/' . $path) ? $this->resolve($path) : null;
+    protected function namespaceFile(string $path): ?string
+    {
+        if (!str_starts_with($path, self::NAMESPACE_DIRECTORY . '/')) {
+            return null;
+        }
+
+        $parts = explode('/', $path, 3);
+
+        if (count($parts) !== 3 || !isset($this->namespaces[$parts[1]])) {
+            return null;
+        }
+
+        $file = $this->namespaces[$parts[1]] . '/' . $parts[2];
+
+        return is_file($file) ? $file : null;
     }
 
     protected function compilerFor(string $path): ?CompilerInterface
@@ -346,34 +388,51 @@ final class AssetManager implements AssetManagerInterface
 
     protected function sources(): array
     {
-        if (!is_dir($this->sourcePath)) {
+        $paths = $this->files($this->sourcePath, '');
+
+        foreach ($this->namespaces as $name => $directory) {
+            array_push($paths, ...$this->files($directory, self::NAMESPACE_DIRECTORY . '/' . $name . '/'));
+        }
+
+        $paths = array_values(array_unique($paths));
+        sort($paths);
+
+        return $paths;
+    }
+
+    protected function files(string $directory, string $prefix): array
+    {
+        if (!is_dir($directory)) {
             return [];
         }
 
         $paths = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->sourcePath, FilesystemIterator::SKIP_DOTS));
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS));
 
         foreach ($iterator as $file) {
             if (!$file instanceof SplFileInfo || !$file->isFile()) {
                 continue;
             }
 
-            $relative = ltrim(substr(str_replace('\\', '/', $file->getPathname()), strlen($this->sourcePath)), '/');
+            $relative = ltrim(substr(str_replace('\\', '/', $file->getPathname()), strlen($directory)), '/');
 
             if (preg_match('#(^|/)\.#', $relative) === 1) {
                 continue;
             }
 
-            $paths[] = $relative;
+            $paths[] = $prefix . $relative;
         }
-
-        sort($paths);
 
         return $paths;
     }
 
     protected function normalize(string $path): string
     {
+        if (str_starts_with($path, '@')) {
+            $segments = explode('/', ltrim(substr(str_replace('\\', '/', $path), 1), '/'), 2);
+            $path = self::NAMESPACE_DIRECTORY . '/' . $segments[0] . '/' . ($segments[1] ?? '');
+        }
+
         $parts = [];
 
         foreach (explode('/', str_replace('\\', '/', $path)) as $segment) {
