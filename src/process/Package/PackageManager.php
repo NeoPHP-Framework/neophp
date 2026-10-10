@@ -359,7 +359,7 @@ final class PackageManager implements PackageManagerInterface
 
             if ($boundary && !str_starts_with($line, '#')) {
                 $block[] = $line;
-            } elseif ($block !== [] && !$boundary) {
+            } elseif ($block !== []) {
                 $block[] = $line;
             } else {
                 $kept[] = $line;
