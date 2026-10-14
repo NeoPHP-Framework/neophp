@@ -40,6 +40,12 @@ class PgsqlDriver extends AbstractDriver
         if ($charset !== '') {
             $pdo->exec('SET NAMES ' . $pdo->quote($charset));
         }
+
+        $timezone = $params['timezone'] ?? date_default_timezone_get();
+
+        if (!in_array($timezone, [false, '', 'false'], true)) {
+            $pdo->exec('SET TIME ZONE ' . $pdo->quote((string) $timezone));
+        }
     }
 
     protected function getDatabaseExistsSql(): string
