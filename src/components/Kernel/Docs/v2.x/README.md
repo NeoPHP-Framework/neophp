@@ -413,10 +413,11 @@ php bin/neo cc --env=prod -v
 
 ## Exceptions
 
-`NeoPHP\Component\Kernel\Exception\KernelException` extends `FrameworkException`. It is thrown for an invalid module or provider, an invalid `config/config.php`, a required module that is disabled, a dependency cycle, a container used before `boot()`, or a cache file that cannot be written.
+`NeoPHP\Component\Kernel\Exception\KernelException` extends `FrameworkException`. It is thrown for an invalid module or provider, an invalid `config/config.php`, a required module that is disabled, a dependency cycle, a container used before `boot()`, a cache file that cannot be written, or an unknown timezone in `framework.app.timezone`.
 
 ## Changelog
 
+- v2.2.0 — `framework.app.timezone` (`APP_TIMEZONE`) sets the default PHP timezone when the kernel boots.
 - v2.1.0 — NeoPHP packages: `InstalledPackages` and `ModuleSources`, the commands, listeners, view helpers and templates of the modules installed with Composer are discovered.
 - v2.0.1 — Bugfix: `app.request` is `null` outside of an HTTP request; the module cache is rebuilt in debug when `config/config.php` is created after the first boot.
 - v2.0.0 — `KernelManagerInterface` replaces `Contract\KernelInterface`; `AppVariable` moves to `Helper\View\AppVariable`; modules: `#[Component]`, `#[Package]` and `#[Process]` attributes on `final` managers, automatic discovery of the framework modules and of the Composer packages (`extra.neophp.modules`), providers sorted by `requires`, `config/config.php` to disable modules per project and per environment, `getModules()` and `isEnabled()`, classes of disabled modules ignored by the discoveries, `Helper/<Module>/` convention; `KernelManager` is `final`, the application kernel extends `AbstractKernel`.

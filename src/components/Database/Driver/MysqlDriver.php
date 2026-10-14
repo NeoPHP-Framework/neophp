@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace NeoPHP\Component\Database\Driver;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use NeoPHP\Component\Database\Contract\AbstractDriver;
+use PDO;
 
 class MysqlDriver extends AbstractDriver
 {
@@ -33,6 +36,19 @@ class MysqlDriver extends AbstractDriver
             'dbname' => $withDatabase ? ($params['dbname'] ?? null) : null,
             'charset' => $params['charset'] ?? 'utf8mb4',
         ]);
+    }
+
+    protected function initialize(PDO $pdo, array $params): void
+    {
+        $timezone = $params['timezone'] ?? date_default_timezone_get();
+
+        if (in_array($timezone, [false, '', 'false'], true)) {
+            return;
+        }
+
+        $offset = (new DateTimeImmutable('now', new DateTimeZone((string) $timezone)))->format('P');
+
+        $pdo->exec('SET time_zone = ' . $pdo->quote($offset));
     }
 
     protected function getDatabaseExistsSql(): string
