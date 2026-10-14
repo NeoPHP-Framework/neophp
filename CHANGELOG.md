@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v2.x/README.md`, `Docs/v1.x/README.md` for NeoPHP 1). See the [versioning policy](docs/v2.x/README.md#versions-and-support).
 
+- v2.2.0 — Application timezone: `APP_TIMEZONE` (`framework.app.timezone`) sets the PHP timezone and the MySQL / PostgreSQL session timezone
 - v2.1.2 — Fix lazy ORM proxies left empty when the entity has public properties
 - v2.1.1 — Docblocks on the methods of every `ManagerInterface`
 - v2.1.0 — NeoPHP packages: `neophp:package:*` commands; routes, templates, translations, assets, entities, migrations, commands, listeners and the other discoveries of the packages; Packages page of the WebProfiler
