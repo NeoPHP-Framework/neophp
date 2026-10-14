@@ -111,6 +111,7 @@ connections:
 | `path` | SQLite file, relative to the project root or absolute; `sqlite:///:memory:` for an in-memory database |
 | `foreign_keys` | SQLite: set to `false` to disable `PRAGMA foreign_keys = ON` |
 | `options` | PDO attributes, by name (`ATTR_TIMEOUT`) or number |
+| `timezone` | MySQL and PostgreSQL: timezone of the session (`SET time_zone` / `SET TIME ZONE`), the PHP timezone by default (`framework.app.timezone`); `false` to keep the server one |
 
 With a URL, `sqlite:///var/data.db` is relative to the project root and `sqlite:///%kernel.root_path%/var/data.db` is absolute.
 
@@ -296,6 +297,7 @@ The `Helper/WebProfiler/DatabaseProfiler` element adds a Database item to the to
 
 ## Changelog
 
+- v2.2.0 — `timezone` connection parameter: MySQL and PostgreSQL sessions use the PHP timezone by default.
 - v2.0.0 — `DatabaseManager` is the `final` entry point of the module, declared with `#[Component]`; `DatabaseManagerInterface` replaces `Contract\DatabaseInterface`; `Contract\AbstractDatabase` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; the internal classes are marked `@internal`.
 - v1.25.1 — profiler integration: `QueryLoggerInterface`, `QueryLogger`, `setQueryLogger()` on connections and on the manager, transaction logging, Stopwatch events, Database panel of the Web Profiler.
 - v1.17.0 — `database:query` asks for the query when it is missing.

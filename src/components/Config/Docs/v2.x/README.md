@@ -64,6 +64,7 @@ DATABASE_URL="mysql://${DB_USER}@localhost/app"
 | `APP_DEBUG` | `true` unless `APP_ENV=prod` | shows the detailed error page |
 | `APP_SECRET` | none | key used to sign cookies |
 | `APP_URL` | none | base URL of the absolute URLs generated in the console (`framework.app.url`) |
+| `APP_TIMEZONE` | PHP `date.timezone` | default timezone of PHP and of the database sessions (`framework.app.timezone`) |
 | `DATABASE_URL` | `sqlite:///%kernel.root_path%/var/data.db` | URL of the default database connection |
 
 `php bin/neo install` creates `.env`; when `.env` already exists, it adds the missing variables (with their comments) and keeps the others.
@@ -179,6 +180,7 @@ $path = $config->resolve('%kernel.root_path%/var');
 
 ## Changelog
 
+- v2.2.0 — `APP_TIMEZONE` / `framework.app.timezone`.
 - v2.0.1 — Bugfix: an escaped `%%` stays a literal `%` when the value is referenced by another placeholder or the configuration is loaded again (it was resolved a second time); a file loaded with `loadFile()` can reference its own keys.
 - v2.0.0 — `ConfigManager` is the `final` entry point of the module, declared with `#[Component]`; `ConfigManagerInterface` replaces `Contract\ConfigInterface`; `Contract\AbstractConfig` is merged into the manager; the internal classes are marked `@internal`.
 - Bugfix after v1.17.0 — `framework.app.url` / `APP_URL` for absolute URLs outside of an HTTP request.
