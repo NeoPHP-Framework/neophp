@@ -15,7 +15,9 @@ use NeoPHP\Package\Mercure\Helper\Queue\PublishUpdateJob;
 use NeoPHP\Package\Mercure\Jwt\JwtSigner;
 use NeoPHP\Package\Mercure\Model\Update;
 use NeoPHP\Package\Mercure\Provider\MercureProvider;
+use NeoPHP\Package\Mercure\Trace\MercureTrace;
 use NeoPHP\Package\Queue\Contract\MessageBusInterface;
+use Throwable;
 
 #[Package(provider: MercureProvider::class, requires: [HttpClientManager::class])]
 final class MercureManager implements MercureManagerInterface
@@ -51,6 +53,7 @@ final class MercureManager implements MercureManagerInterface
         array $config = [],
         protected ?CookieManagerInterface $cookies = null,
         protected ?MessageBusInterface $bus = null,
+        protected ?MercureTrace $trace = null,
     ) {
         $this->config = array_replace(self::DEFAULT_CONFIG, $config);
         $this->config['jwt'] = array_replace(self::DEFAULT_CONFIG['jwt'], (array) $this->config['jwt']);
@@ -58,6 +61,43 @@ final class MercureManager implements MercureManagerInterface
     }
 
     public function publish(Update $update): string
+    {
+        $start = microtime(true);
+        $id = null;
+        $error = null;
+
+        try {
+            return $id = $this->send($update);
+        } catch (Throwable $exception) {
+            $error = $exception;
+
+            throw $exception;
+        } finally {
+            $this->traceUpdate('publish', $update, $start, $id, $error);
+        }
+    }
+
+    public function dispatch(Update $update, array $options = []): void
+    {
+        $start = microtime(true);
+        $error = null;
+
+        try {
+            if ($this->bus === null) {
+                throw new MercureException('The Queue package is disabled: publish the update with publish() instead of dispatch().');
+            }
+
+            $this->bus->dispatch(new PublishUpdateJob($update), $options);
+        } catch (Throwable $exception) {
+            $error = $exception;
+
+            throw $exception;
+        } finally {
+            $this->traceUpdate('dispatch', $update, $start, null, $error);
+        }
+    }
+
+    protected function send(Update $update): string
     {
         $body = implode('&', array_map(static fn (array $field): string => $field[0] . '=' . rawurlencode($field[1]), $update->toFields()));
         $options = (array) $this->config['http_options'];
@@ -83,15 +123,6 @@ final class MercureManager implements MercureManagerInterface
         }
 
         return trim($content);
-    }
-
-    public function dispatch(Update $update, array $options = []): void
-    {
-        if ($this->bus === null) {
-            throw new MercureException('The Queue package is disabled: publish the update with publish() instead of dispatch().');
-        }
-
-        $this->bus->dispatch(new PublishUpdateJob($update), $options);
     }
 
     public function getUrl(): string
@@ -159,6 +190,7 @@ final class MercureManager implements MercureManagerInterface
         $lifetime ??= (int) $this->config['cookie']['lifetime'];
         $token = $this->createSubscriberToken($topics, $payload, $lifetime);
         $this->cookies()->set(self::COOKIE_NAME, $token, $this->cookieOptions() + ['lifetime' => $lifetime]);
+        $this->trace?->recordAuthorization(['action' => 'authorize', 'topics' => array_values($topics), 'payload' => $payload, 'lifetime' => $lifetime]);
 
         return $token;
     }
@@ -166,11 +198,28 @@ final class MercureManager implements MercureManagerInterface
     public function clearAuthorization(): void
     {
         $this->cookies()->remove(self::COOKIE_NAME, $this->cookieOptions());
+        $this->trace?->recordAuthorization(['action' => 'clear', 'topics' => [], 'payload' => [], 'lifetime' => null]);
     }
 
     public function addDiscoveryLink(Response $response): Response
     {
         return $response->setHeader('Link', '<' . $this->getPublicUrl() . '>; rel="mercure"', false);
+    }
+
+    protected function traceUpdate(string $mode, Update $update, float $start, ?string $id, ?Throwable $error): void
+    {
+        $this->trace?->recordUpdate([
+            'mode' => $mode,
+            'topics' => $update->getTopics(),
+            'private' => $update->isPrivate(),
+            'id' => $id ?? $update->getId(),
+            'type' => $update->getType(),
+            'retry' => $update->getRetry(),
+            'size' => strlen($update->getData()),
+            'data' => mb_strimwidth($update->getData(), 0, MercureTrace::DATA_PREVIEW, '…'),
+            'duration' => round((microtime(true) - $start) * 1000, 2),
+            'error' => $error?->getMessage(),
+        ]);
     }
 
     protected function hasSecret(): bool
