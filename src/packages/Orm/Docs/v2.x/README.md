@@ -85,7 +85,7 @@ ignore_tables: []
 | `repository` | directory and namespace of the repositories, used by `make:repository` and to find the repository of an entity |
 | `migration` | directory, namespace and table of the migrations |
 | `proxy` | directory of the generated proxy classes (cleared by `cache:clear`) |
-| `ignore_tables` | tables ignored by `make:migration` (never created nor dropped); the tables of the framework (`cache_items`, `remember_me_tokens`) are always ignored |
+| `ignore_tables` | tables ignored by `make:migration` (never created nor dropped); the tables of the framework (`cache_items`, `remember_me_tokens`, `neo_queue_jobs`, `neo_queue_failed`, `neo_notifications`, `neo_push_subscriptions`) are always ignored |
 
 ## Entities
 
@@ -700,6 +700,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.7.0 — `make:migration` ignores the tables of the Notifier package (`neo_notifications`, `neo_push_subscriptions`).
 - v2.1.0 — Entities and migrations of the NeoPHP packages: package entities mapped, package tables ignored by `make:migration`, package migrations executed with the project ones, `make:migration --package`, source column in `migration:status`; `Migrator::addSource()`, `getSources()`, `getSource()`, `SchemaTool::forMetadata()`.
 - v2.0.0 — `OrmManager` is the `final` entry point of the module, declared with `#[Package]`; `OrmManagerInterface` replaces `Contract\OrmInterface`; `Contract\AbstractOrm` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; the internal classes are marked `@internal`.
 - v1.35.0 — `#[ORM\MappedSuperclass]` and inherited mapping (parent callbacks, even private, and indexes), abstract entities refused; `EntityManagerInterface` injectable in constructors and controller actions (alias of `OrmInterface`, service `entity_manager`).

@@ -169,10 +169,11 @@ Any other value throws a `ControllerException`.
 | `Flash/Helper/Controller/FlashController` | `addFlash()` |
 | `Form/Helper/Controller/FormController` | `createForm()`, `createFormBuilder()` |
 | `Http/Helper/Controller/HttpController` | `json()`, `redirect()`, `streamResponse()`, `fileResponse()`, `createNotFoundException()`, `createAccessDeniedException()` |
-| `Image/Helper/Controller/ImageController` (package) | `imageUrl()`, `optimizeImage()` |
 | `HttpClient/Helper/Controller/HttpClientController` | `httpClient()` |
+| `Image/Helper/Controller/ImageController` (package) | `imageUrl()`, `optimizeImage()` |
 | `Mailer/Helper/Controller/MailerController` | `sendEmail()` |
 | `Mercure/Helper/Controller/MercureController` (package) | `publishUpdate()`, `authorizeMercure()` |
+| `Notifier/Helper/Controller/NotifierController` (package) | `sendNotification()` |
 | `Orm/Helper/Controller/OrmController` (package) | `getOrm()`, `getRepository()` |
 | `Queue/Helper/Controller/QueueController` (package) | `dispatchMessage()` |
 | `Routing/Helper/Controller/RoutingController` | `generateUrl()`, `redirectToRoute()` |
@@ -266,6 +267,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v2.7.0 — `AbstractController` uses the `NotifierController` trait: `sendNotification()`.
 - v2.6.0 — `AbstractController` uses the `ImageController` trait: `imageUrl()`, `optimizeImage()`.
 - v2.5.0 — `HttpController` adds `streamResponse()` and `fileResponse()`.
 - v2.3.0 — `AbstractController` uses the `MercureController` trait: `publishUpdate()`, `authorizeMercure()`.

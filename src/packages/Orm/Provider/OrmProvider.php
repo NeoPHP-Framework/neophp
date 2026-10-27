@@ -34,7 +34,14 @@ class OrmProvider extends AbstractProvider
 
     public const CONFIG_ID = 'orm.config';
 
-    public const FRAMEWORK_TABLES = ['cache_items', 'remember_me_tokens', 'neo_queue_jobs', 'neo_queue_failed'];
+    public const FRAMEWORK_TABLES = [
+        'cache_items',
+        'remember_me_tokens',
+        'neo_queue_jobs',
+        'neo_queue_failed',
+        'neo_notifications',
+        'neo_push_subscriptions'
+    ];
 
     public function register(ContainerManagerInterface $container): void
     {
