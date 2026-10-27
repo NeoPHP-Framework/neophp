@@ -171,6 +171,7 @@ Any other value throws a `ControllerException`.
 | `Http/Helper/Controller/HttpController` | `json()`, `redirect()`, `createNotFoundException()`, `createAccessDeniedException()` |
 | `HttpClient/Helper/Controller/HttpClientController` | `httpClient()` |
 | `Mailer/Helper/Controller/MailerController` | `sendEmail()` |
+| `Mercure/Helper/Controller/MercureController` (package) | `publishUpdate()`, `authorizeMercure()` |
 | `Orm/Helper/Controller/OrmController` (package) | `getOrm()`, `getRepository()` |
 | `Queue/Helper/Controller/QueueController` (package) | `dispatchMessage()` |
 | `Routing/Helper/Controller/RoutingController` | `generateUrl()`, `redirectToRoute()` |
@@ -264,6 +265,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v2.3.0 — `AbstractController` uses the `MercureController` trait: `publishUpdate()`, `authorizeMercure()`.
 - v2.0.0 — `ControllerManager` is the `final` entry point of the module, declared with `#[Component]`; `ControllerManagerInterface` replaces `Contract\ControllerResolverInterface`; the internal classes are marked `@internal`.
 - v1.36.0 — `make:controller` (PHP / Twig template, `--api`, `--no-template`, sub-namespaces, `ControllerMaker`).
 - v1.31.0 — entity arguments are loaded by the ORM `EntityValueResolver`.

@@ -2,6 +2,7 @@
 
 Every version of NeoPHP. The changes of a feature are detailed in the Changelog section of its documentation (`src/<group>/<Feature>/Docs/v2.x/README.md`, `Docs/v1.x/README.md` for NeoPHP 1). See the [versioning policy](docs/v2.x/README.md#versions-and-support).
 
+- v2.3.0 — Mercure package: real-time updates through a Mercure hub (FrankenPHP or standalone) without dependency: `MercureManagerInterface::publish()` / `dispatch()` (Queue package), `Model\Update` and `Update::json()`, publisher and subscriber JWT signed with `MERCURE_JWT_SECRET` (`HS256`, `HS384`, `HS512`), `mercure()` view function, private updates with the `mercureAuthorization` cookie (`authorize()`, `clearAuthorization()`), `addDiscoveryLink()`, `publishUpdate()` / `authorizeMercure()` controller helpers, `mercure:publish` and `mercure:token` commands; `neo install` generates `config/packages/mercure.yaml` and adds `MERCURE_URL`, `MERCURE_PUBLIC_URL` and a random `MERCURE_JWT_SECRET` to `.env`
 - v2.2.0 — Application timezone: `APP_TIMEZONE` (`framework.app.timezone`) sets the PHP timezone and the MySQL / PostgreSQL session timezone
 - v2.1.2 — Fix lazy ORM proxies left empty when the entity has public properties
 - v2.1.1 — Docblocks on the methods of every `ManagerInterface`
