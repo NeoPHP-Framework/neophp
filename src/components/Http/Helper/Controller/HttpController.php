@@ -7,9 +7,12 @@ namespace NeoPHP\Component\Http\Helper\Controller;
 use NeoPHP\Component\Http\Exception\AccessDeniedHttpException;
 use NeoPHP\Component\Http\Exception\NotFoundHttpException;
 use NeoPHP\Component\Http\HttpManagerInterface;
+use NeoPHP\Component\Http\Response\BinaryFileResponse;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
+use NeoPHP\Component\Http\Response\StreamedResponse;
 use NeoPHP\Component\Serializer\SerializerManagerInterface;
+use SplFileInfo;
 
 trait HttpController
 {
@@ -29,6 +32,16 @@ trait HttpController
     protected function redirect(string $url, int $status = 302): RedirectResponse
     {
         return $this->get(HttpManagerInterface::class)->redirect($url, $status);
+    }
+
+    protected function streamResponse(callable $callback, int $status = 200, array $headers = []): StreamedResponse
+    {
+        return $this->get(HttpManagerInterface::class)->stream($callback, $status, $headers);
+    }
+
+    protected function fileResponse(string|SplFileInfo $file, ?string $filename = null, string $disposition = BinaryFileResponse::DISPOSITION_ATTACHMENT, array $headers = []): BinaryFileResponse
+    {
+        return $this->get(HttpManagerInterface::class)->file($file, $filename, $disposition, $headers);
     }
 
     protected function createNotFoundException(string $message = 'Not Found', array $context = []): NotFoundHttpException
