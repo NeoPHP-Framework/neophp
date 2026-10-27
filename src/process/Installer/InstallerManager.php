@@ -142,6 +142,7 @@ final class InstallerManager implements InstallerManagerInterface
     {
         return [
             '{{ app_secret }}' => bin2hex(random_bytes(32)),
+            '{{ mercure_jwt_secret }}' => bin2hex(random_bytes(32)),
         ];
     }
 
