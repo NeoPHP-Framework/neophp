@@ -10,9 +10,21 @@ use NeoPHP\Package\Image\Exif\OrientationReader;
 
 class Image
 {
-    public const FORMATS = ['jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp', 'avif' => 'image/avif'];
+    public const FORMATS = [
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif'
+    ];
 
-    public const EXTENSIONS = ['jpeg' => 'jpg', 'png' => 'png', 'gif' => 'gif', 'webp' => 'webp', 'avif' => 'avif'];
+    public const EXTENSIONS = [
+        'jpeg' => 'jpg',
+        'png' => 'png',
+        'gif' => 'gif',
+        'webp' => 'webp',
+        'avif' => 'avif'
+    ];
 
     public const DEFAULT_QUALITY = 82;
 
@@ -49,7 +61,7 @@ class Image
     {
         static::assertGd();
         $info = @getimagesizefromstring($data);
-        $format = is_array($info) ? static::formatFromMime((string) ($info['mime'] ?? '')) : null;
+        $format = is_array($info) ? static::formatFromMime($info['mime']) : null;
 
         if (!is_array($info) || $format === null) {
             throw new ImageException('"{name}" is not a supported image (JPEG, PNG, GIF, WebP or AVIF).', 0, null, ['name' => $name]);
@@ -288,6 +300,7 @@ class Image
             'gif' => imagegif($image),
             'webp' => imagewebp($image, null, $quality),
             'avif' => imageavif($image, null, $quality),
+            default => false,
         };
 
         $data = (string) ob_get_clean();
