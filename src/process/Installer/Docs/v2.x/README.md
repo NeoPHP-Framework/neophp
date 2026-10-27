@@ -127,6 +127,7 @@ config/packages/debug.yaml
 config/packages/image.yaml
 config/packages/mercure.yaml
 config/packages/neo_ai.yaml
+config/packages/notifier.yaml
 config/packages/orm.yaml
 config/packages/queue.yaml
 config/packages/scheduler.yaml
@@ -149,7 +150,7 @@ Directories: `assets/`, `config/packages/`, `migrations/`, `public/builds/`, `sr
 
 ## Environment file
 
-The generated `.env` contains a random `APP_SECRET` (64 hexadecimal characters), `APP_URL`, the base URL of the absolute URLs generated in the console, `APP_TIMEZONE`, the default timezone (`UTC`), and a random `MERCURE_JWT_SECRET` shared with the Mercure hub (see the Mercure documentation).
+The generated `.env` contains a random `APP_SECRET` (64 hexadecimal characters), `APP_URL`, the base URL of the absolute URLs generated in the console, `APP_TIMEZONE`, the default timezone (`UTC`), and a random `MERCURE_JWT_SECRET` shared with the Mercure hub (see the Mercure documentation). `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` are empty: generate them with `php bin/neo notifier:vapid` to enable the push notifications (see the Notifier documentation).
 
 ```bash
 APP_NAME=NeoPHP
@@ -229,6 +230,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.7.0 — `config/packages/notifier.yaml` is generated; `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` are added to `.env`.
 - v2.6.0 — `config/packages/image.yaml` is generated (presets `thumbnail` and `medium`), `/public/media/cache/` is added to `.gitignore`.
 - v2.3.0 — `config/packages/mercure.yaml` is generated; `MERCURE_URL`, `MERCURE_PUBLIC_URL` and a random `MERCURE_JWT_SECRET` (64 hexadecimal characters) are added to `.env`.
 - v2.2.0 — `APP_TIMEZONE` written in `.env` and `timezone` in `config/framework/app.yaml`.
