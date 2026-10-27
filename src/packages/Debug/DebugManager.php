@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace NeoPHP\Package\Debug;
 
 use NeoPHP\Component\Exception\ExceptionManager;
+use NeoPHP\Component\Http\Response\BinaryFileResponse;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Component\Http\Response\StreamedResponse;
 use NeoPHP\Component\Kernel\Attribute\Package;
 use NeoPHP\Package\Debug\Cloner\VarCloner;
 use NeoPHP\Package\Debug\Dumper\CliDumper;
@@ -172,6 +174,12 @@ final class DebugManager implements DebugManagerInterface
 
     public function injectInto(Response $response): Response
     {
+        if ($response instanceof StreamedResponse || $response instanceof BinaryFileResponse) {
+            $this->pending = [];
+
+            return $response;
+        }
+
         if ($this->pending === []) {
             return $response;
         }
