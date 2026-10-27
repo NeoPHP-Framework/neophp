@@ -1,0 +1,23 @@
+# Derivatives of the images (thumbnails, resized and converted copies), generated on the first display and kept here
+cache_path: '%kernel.public_path%/media/cache'
+cache_url: /media/cache
+
+# Default quality of JPEG, WebP and AVIF (0 to 100)
+quality: 82
+
+# Images with more pixels (width x height) are refused before being decoded (memory protection)
+max_pixels: 50000000
+
+# Presets used with image(path, 'name') in the templates
+#   mode: fit (inside the box, ratio kept), cover (fills the box and cuts what overflows), resize (exact size)
+#   format: webp, jpeg, png, gif, avif or ~ (format of the source)
+presets:
+    thumbnail: { width: 300, height: 300, mode: cover, format: webp }
+    medium: { width: 1200, height: 1200, mode: fit, format: webp }
+
+# optimize(): originals turned upright, stripped of their metadata (GPS position, camera) and shrunk after the upload
+optimize:
+    max_width: 2560
+    max_height: 2560
+    format: ~
+    quality: 85
