@@ -464,7 +464,7 @@ In `src/packages/WebProfiler/Helper/WebProfiler/`:
 | `PerformanceProfiler` | `performance` | duration, memory in the popover | metrics, timeline, stopwatch events |
 | `ConfigProfiler` | `config` | NeoPHP version, env, debug, PHP | framework, PHP, php.ini, extensions, registered elements |
 
-The other modules add their own elements from their `Helper/WebProfiler/` folder, for example `FlashProfiler` (Flash component, "Flash messages" panel), `SchedulerProfiler` (Scheduler package) or `NeoAiProfiler` (NeoAI package). They are loaded only when their module is enabled.
+The other modules add their own elements from their `Helper/WebProfiler/` folder, for example `FlashProfiler` (Flash component, "Flash messages" panel), `SchedulerProfiler` (Scheduler package), `MercureProfiler` (Mercure package) or `NeoAiProfiler` (NeoAI package). They are loaded only when their module is enabled.
 
 Sensitive keys (`password`, `token`, `secret`, `authorization`, `cookie`, `api_key`, `csrf`) are masked. The Session panel also masks the session and remember-me cookies and shows only the first characters of the session ID.
 
