@@ -45,7 +45,7 @@ final class NotifierManager implements NotifierManagerInterface
 
     /**
      * @param iterable<ChannelInterface> $channels
-     * @param array<string, list<string>> $policy Channels by importance
+     * @param array<string, mixed> $policy Channels by importance (lists of channel names, from the configuration)
      */
     public function __construct(
         iterable $channels,
@@ -60,7 +60,7 @@ final class NotifierManager implements NotifierManagerInterface
             $this->channels[$channel->getName()] = $channel;
         }
 
-        $this->policy = array_map(static fn (mixed $names): array => array_values(array_map('strval', (array) $names)), array_replace(self::DEFAULT_POLICY, $policy));
+        $this->policy = array_map(static fn (mixed $names): array => array_values(array_filter((array) $names, 'is_string')), array_replace(self::DEFAULT_POLICY, $policy));
     }
 
     public function send(Notification $notification, RecipientInterface|iterable $recipients): array
