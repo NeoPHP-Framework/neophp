@@ -1,0 +1,32 @@
+# Channels used for each importance of a notification (Notification::importance()), unless channels() is given
+#   database: notifications of the site (read / unread), mercure: open pages updated at once,
+#   push: browsers and phones, even when the site is closed (Web Push), email: Mailer component
+channel_policy:
+    low: [ database ]
+    normal: [ database, mercure ]
+    high: [ database, mercure, push ]
+    urgent: [ database, mercure, push, email ]
+
+# Database channel: tables neo_notifications and neo_push_subscriptions, created on first use when auto_setup is true
+database:
+    connection: ~
+    auto_setup: true
+
+# Mercure channel: private topic of each recipient ({id} = RecipientInterface::getNotificationIdentifier())
+mercure:
+    topic: 'notifications/{id}'
+
+# Push channel (Web Push): generate the keys with php bin/neo notifier:vapid and put them in .env.local
+push:
+    public_key: '%env(VAPID_PUBLIC_KEY)%'
+    private_key: '%env(VAPID_PRIVATE_KEY)%'
+    subject: '%env(VAPID_SUBJECT)%'
+    # Seconds during which the push service keeps a notification for an offline device
+    ttl: 86400
+
+# Email channel: sender of the notification emails (~ = the "from" of config/framework/mailer.yaml)
+email:
+    from: ~
+
+# Classes implementing NeoPHP\Package\Notifier\Contract\ChannelInterface (SMS, Slack...)
+custom_channels: [ ]
