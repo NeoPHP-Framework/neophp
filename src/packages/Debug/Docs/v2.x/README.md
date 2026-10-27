@@ -144,7 +144,7 @@ class ReportService
 | `toText(mixed $value, ?string $label = null, bool $colors = false): string` | the text dump of a value |
 | `hasPending(): bool` | whether collected dumps wait to be output |
 | `flush(bool $html = true): string` | returns and clears the collected dumps |
-| `injectInto(Response $response): Response` | inserts the collected dumps in a response |
+| `injectInto(Response $response): Response` | inserts the collected dumps in a response; for a `StreamedResponse` or a `BinaryFileResponse` the dumps are dropped (they would corrupt the file or the stream): dump in the console or use the Logger there |
 | `getCloner(): VarCloner` | the cloner that turns values into dump nodes |
 
 `DebugManager::getInstance()` / `DebugManager::setInstance()` give the instance used by the global functions. `DebugManager` also provides `getOptions()` and `setStream(mixed $stream)` (the stream of the console output).
@@ -183,6 +183,7 @@ php bin/neo debug:container --parameters
 
 ## Changelog
 
+- v2.5.0 — The dumps of a request answered by a streamed or a file response are dropped instead of being appended to the body.
 - v2.0.0 — `DebugManager` is the `final` entry point of the module, declared with `#[Package]`; `DebugManagerInterface` replaces `Contract\DebugInterface`; `Contract\AbstractDebug` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.15.0 — `debug:container` rewritten as an `AbstractConsole` command.
 - v1.14.0 — Debug package: `dump()` and `dd()` global functions, collapsible HTML dumps inserted in the response, colored console dumps, `dump()` view helper, dumps disabled when `APP_DEBUG` is false, exception context and stack trace arguments dumped on the error page, `debug:container` command, `config/packages/debug.yaml`.
