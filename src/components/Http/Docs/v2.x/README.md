@@ -1,6 +1,6 @@
 # Http
 
-The Http component models the HTTP request and response: parameter bags, uploaded files, HTML, JSON and redirect responses, and HTTP exceptions.
+The Http component models the HTTP request and response: parameter bags, uploaded files, HTML, JSON, redirect, streamed and file responses, and HTTP exceptions.
 It has no dependency and is used by the kernel, the routing and the controllers.
 
 ## Summary
@@ -13,6 +13,8 @@ It has no dependency and is used by the kernel, the routing and the controllers.
 - [Bags](#bags)
 - [Uploaded files](#uploaded-files)
 - [Responses](#responses)
+- [Streamed responses](#streamed-responses)
+- [File responses](#file-responses)
 - [HTTP service](#http-service)
 - [Controller helpers](#controller-helpers)
 - [HTTP exceptions](#http-exceptions)
@@ -208,6 +210,86 @@ new RedirectResponse('/login');
 
 `JsonResponse($data, $status, $headers, $flags)` encodes `$data` (`getData()`, `setData()`), with `Content-Type: application/json` unless `$headers` gives one (`application/problem+json`...); `JsonResponse::DEFAULT_FLAGS` keeps slashes and unicode unescaped. `RedirectResponse($url, $status = 302, $headers)` sets the `Location` header (`getTargetUrl()`).
 
+## Streamed responses
+
+`NeoPHP\Component\Http\Response\StreamedResponse` writes its body while it is sent, from a callback: the client receives the first bytes immediately and the memory stays low. Use it for large exports, long reports and server-sent events.
+
+```php
+use NeoPHP\Component\Http\Response\StreamedResponse;
+
+return $this->streamResponse(function () use ($repository): void {
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['id', 'email']);
+
+    foreach ($repository->iterateAll() as $user) {
+        fputcsv($output, [$user->getId(), $user->getEmail()]);
+        StreamedResponse::flushOutput();
+    }
+}, 200, [
+    'Content-Type' => 'text/csv; charset=UTF-8',
+    'Content-Disposition' => 'attachment; filename="users.csv"',
+]);
+```
+
+Server-sent events (for one-to-one streams such as the progress of a job; for broadcasting to many visitors, use the Mercure package):
+
+```php
+return $this->streamResponse(function () use ($job): void {
+    while (!$job->isFinished()) {
+        echo 'data: ' . json_encode(['progress' => $job->getProgress()]) . "\n\n";
+        StreamedResponse::flushOutput();
+        sleep(1);
+    }
+}, 200, ['Content-Type' => 'text/event-stream', 'Cache-Control' => 'no-cache', 'X-Accel-Buffering' => 'no']);
+```
+
+| Method | Description |
+|---|---|
+| `__construct(?callable $callback = null, int $status = 200, array $headers = [])` | the callback writes the body with `echo`, `printf()` or `fwrite()` on `php://output` |
+| `setCallback(callable $callback)`, `getCallback(): ?Closure` | the callback |
+| `sendContent()` | runs the callback once (never for a `HEAD` request or an empty status), then flushes |
+| `isStreamed(): bool` | whether the callback already ran |
+| `StreamedResponse::flushOutput()` | sends what was written so far to the client: call it after each chunk |
+
+`getContent()` returns `''` and `setContent()` with a non-empty string throws `HttpException`: the body only exists while it is sent. `prepare()` removes `Content-Length`. The WebProfiler toolbar and the dumps of the Debug package are never injected in these responses.
+
+Behind Nginx, send `X-Accel-Buffering: no` (or disable `proxy_buffering`) so that the chunks are not buffered by the proxy; with PHP-FPM, `output_buffering` must be off for the chunks to leave PHP before the end. The PHP session is still locked during the callback: call `$session->save()` before a long stream.
+
+## File responses
+
+`NeoPHP\Component\Http\Response\BinaryFileResponse` sends a file of the disk by chunks of 64 KB, without loading it in memory:
+
+```php
+// download (Content-Disposition: attachment), UTF-8 name proposed to the user
+return $this->fileResponse($invoice->getPath(), 'Facture n°42.pdf');
+
+// displayed in the browser (images, PDF, videos)
+return $this->fileResponse($path, null, BinaryFileResponse::DISPOSITION_INLINE);
+
+// temporary export deleted once sent
+return (new BinaryFileResponse($zip, 200, [], 'attachment', 'photos.zip'))->deleteFileAfterSend();
+```
+
+The response handles by itself:
+
+| Feature | Behaviour |
+|---|---|
+| Content type | detected from the content with `ext-fileinfo`, else from the extension (`MIME_TYPES`), else `application/octet-stream`; a `Content-Type` given in `$headers` is kept |
+| Name | `Content-Disposition` with an ASCII name for the old browsers and the UTF-8 name (`filename*`, RFC 6266); a name with a slash, a backslash or a control character is refused |
+| Cache | `ETag` (path, size and modification time) and `Last-Modified`; `If-None-Match` / `If-Modified-Since` answer `304 Not Modified` without reading the file |
+| Ranges | `Accept-Ranges: bytes`; a single `Range` (`bytes=0-499`, `bytes=500-`, `bytes=-500`) answers `206 Partial Content` with `Content-Range` (resumed downloads, seeking in a video); an unsatisfiable range answers `416`; several ranges or an invalid header send the whole file; `If-Range` is respected |
+| `HEAD` | headers and `Content-Length` only |
+
+| Method | Description |
+|---|---|
+| `__construct(string\|SplFileInfo $file, int $status = 200, array $headers = [], ?string $disposition = null, ?string $filename = null, bool $autoEtag = true, bool $autoLastModified = true)` | a missing or unreadable file throws `NotFoundHttpException` (404) |
+| `setFile(...)`, `getFile(): SplFileInfo` | the file |
+| `setContentDisposition(string $disposition, string $filename = '', ?string $fallback = null)` | `attachment` or `inline` |
+| `deleteFileAfterSend(bool $delete = true)` | deletes the file after it is sent (also after a `HEAD` request) |
+| `BinaryFileResponse::guessMimeType(SplFileInfo $file)`, `BinaryFileResponse::parseRange(string $header, int $size)` | helpers |
+
+Never build the path from a request value without checking it (`../`): send only files the visitor may read. Files of `public/` are served by the web server itself; use a file response for private files (invoices, private photos) after checking the access.
+
 ## HTTP service
 
 `NeoPHP\Component\Http\HttpManagerInterface` (implemented by `HttpManager`) can be injected in a service:
@@ -218,6 +300,8 @@ new RedirectResponse('/login');
 | `createResponse($content, $status, $headers)` | a `Response` |
 | `json($data, $status, $headers)` | a `JsonResponse` |
 | `redirect($url, $status, $headers)` | a `RedirectResponse` |
+| `stream($callback, $status, $headers)` | a `StreamedResponse` |
+| `file($file, $filename = null, $disposition = 'attachment', $headers = [])` | a `BinaryFileResponse` |
 | `send($response, $request)` | prepares and sends the response |
 
 ## Controller helpers
@@ -228,6 +312,8 @@ The trait `HttpController` of `AbstractController` provides:
 return $this->json(['id' => $post->getId()], 201);
 return $this->json($post, 200, [], ['groups' => ['read']]);
 return $this->redirect('/posts');
+return $this->streamResponse(fn () => print('chunk'), 200, ['Content-Type' => 'text/plain']);
+return $this->fileResponse($path, 'report.pdf');
 throw $this->createNotFoundException('Post {id} not found.', ['id' => $id]);
 throw $this->createAccessDeniedException();
 ```
@@ -235,6 +321,8 @@ throw $this->createAccessDeniedException();
 `json($data, $status = 200, $headers = [], $context = [])`: when `$data` contains objects, or when a `$context` is given, the data is normalized with the Serializer (`#[Groups]`, `#[SerializedName]`, `#[Ignore]`, dates, enums, entities...) before the `JsonResponse` is built. Arrays of scalars are encoded as before. See the Serializer documentation for the context options.
 
 The trait declares `abstract protected function get(string $id): mixed;` and `abstract protected function has(string $id): bool;` (both provided by `ContainerController`).
+
+`streamResponse($callback, $status = 200, $headers = [])` and `fileResponse($file, $filename = null, $disposition = 'attachment', $headers = [])` create the responses of [Streamed responses](#streamed-responses) and [File responses](#file-responses). They are not named `stream()` and `file()` so that they never collide with actions of the same name.
 
 To redirect to a route, use `redirectToRoute()` (see the Routing documentation).
 
@@ -258,6 +346,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v2.5.0 — `StreamedResponse` (body written by a callback while it is sent, `flushOutput()`) and `BinaryFileResponse` (files sent by chunks, content type, UTF-8 download names, `ETag` / `Last-Modified` and `304`, single byte ranges with `206` / `416`, `deleteFileAfterSend()`); `HttpManagerInterface::stream()` / `file()`; `streamResponse()` / `fileResponse()` controller helpers; reason phrases of `412` and `416`.
 - v2.0.1 — Bugfix: `JsonResponse` keeps the `Content-Type` given in `$headers`; the regular expressions of `trusted_hosts` keep their upper-case escapes (`\D`, `\W`...), only the host names are lower-cased.
 - v2.0.0 — `HttpManager` is the `final` entry point of the module, declared with `#[Component]`; `HttpManagerInterface` replaces `Contract\HttpInterface`; `Contract\AbstractHttp` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.31.0 — security headers (`security_headers` in `app.yaml`, `SecurityHeaders`); application in a sub-directory: `getBasePath()`, `getRequestPath()`; `getPath()` no longer contains the sub-directory.

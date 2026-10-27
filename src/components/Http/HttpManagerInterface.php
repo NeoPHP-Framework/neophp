@@ -6,10 +6,14 @@ namespace NeoPHP\Component\Http;
 
 use JsonException;
 use NeoPHP\Component\Http\Exception\HttpException;
+use NeoPHP\Component\Http\Exception\NotFoundHttpException;
 use NeoPHP\Component\Http\Request\Request;
+use NeoPHP\Component\Http\Response\BinaryFileResponse;
 use NeoPHP\Component\Http\Response\JsonResponse;
 use NeoPHP\Component\Http\Response\RedirectResponse;
 use NeoPHP\Component\Http\Response\Response;
+use NeoPHP\Component\Http\Response\StreamedResponse;
+use SplFileInfo;
 
 interface HttpManagerInterface
 {
@@ -53,6 +57,30 @@ interface HttpManagerInterface
      * @throws HttpException When the URL is empty or the status code is not a redirection
      */
     public function redirect(string $url, int $status = 302, array $headers = []): RedirectResponse;
+
+    /**
+     * Creates a response whose body is written by a callback while it is sent (large exports, server-sent events).
+     *
+     * @param callable $callback Writes the body with echo; StreamedResponse::flushOutput() sends what was written so far
+     * @param int $status HTTP status code
+     * @param array<string, mixed> $headers HTTP headers, by name
+     * @return StreamedResponse The response
+     * @throws HttpException When the status code is not a valid HTTP status
+     */
+    public function stream(callable $callback, int $status = 200, array $headers = []): StreamedResponse;
+
+    /**
+     * Creates a response sending a file of the disk by chunks, with the support of the Range and conditional requests.
+     *
+     * @param string|SplFileInfo $file The file to send
+     * @param string|null $filename Name proposed to the user, the name of the file by default
+     * @param string $disposition "attachment" (download) or "inline" (displayed by the browser)
+     * @param array<string, mixed> $headers HTTP headers, by name
+     * @return BinaryFileResponse The response
+     * @throws NotFoundHttpException When the file does not exist or is not readable
+     * @throws HttpException When the disposition or the name is invalid
+     */
+    public function file(string|SplFileInfo $file, ?string $filename = null, string $disposition = BinaryFileResponse::DISPOSITION_ATTACHMENT, array $headers = []): BinaryFileResponse;
 
     /**
      * Sends the headers and the body of a response, prepared for the request first when it is given.
