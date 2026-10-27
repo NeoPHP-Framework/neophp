@@ -124,6 +124,7 @@ config/framework/serializer.yaml
 config/framework/upload.yaml
 config/framework/view.yaml
 config/packages/debug.yaml
+config/packages/image.yaml
 config/packages/mercure.yaml
 config/packages/neo_ai.yaml
 config/packages/orm.yaml
@@ -228,6 +229,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.6.0 — `config/packages/image.yaml` is generated (presets `thumbnail` and `medium`), `/public/media/cache/` is added to `.gitignore`.
 - v2.3.0 — `config/packages/mercure.yaml` is generated; `MERCURE_URL`, `MERCURE_PUBLIC_URL` and a random `MERCURE_JWT_SECRET` (64 hexadecimal characters) are added to `.env`.
 - v2.2.0 — `APP_TIMEZONE` written in `.env` and `timezone` in `config/framework/app.yaml`.
 - v2.0.0 — `InstallerManager` is the `final` entry point of the module, declared with `#[Process]`; `InstallerManagerInterface` replaces `Contract\InstallerInterface`; `Contract\AbstractInstaller` is merged into the manager; the internal classes are marked `@internal`; `config/config.php` is generated, `src/Kernel.php` extends `Kernel\Contract\AbstractKernel`, `bin/neo` checks that the Console module is enabled, the NeoAI documentation path points to `Docs/v2.x`.

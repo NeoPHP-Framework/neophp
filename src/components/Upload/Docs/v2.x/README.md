@@ -11,6 +11,7 @@ The Upload component (`src/components/Upload`) stores the files sent by the user
 - [Deleting a file](#deleting-a-file)
 - [Security](#security)
 - [API](#api)
+- [Images](#images)
 - [Changelog](#changelog)
 
 ## Module
@@ -132,6 +133,10 @@ Returns `false` when the path is empty, external or the file does not exist.
 | `getUploadPath()`, `getPublicUrl()` | configuration |
 
 Controller helpers (`UploadController` trait of `AbstractController`): `storeUpload()`, `deleteUpload()`, `uploadUrl()`. View function: `upload()`.
+
+## Images
+
+The Image package prepares the uploaded photos (`optimizeImage()`: upright, without metadata, resized, converted to WebP) and displays thumbnails generated on demand (`image(path, 'thumbnail')`). See the Image documentation.
 
 ## Changelog
 
