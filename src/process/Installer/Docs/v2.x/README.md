@@ -124,6 +124,7 @@ config/framework/serializer.yaml
 config/framework/upload.yaml
 config/framework/view.yaml
 config/packages/debug.yaml
+config/packages/mercure.yaml
 config/packages/neo_ai.yaml
 config/packages/orm.yaml
 config/packages/queue.yaml
@@ -147,7 +148,7 @@ Directories: `assets/`, `config/packages/`, `migrations/`, `public/builds/`, `sr
 
 ## Environment file
 
-The generated `.env` contains a random `APP_SECRET` (64 hexadecimal characters), `APP_URL`, the base URL of the absolute URLs generated in the console, and `APP_TIMEZONE`, the default timezone (`UTC`).
+The generated `.env` contains a random `APP_SECRET` (64 hexadecimal characters), `APP_URL`, the base URL of the absolute URLs generated in the console, `APP_TIMEZONE`, the default timezone (`UTC`), and a random `MERCURE_JWT_SECRET` shared with the Mercure hub (see the Mercure documentation).
 
 ```bash
 APP_NAME=NeoPHP
@@ -227,6 +228,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.3.0 — `config/packages/mercure.yaml` is generated; `MERCURE_URL`, `MERCURE_PUBLIC_URL` and a random `MERCURE_JWT_SECRET` (64 hexadecimal characters) are added to `.env`.
 - v2.2.0 — `APP_TIMEZONE` written in `.env` and `timezone` in `config/framework/app.yaml`.
 - v2.0.0 — `InstallerManager` is the `final` entry point of the module, declared with `#[Process]`; `InstallerManagerInterface` replaces `Contract\InstallerInterface`; `Contract\AbstractInstaller` is merged into the manager; the internal classes are marked `@internal`; `config/config.php` is generated, `src/Kernel.php` extends `Kernel\Contract\AbstractKernel`, `bin/neo` checks that the Console module is enabled, the NeoAI documentation path points to `Docs/v2.x`.
 - v1.40.0 — `config/framework/upload.yaml` is generated, `/public/uploads/` is added to `.gitignore`.

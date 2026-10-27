@@ -1,0 +1,28 @@
+# URL used by the application to publish the updates
+url: '%env(MERCURE_URL)%'
+
+# URL of the hub reached by the browsers (new EventSource(url)); empty = url
+public_url: '%env(MERCURE_PUBLIC_URL)%'
+
+# JSON Web Tokens of the publishers and the subscribers, signed with the key shared with the hub
+jwt:
+    secret: '%env(MERCURE_JWT_SECRET)%'
+    # HS256, HS384 or HS512
+    algorithm: HS256
+    # Topics the application is allowed to publish to ('*' = every topic)
+    publish: [ '*' ]
+    # Static publisher JWT, used instead of the secret when the secret is empty
+    token: ~
+
+# Cookie "mercureAuthorization" set by authorize() and mercure(..., { subscribe: ... }) for the private updates
+# The browser sends it to the hub only when the hub is on the same domain (set "domain" for a sub-domain: .example.com)
+cookie:
+    # Lifetime of the cookie and of its JWT, in seconds
+    lifetime: 3600
+    domain: ~
+    # true, false or auto (secure when the request is HTTPS)
+    secure: auto
+    samesite: Strict
+
+# Options of the HttpClient component for the publication requests, e.g. { timeout: 5 }
+http_options: { }
