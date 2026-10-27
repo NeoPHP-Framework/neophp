@@ -23,15 +23,15 @@ class MercureViewHelper implements ViewFunctionInterface
     }
 
     /**
-     * @param string|list<string> $topics
-     * @param array{subscribe?: bool|string|list<string>, payload?: array<string, mixed>, lifetime?: int|null} $options
+     * @param string|array<string> $topics
+     * @param array{subscribe?: bool|string|array<string>, payload?: array<string, mixed>, lifetime?: int|null} $options
      * @throws MercureException
      */
     public function __invoke(string|array $topics = [], array $options = []): string
     {
         $subscribe = $options['subscribe'] ?? false;
 
-        if ($subscribe !== false && $subscribe !== null) {
+        if ($subscribe !== false) {
             $this->mercure->authorize(
                 $subscribe === true ? array_values((array) $topics) : array_values((array) $subscribe),
                 (array) ($options['payload'] ?? []),

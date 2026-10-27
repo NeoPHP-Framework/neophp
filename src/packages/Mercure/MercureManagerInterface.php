@@ -50,7 +50,7 @@ interface MercureManagerInterface
     /**
      * Returns the public URL of the hub with the topics to subscribe to, for new EventSource(url).
      *
-     * @param string|list<string> $topics The topics (URI templates accepted)
+     * @param string|array<string> $topics The topics (URI templates accepted)
      * @return string The URL with a "topic" query parameter per topic
      * @throws MercureException When no URL is configured
      */
@@ -59,7 +59,7 @@ interface MercureManagerInterface
     /**
      * Creates a JWT allowing to publish to the hub.
      *
-     * @param list<string>|null $topics The topics allowed, the "jwt.publish" topics of the configuration when null
+     * @param array<string>|null $topics The topics allowed, the "jwt.publish" topics of the configuration when null
      * @param int|null $lifetime The lifetime in seconds, no expiration when null
      * @return string The JWT, or the static "jwt.token" of the configuration when no topic is given and no secret is configured
      * @throws MercureException When no secret is configured
@@ -69,7 +69,7 @@ interface MercureManagerInterface
     /**
      * Creates a JWT allowing to receive the private updates of some topics.
      *
-     * @param list<string> $topics The topics (URI templates accepted, "*" for every topic)
+     * @param array<string> $topics The topics (URI templates accepted, "*" for every topic)
      * @param array<string, mixed> $payload Data shared with the other subscribers (the "payload" of the subscriptions API)
      * @param int|null $lifetime The lifetime in seconds, the "cookie.lifetime" of the configuration when null
      * @return string The JWT
@@ -80,7 +80,7 @@ interface MercureManagerInterface
     /**
      * Authorizes the current visitor to receive the private updates of some topics: queues the mercureAuthorization cookie, added to the response.
      *
-     * @param list<string> $topics The topics (URI templates accepted, "*" for every topic)
+     * @param array<string> $topics The topics (URI templates accepted, "*" for every topic)
      * @param array<string, mixed> $payload Data shared with the other subscribers
      * @param int|null $lifetime The lifetime of the cookie and of the JWT in seconds, the "cookie.lifetime" of the configuration when null
      * @return string The JWT stored in the cookie
