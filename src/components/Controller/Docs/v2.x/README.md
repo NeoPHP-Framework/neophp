@@ -169,6 +169,7 @@ Any other value throws a `ControllerException`.
 | `Flash/Helper/Controller/FlashController` | `addFlash()` |
 | `Form/Helper/Controller/FormController` | `createForm()`, `createFormBuilder()` |
 | `Http/Helper/Controller/HttpController` | `json()`, `redirect()`, `streamResponse()`, `fileResponse()`, `createNotFoundException()`, `createAccessDeniedException()` |
+| `Image/Helper/Controller/ImageController` (package) | `imageUrl()`, `optimizeImage()` |
 | `HttpClient/Helper/Controller/HttpClientController` | `httpClient()` |
 | `Mailer/Helper/Controller/MailerController` | `sendEmail()` |
 | `Mercure/Helper/Controller/MercureController` (package) | `publishUpdate()`, `authorizeMercure()` |
@@ -265,6 +266,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v2.6.0 — `AbstractController` uses the `ImageController` trait: `imageUrl()`, `optimizeImage()`.
 - v2.5.0 — `HttpController` adds `streamResponse()` and `fileResponse()`.
 - v2.3.0 — `AbstractController` uses the `MercureController` trait: `publishUpdate()`, `authorizeMercure()`.
 - v2.0.0 — `ControllerManager` is the `final` entry point of the module, declared with `#[Component]`; `ControllerManagerInterface` replaces `Contract\ControllerResolverInterface`; the internal classes are marked `@internal`.

@@ -22,6 +22,7 @@ use NeoPHP\Component\Session\Helper\Controller\SessionController;
 use NeoPHP\Component\Upload\Helper\Controller\UploadController;
 use NeoPHP\Component\Validator\Helper\Controller\ValidatorController;
 use NeoPHP\Component\View\Helper\Controller\ViewController;
+use NeoPHP\Package\Image\Helper\Controller\ImageController;
 use NeoPHP\Package\Mercure\Helper\Controller\MercureController;
 use NeoPHP\Package\Orm\Helper\Controller\OrmController;
 use NeoPHP\Package\Queue\Helper\Controller\QueueController;
@@ -42,6 +43,7 @@ abstract class AbstractController implements ControllerInterface
     use HttpController;
     use MailerController;
     use HttpClientController;
+    use ImageController;
     use MercureController;
     use OrmController;
     use QueueController;
