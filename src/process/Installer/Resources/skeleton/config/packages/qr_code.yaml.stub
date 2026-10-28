@@ -1,0 +1,37 @@
+# URL path of the routes of the package: images of qr_code_url() and script of the reader (<neo-qr-reader>)
+path: /_qr
+
+# Cache pool keeping the short codes and the images of qr_code_url() (~ = default pool of config/framework/cache.yaml)
+# The array adapter only lives during one request: use a filesystem, APCu or database pool
+cache_pool: ~
+
+# Seconds during which an image URL of qr_code_url() stays valid
+image_ttl: 86400
+
+# Display of the QR codes, overridden by the options of create() / qr_code()
+#   error_correction: low (7 %), medium (15 %), quartile (25 %), high (30 %, forced with a logo)
+defaults:
+    size: 300
+    margin: 4
+    error_correction: medium
+    foreground: '#000000'
+    background: '#FFFFFF'
+
+# Short code typed by hand when a QR code cannot be scanned (e.g. 7Q2K-4MXA)
+code:
+    # 6 to 16 characters (letters and digits without I, L, O, U)
+    length: 8
+    # Lifetime in seconds of the short code of a fixed content (30 days); a signed QR code keeps it until its expiration
+    ttl: 2592000
+
+# QR codes signed with APP_SECRET (signed())
+signed:
+    # Lifetime in seconds when no ttl or rotate is given (~ = never expires)
+    ttl: ~
+    # Seconds of tolerance after the expiration (clock of the phone, network delay)
+    leeway: 5
+
+# POST {path}/read: public endpoint returning the read result in JSON.
+# Prefer a controller of the application protected by a role (readQrCode()) and keep false.
+reader:
+    route: false
