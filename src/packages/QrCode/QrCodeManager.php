@@ -19,7 +19,7 @@ use NeoPHP\Package\QrCode\Provider\QrCodeProvider;
 use NeoPHP\Package\QrCode\Signer\PayloadSigner;
 
 #[Package(provider: QrCodeProvider::class, requires: [CacheManager::class])]
-class QrCodeManager implements QrCodeManagerInterface
+final class QrCodeManager implements QrCodeManagerInterface
 {
     public const CONFIG_FILE = 'config/packages/qr_code.yaml';
 
