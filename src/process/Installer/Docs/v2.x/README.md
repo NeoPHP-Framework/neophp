@@ -129,6 +129,7 @@ config/packages/mercure.yaml
 config/packages/neo_ai.yaml
 config/packages/notifier.yaml
 config/packages/orm.yaml
+config/packages/qr_code.yaml
 config/packages/queue.yaml
 config/packages/scheduler.yaml
 config/packages/security.yaml
@@ -230,6 +231,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.9.0 — `config/packages/qr_code.yaml` is generated.
 - v2.7.0 — `config/packages/notifier.yaml` is generated; `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` are added to `.env`.
 - v2.6.0 — `config/packages/image.yaml` is generated (presets `thumbnail` and `medium`), `/public/media/cache/` is added to `.gitignore`.
 - v2.3.0 — `config/packages/mercure.yaml` is generated; `MERCURE_URL`, `MERCURE_PUBLIC_URL` and a random `MERCURE_JWT_SECRET` (64 hexadecimal characters) are added to `.env`.

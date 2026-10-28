@@ -87,7 +87,7 @@ bin/neo                 command line
 config/
     config.php          modules enabled or disabled in this project, per environment
     framework/          configuration of the components (api.yaml, app.yaml, cache.yaml, database.yaml, http_client.yaml, mailer.yaml, serializer.yaml, view.yaml...)
-    packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, translation.yaml, web_profiler.yaml, neo_ai.yaml, mercure.yaml, image.yaml, notifier.yaml; tailwind.yaml is created by tailwind:install)
+    packages/           configuration of the packages (orm.yaml, security.yaml, debug.yaml, translation.yaml, web_profiler.yaml, neo_ai.yaml, mercure.yaml, image.yaml, notifier.yaml, qr_code.yaml; tailwind.yaml is created by tailwind:install)
     routes.yaml         routes
     services.yaml       services
 migrations/             database migrations
@@ -430,7 +430,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 | Group | Features |
 |---|---|
 | components | Api, Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Upload, Validator, View |
-| packages | Debug, Dotenv, Image, Markdown, Mercure, NeoAI, Notifier, Orm, Queue, Scheduler, Security, Tailwind, Translation, WebProfiler, Yaml |
+| packages | Debug, Dotenv, Image, Markdown, Mercure, NeoAI, Notifier, Orm, QrCode, Queue, Scheduler, Security, Tailwind, Translation, WebProfiler, Yaml |
 | process | Console, Doctor, Installer, Package |
 
 The documentation of a feature is in `src/<group>/<Feature>/Docs/v2.x/README.md`, for example `src/components/Routing/Docs/v2.x/README.md`. The documentation of NeoPHP 1 stays next to it, in `Docs/v1.x/`.

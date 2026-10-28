@@ -118,6 +118,7 @@ A check that cannot be built (a missing service) or that throws is reported as a
 | `Mercure` | Mercure | `MERCURE_URL` (empty: real-time disabled), `MERCURE_JWT_SECRET` (empty, under 32 characters), hub reachable |
 | `Notifications` | Notifier | VAPID keys (both or none, valid), `openssl`, `public/notifier-sw.js` |
 | `Migrations` | ORM | migrations of the project and of the packages not executed |
+| `QR codes` | QrCode | short codes kept by the cache pool, signed QR codes verified with `APP_SECRET`, `gd` for the PNG images (advice), public `POST /_qr/read` route (advice) |
 | `Queue` | Queue | each transport reachable, waiting messages, failed messages |
 
 The checks of a disabled module are not run. They live in the `Helper/Doctor/` folder of their module (`src/components/Database/Helper/Doctor/DatabaseCheck.php`).
@@ -224,4 +225,5 @@ The manager is also available with the `doctor` container id.
 
 ## Changelog
 
+- v2.9.0 — `QR codes` check of the QrCode package.
 - v2.8.0 — Doctor process: `php bin/neo doctor` (`--check`, `--format=json`, `--strict`, exit code), `DoctorManager` and `DoctorManagerInterface`, `Contract\CheckInterface`, `Model\CheckResult` and `Model\DoctorReport`, checks discovered in the `Helper/Doctor/` folder of the enabled modules and in the application: PHP, application, database, mailer, uploads, images, Mercure, notifications, migrations and queue.

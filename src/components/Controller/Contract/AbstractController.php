@@ -26,6 +26,7 @@ use NeoPHP\Package\Image\Helper\Controller\ImageController;
 use NeoPHP\Package\Mercure\Helper\Controller\MercureController;
 use NeoPHP\Package\Notifier\Helper\Controller\NotifierController;
 use NeoPHP\Package\Orm\Helper\Controller\OrmController;
+use NeoPHP\Package\QrCode\Helper\Controller\QrCodeController;
 use NeoPHP\Package\Queue\Helper\Controller\QueueController;
 use NeoPHP\Package\Security\Helper\Controller\SecurityController;
 use NeoPHP\Package\Translation\Helper\Controller\TranslationController;
@@ -48,6 +49,7 @@ abstract class AbstractController implements ControllerInterface
     use MercureController;
     use NotifierController;
     use OrmController;
+    use QrCodeController;
     use QueueController;
     use RoutingController;
     use SecurityController;
