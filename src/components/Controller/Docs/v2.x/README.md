@@ -175,6 +175,7 @@ Any other value throws a `ControllerException`.
 | `Mercure/Helper/Controller/MercureController` (package) | `publishUpdate()`, `authorizeMercure()` |
 | `Notifier/Helper/Controller/NotifierController` (package) | `sendNotification()` |
 | `Orm/Helper/Controller/OrmController` (package) | `getOrm()`, `getRepository()` |
+| `QrCode/Helper/Controller/QrCodeController` (package) | `qrCode()`, `signedQrCode()`, `readQrCode()`, `qrCodeResponse()`, `qrCodeReadResponse()` |
 | `Queue/Helper/Controller/QueueController` (package) | `dispatchMessage()` |
 | `Routing/Helper/Controller/RoutingController` | `generateUrl()`, `redirectToRoute()` |
 | `Security/Helper/Controller/SecurityController` (package) | `getUser()`, `isGranted()`, `denyAccessUnlessGranted()`, `loginUser()`, `logoutUser()`, `getLastUsername()`, `getLastAuthenticationError()` |
@@ -267,6 +268,7 @@ $container->instance(ArgumentResolverInterface::SERVICES_ID, [...$resolvers, Cur
 
 ## Changelog
 
+- v2.9.0 — `AbstractController` uses the `QrCodeController` trait: `qrCode()`, `signedQrCode()`, `readQrCode()`, `qrCodeResponse()`, `qrCodeReadResponse()`.
 - v2.7.0 — `AbstractController` uses the `NotifierController` trait: `sendNotification()`.
 - v2.6.0 — `AbstractController` uses the `ImageController` trait: `imageUrl()`, `optimizeImage()`.
 - v2.5.0 — `HttpController` adds `streamResponse()` and `fileResponse()`.
