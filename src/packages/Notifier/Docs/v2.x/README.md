@@ -572,4 +572,5 @@ The errors of the channels during `send()` are not thrown: they are in the `fail
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/NotifierCheck`: `neo doctor` checks the VAPID keys, `openssl` and the service worker (see the Doctor documentation).
 - v2.7.0 — Notifier package: `NotifierManager` and `NotifierManagerInterface`, `Model\Notification` with importances and `channel_policy`, `RecipientInterface` and `Model\Recipient`, `database` (read / unread, `neo_notifications` table), `mercure` (private topic per recipient), `push` (Web Push encrypted with `aes128gcm` and signed with VAPID `ES256` without dependency, `neo_push_subscriptions` table, expired subscriptions deleted) and `email` (`EmailNotificationInterface`) channels, custom channels, `DeliveryResult`, `dispatch()` through the Queue package, `notifications()`, `unread_notifications()`, `notification_topic()` and `vapid_public_key()` view functions, `sendNotification()` controller helper, `notifier:vapid`, `notifier:service-worker`, `notifier:setup`, `notifier:send` and `notifier:purge` commands; `neo install` generates `config/packages/notifier.yaml` and adds the `VAPID_*` variables to `.env`.

@@ -297,6 +297,7 @@ The `Helper/WebProfiler/DatabaseProfiler` element adds a Database item to the to
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/DatabaseCheck`: `neo doctor` checks the PDO extension and the connection of every database (see the Doctor documentation).
 - v2.2.0 — `timezone` connection parameter: MySQL and PostgreSQL sessions use the PHP timezone by default.
 - v2.0.0 — `DatabaseManager` is the `final` entry point of the module, declared with `#[Component]`; `DatabaseManagerInterface` replaces `Contract\DatabaseInterface`; `Contract\AbstractDatabase` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; the internal classes are marked `@internal`.
 - v1.25.1 — profiler integration: `QueryLoggerInterface`, `QueryLogger`, `setQueryLogger()` on connections and on the manager, transaction logging, Stopwatch events, Database panel of the Web Profiler.

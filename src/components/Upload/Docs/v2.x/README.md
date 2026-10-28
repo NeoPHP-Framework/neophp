@@ -140,5 +140,6 @@ The Image package prepares the uploaded photos (`optimizeImage()`: upright, with
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/UploadCheck`: `neo doctor` checks the upload directory, `fileinfo` and the upload limits of PHP (see the Doctor documentation).
 - v2.0.0 — `UploadManager` is the `final` entry point of the module, declared with `#[Component]`; `UploadManagerInterface` replaces `Contract\UploaderInterface`; `Contract\AbstractUploader` is merged into the manager; the internal classes are marked `@internal`.
 - v1.40.0 — Upload component: `UploaderInterface` (`store()`, `delete()`, `exists()`, `url()`, `path()`), MIME type detection, random names, size limit, `upload()` view function, `storeUpload()` / `deleteUpload()` / `uploadUrl()` controller helpers, `config/framework/upload.yaml`

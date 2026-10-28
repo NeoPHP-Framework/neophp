@@ -700,6 +700,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/MigrationCheck`: `neo doctor` reports the migrations not executed (see the Doctor documentation).
 - v2.7.0 — `make:migration` ignores the tables of the Notifier package (`neo_notifications`, `neo_push_subscriptions`).
 - v2.1.0 — Entities and migrations of the NeoPHP packages: package entities mapped, package tables ignored by `make:migration`, package migrations executed with the project ones, `make:migration --package`, source column in `migration:status`; `Migrator::addSource()`, `getSources()`, `getSource()`, `SchemaTool::forMetadata()`.
 - v2.0.0 — `OrmManager` is the `final` entry point of the module, declared with `#[Package]`; `OrmManagerInterface` replaces `Contract\OrmInterface`; `Contract\AbstractOrm` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; the internal classes are marked `@internal`.
