@@ -22,7 +22,7 @@ interface QrCodeManagerInterface
     /**
      * QR code holding data signed with APP_SECRET: nobody can forge or modify it. A short code is always registered.
      *
-     * @param mixed $date
+     * @param mixed $data
      * @param int|null $rotate Validity in seconds of a code that changes regularly (e.g. 30 for a ticket: a screenshot is quickly useless)
      * @param int|null $ttl Lifetime in seconds when the code does not rotate, null = signed.ttl of the configuration (null there = never expires)
      * @param bool $once The code is refused after its first valid read
@@ -31,7 +31,7 @@ interface QrCodeManagerInterface
      * @return QrCode
      * @throws QrCodeException When APP_SECRET is empty or the data cannot be encoded in JSON
      */
-    public function signed(mixed $date, ?int $rotate = null, ?int $ttl = null, bool $once = false, array $options = []): QrCode;
+    public function signed(mixed $data, ?int $rotate = null, ?int $ttl = null, bool $once = false, array $options = []): QrCode;
 
     /**
      * QR code opening a Wi-Fi network.
