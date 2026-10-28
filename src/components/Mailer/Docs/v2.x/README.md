@@ -360,6 +360,7 @@ php bin/neo mailer:test me@example.com --dsn="smtp://user:pass@smtp.example.com:
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/MailerCheck`: `neo doctor` checks `MAILER_DSN` and that the SMTP server is reachable (see the Doctor documentation).
 - v2.0.0 — `MailerManager` is the `final` entry point of the module, declared with `#[Component]`; `MailerManagerInterface` replaces `Contract\MailerInterface`; `Contract\AbstractMailer` is merged into the manager; the internal classes are marked `@internal`.
 - v1.17.0 — `mailer:test` and `make:email` ask for their missing arguments.
 - v1.16.0 — Mailer component: fluent `Email`, native SMTP transport (STARTTLS / implicit TLS, AUTH PLAIN / LOGIN / CRAM-MD5, connection reused), `file`, `log` and `null` transports configured with `MAILER_DSN`, default sender and headers, envelope redirection with `MAILER_RECIPIENTS`, `MessageEvent` / `SentMessageEvent` / `FailedMessageEvent`, `sendEmail()` in controllers, `mailer:test` and `make:email` commands, `config/framework/mailer.yaml`.

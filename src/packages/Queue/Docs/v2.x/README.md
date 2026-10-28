@@ -310,6 +310,7 @@ All in `NeoPHP\Package\Queue\Exception\`, extending `QueueException` (itself a `
 
 ## Changelog
 
+- v2.8.0 — `Helper/Doctor/QueueCheck`: `neo doctor` checks the transports and reports the failed messages (see the Doctor documentation).
 - v2.1.0 — The handlers of the NeoPHP packages are discovered.
 - v2.0.0 — `QueueManager` is the `final` entry point of the module, declared with `#[Package]`; `QueueManagerInterface` replaces `Contract\QueueInterface`; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Envelope` moves to `Message\Envelope`; the internal classes are marked `@internal`.
 - v1.37.0 — Queue package: messages and `#[AsMessage]` routing, `#[AsMessageHandler]` handlers (discovered and cached), self-handling `JobInterface` jobs, `MessageBusInterface` / `QueueInterface`, `sync`, `database`, `filesystem` and `redis` transports configured by DSN with custom factories, HMAC-signed payloads, delays, priorities, retries with exponential backoff, failed storage, workers with limits, signals and `queue:restart`, events, `dispatchMessage()` in controllers, `queue:*` and `make:message` commands, Queue panel of the WebProfiler.
