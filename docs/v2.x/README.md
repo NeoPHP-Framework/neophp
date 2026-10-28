@@ -121,7 +121,7 @@ final class SessionManager implements SessionManagerInterface
 |---|---|
 | `#[Component]` | component of the framework (`src/components/`) |
 | `#[Package]` | package, of the framework (`src/packages/`) or installed with Composer |
-| `#[Process]` | process (`src/process/`): Console, Installer, Package |
+| `#[Process]` | process (`src/process/`): Console, Doctor, Installer, Package |
 
 The kernel discovers the modules by itself (nothing to register) and loads them in the order of their `requires`. Every module is enabled; `config/config.php` only lists what the project changes:
 
@@ -400,6 +400,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 |---|---|
 | `php bin/neo serve` | development server |
 | `php bin/neo list` | every command |
+| `php bin/neo doctor` | checks the project (PHP, extensions, directories, secrets, database, migrations, services) and tells what to fix |
 | `php bin/neo route:list` | routes |
 | `php bin/neo make:entity` (also `make:form`, `make:command`, `make:user`, `make:auth`, `make:voter`, `make:email`) | code generators (they ask the missing values) |
 | `php bin/neo make:migration` / `migration:migrate` | database migrations |
@@ -421,7 +422,8 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 3. `php bin/neo migration:migrate -n`
 4. `php bin/neo tailwind:run --minify` (if Tailwind is used), then `php bin/neo asset:reload --minify`
 5. `php bin/neo cache:clear`
-6. Point the web server document root to `public/`. In a sub-directory of the domain (`https://example.com/app/`), make `/app/` serve `public/` (Apache `Alias /app /var/www/app/public` and `RewriteBase /app/` in `public/.htaccess`) and set `APP_URL=https://example.com/app`: the routes stay the same, the generated URLs contain `/app` (`public/.htaccess` is provided for Apache: only `index.php` is executed, hidden files are never served; with Nginx, send every request to `index.php` and refuse the other `.php` files)
+6. `php bin/neo doctor --env=prod --strict`: checks the extensions, the directories, the secrets, the database and the services, and fails when something must be fixed (see the Doctor documentation)
+7. Point the web server document root to `public/`. In a sub-directory of the domain (`https://example.com/app/`), make `/app/` serve `public/` (Apache `Alias /app /var/www/app/public` and `RewriteBase /app/` in `public/.htaccess`) and set `APP_URL=https://example.com/app`: the routes stay the same, the generated URLs contain `/app` (`public/.htaccess` is provided for Apache: only `index.php` is executed, hidden files are never served; with Nginx, send every request to `index.php` and refuse the other `.php` files)
 
 ## Features
 
@@ -429,7 +431,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 |---|---|
 | components | Api, Asset, Cache, Config, Container, Controller, Cookie, Csrf, Database, Event, Exception, Flash, Form, Http, HttpClient, Kernel, Logger, Mailer, Middleware, Routing, Serializer, Service, Session, Upload, Validator, View |
 | packages | Debug, Dotenv, Image, Markdown, Mercure, NeoAI, Notifier, Orm, Queue, Scheduler, Security, Tailwind, Translation, WebProfiler, Yaml |
-| process | Console, Installer, Package |
+| process | Console, Doctor, Installer, Package |
 
 The documentation of a feature is in `src/<group>/<Feature>/Docs/v2.x/README.md`, for example `src/components/Routing/Docs/v2.x/README.md`. The documentation of NeoPHP 1 stays next to it, in `Docs/v1.x/`.
 
