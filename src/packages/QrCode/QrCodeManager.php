@@ -78,7 +78,7 @@ class QrCodeManager implements QrCodeManagerInterface
         unset($options['code']);
         $qr = new QrCode($content, array_replace((array) $this->config['defaults'], $options));
 
-        if ($code === false || $code === null) {
+        if ($code === false) {
             return $qr;
         }
 

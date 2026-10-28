@@ -1,6 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NeoPHP\Package\QrCode;
+
+use NeoPHP\Package\QrCode\Exception\QrCodeException;
+use NeoPHP\Package\QrCode\Model\QrCode;
+use NeoPHP\Package\QrCode\Model\ReadResult;
 
 interface QrCodeManagerInterface
 {
