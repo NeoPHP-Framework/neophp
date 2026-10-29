@@ -105,13 +105,12 @@ abstract class AbstractPlatform implements PlatformInterface
     {
         $table = $this->quoteIdentifier($diff->getName());
         $sql = [];
+        $renamed = array_intersect_key(array_change_key_case($diff->droppedIndexes), array_change_key_case($diff->addedIndexes));
 
         foreach ($diff->droppedIndexes as $index) {
-            $sql[] = $this->getDropIndexSql($diff->getName(), $index);
-        }
-
-        foreach ($diff->droppedColumns as $column) {
-            $sql[] = 'ALTER TABLE ' . $table . ' DROP ' . $this->quoteIdentifier($column->name);
+            if (isset($renamed[strtolower($index->name)])) {
+                $sql[] = $this->getDropIndexSql($diff->getName(), $index);
+            }
         }
 
         foreach ($diff->addedColumns as $column) {
@@ -124,6 +123,16 @@ abstract class AbstractPlatform implements PlatformInterface
 
         foreach ($diff->addedIndexes as $index) {
             $sql[] = $this->getCreateIndexSql($diff->getName(), $index);
+        }
+
+        foreach ($diff->droppedIndexes as $index) {
+            if (!isset($renamed[strtolower($index->name)])) {
+                $sql[] = $this->getDropIndexSql($diff->getName(), $index);
+            }
+        }
+
+        foreach ($diff->droppedColumns as $column) {
+            $sql[] = 'ALTER TABLE ' . $table . ' DROP ' . $this->quoteIdentifier($column->name);
         }
 
         return $sql;
