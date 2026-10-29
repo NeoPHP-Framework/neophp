@@ -700,6 +700,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.9.1 — The migrations create the new indexes of a table before dropping the old ones: an index needed by a foreign key can be replaced by a composite index starting with its column on MySQL.
 - v2.8.0 — `Helper/Doctor/MigrationCheck`: `neo doctor` reports the migrations not executed (see the Doctor documentation).
 - v2.7.0 — `make:migration` ignores the tables of the Notifier package (`neo_notifications`, `neo_push_subscriptions`).
 - v2.1.0 — Entities and migrations of the NeoPHP packages: package entities mapped, package tables ignored by `make:migration`, package migrations executed with the project ones, `make:migration --package`, source column in `migration:status`; `Migrator::addSource()`, `getSources()`, `getSource()`, `SchemaTool::forMetadata()`.
