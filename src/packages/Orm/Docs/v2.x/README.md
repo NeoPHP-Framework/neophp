@@ -10,6 +10,7 @@ It ships repositories, query builders, lifecycle events, code generators and mig
 - [Entities](#entities)
 - [Relations](#relations)
 - [Inheritance](#inheritance)
+- [Translatable entities](#translatable-entities)
 - [Collections](#collections)
 - [Persisting](#persisting)
 - [Repositories](#repositories)
@@ -225,6 +226,55 @@ class Post extends AbstractEntity
 - A method overridden in the entity runs once (the overriding one); `private` callbacks of each class all run, parents first.
 - The names of inherited indexes are ignored (generated per table) to avoid duplicated index names.
 - An entity can extend another entity: the child has its own table with all the columns, queries on the parent never return children (no single table or joined inheritance).
+
+## Translatable entities
+
+An entity implementing `Contract\TranslatableInterface` (with `Translatable\TranslatableTrait`) is translated by the entity of the same name + `Translation`, wich implements `Contract\TranslationInterface` (with `Translatable\TranslationTrait`). The relations are mapped by the ORM:
+
+```php
+#[ORM\Entity(repository: ProductRepository::class)]
+class Product extends AbstractEntity implements TranslatableInterface
+{
+    use TranslatableTrait;
+    
+    #[ORM\Column(type: 'decimal')]
+    private string $price = '0.00';
+}
+
+#[ORM\Entity]
+class ProductTranslation extends AbstractEntity implements TranslationInterface
+{
+    use TranslationTrait;
+    
+    #[ORM\Column]
+    private string $name = '';
+}
+```
+
+- `Product::$translations`: `OneToMany` to `ProductTranslation`, `cascade: ['persist', 'remove']`, `orphanRemoval: true`.
+- `ProductTranslation::$translatable` (column `translatable_id`): `ManyToOne`, not nullable, `ON DELETE CASCADE`; `$locale` (`string`, 40); unique index on `translatable_id` + `locale`.
+- Other class names: override `getTranslationEntityClass()` / `getTranslatableEntityClass()`. An association mapped in the entity on `$translations` / `$translatable` replaces the generated one.
+
+| Method | Description |
+|---|---|
+| `getOrCreateTranslation('fr')` | the translation of the locale, created and added when missing |
+| `addTranslation($translation)` / `removeTranslation($translation)` | keep both sides in sync; a second translation of a locale throws an `OrmException` |
+| `getTranslation('fr')` | the translation of this exact locale, or `null` |
+| `translate(?string $locale = null, bool $fallback = true)` | the translation of the locale (the current locale of the Translation package when `null`), then of its fallback locales (`fr_CA` → `fr` → `fallbacks`), then the first one |
+
+```php
+$product = new Product();
+$product->getOrCreateTranslation('fr')->setName('Chaise');
+$product->getOrCreateTranslation('en')->setName('Chair');
+$orm->persist($product);
+$orm->flush();
+```
+
+```twig
+{{ product.translate.name }}
+```
+
+Load the translations of a list in the same query: `->leftJoin('p.translations', 't')->addSelect('t')`.
 
 ## Collections
 
@@ -700,6 +750,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.10.0 — ORM: translatable entities (`Contract\TranslatableInterface` / `TranslationInterface`, `Translatable\TranslatableTrait` / `TranslationTrait`): `translations` / `translatable` relations and unique `(translatable, locale)` index mapped automatically, `translate()` with the current and fallback locales of the Translation package, `getOrCreateTranslation()`
 - v2.9.1 — The migrations create the new indexes of a table before dropping the old ones: an index needed by a foreign key can be replaced by a composite index starting with its column on MySQL.
 - v2.8.0 — `Helper/Doctor/MigrationCheck`: `neo doctor` reports the migrations not executed (see the Doctor documentation).
 - v2.7.0 — `make:migration` ignores the tables of the Notifier package (`neo_notifications`, `neo_push_subscriptions`).

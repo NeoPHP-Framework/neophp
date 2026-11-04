@@ -24,6 +24,8 @@ use NeoPHP\Package\Orm\OrmManagerInterface;
 use NeoPHP\Package\Orm\Proxy\ProxyFactory;
 use NeoPHP\Package\Orm\Schema\SchemaFactory;
 use NeoPHP\Package\Orm\Schema\SchemaTool;
+use NeoPHP\Package\Orm\Translatable\TranslatableLocale;
+use NeoPHP\Package\Translation\TranslationManagerInterface;
 
 /**
  * @internal
@@ -42,6 +44,20 @@ class OrmProvider extends AbstractProvider
         'neo_notifications',
         'neo_push_subscriptions'
     ];
+
+    public function boot(ContainerManagerInterface $container): void
+    {
+        if (!$container->has(TranslationManagerInterface::class)) {
+            TranslatableLocale::setResolver(null);
+
+            return;
+        }
+
+        TranslatableLocale::setResolver(
+            static fn (): string => $container->get(TranslationManagerInterface::class)->getLocale(),
+            static fn (string $locale): array => $container->get(TranslationManagerInterface::class)->getFallbackLocales($locale),
+        );
+    }
 
     public function register(ContainerManagerInterface $container): void
     {
