@@ -233,23 +233,35 @@ An entity implementing `Contract\TranslatableInterface` (with `Translatable\Tran
 
 ```php
 #[ORM\Entity(repository: ProductRepository::class)]
-class Product extends AbstractEntity implements TranslatableInterface
+class Product implements TranslatableInterface
 {
     use TranslatableTrait;
+    
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
     
     #[ORM\Column(type: 'decimal')]
     private string $price = '0.00';
 }
 
 #[ORM\Entity]
-class ProductTranslation extends AbstractEntity implements TranslationInterface
+class ProductTranslation implements TranslationInterface
 {
     use TranslationTrait;
+    
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
     
     #[ORM\Column]
     private string $name = '';
 }
 ```
+
+The traits work with any base class: an entity can extend a mapped superclass of the application (`#[ORM\MappedSuperclass]`, see [Inheritance](#inheritance)) and use the trait.
 
 - `Product::$translations`: `OneToMany` to `ProductTranslation`, `cascade: ['persist', 'remove']`, `orphanRemoval: true`.
 - `ProductTranslation::$translatable` (column `translatable_id`): `ManyToOne`, not nullable, `ON DELETE CASCADE`; `$locale` (`string`, 40); unique index on `translatable_id` + `locale`.
