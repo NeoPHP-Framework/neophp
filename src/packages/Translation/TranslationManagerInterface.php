@@ -173,4 +173,14 @@ interface TranslationManagerInterface
      * @return void
      */
     public function clearCache(): void;
+
+    /**
+     * Returns the display name of a locale's language.
+     *
+     * @param string $locale Locale whose language is displayed (en, fr_FR...)
+     * @param string|null $displayLocale Locale used to display the name; the current locale when null
+     * @return string The localized language name
+     * @throws TranslationException When the locale is invalid or the intl extension is missing
+     */
+    public function getLanguageName(string $locale, ?string $displayLocale = null): string;
 }
