@@ -466,10 +466,13 @@ final class TranslationManager implements TranslationManagerInterface
 
         $name = \Locale::getDisplayLanguage($locale, $displayLocale);
 
-        if (!is_string($name) || $name === '') {
-            throw new TranslationException('Unable to get the language name for locale "{locale}".', 0, null, [
-                'locale' => $locale,
-            ]);
+        if ($name === false) {
+            throw new TranslationException(
+                'Unable to get the language name for locale "{locale}".',
+                0,
+                null,
+                ['locale' => $locale],
+            );
         }
 
         return $name;
