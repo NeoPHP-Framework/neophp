@@ -439,6 +439,45 @@ final class TranslationManager implements TranslationManagerInterface
         }
     }
 
+    public function getLanguageName(string $locale, ?string $displayLocale = null): string
+    {
+        if (!class_exists(\Locale::class)) {
+            throw new TranslationException('The "intl" PHP extension is required to get a language name.');
+        }
+
+        $normalizedLocale = self::normalizeLocale($locale);
+
+        if ($normalizedLocale === null) {
+            throw new TranslationException('The locale "{locale}" is invalid.', 0, null, [
+                'locale' => $locale,
+            ]);
+        }
+
+        $locale = $normalizedLocale;
+
+        $displayLocale = $displayLocale === null
+            ? $this->locale
+            : (self::normalizeLocale($displayLocale) ?? throw new TranslationException(
+                'The display locale "{locale}" is invalid.',
+                0,
+                null,
+                ['locale' => $displayLocale]
+            ));
+
+        $name = \Locale::getDisplayLanguage($locale, $displayLocale);
+
+        if ($name === false) {
+            throw new TranslationException(
+                'Unable to get the language name for locale "{locale}".',
+                0,
+                null,
+                ['locale' => $locale],
+            );
+        }
+
+        return $name;
+    }
+
     public static function describe(string $file, int $priority = 2): ?array
     {
         if (preg_match(self::FILE_PATTERN, basename($file), $match) !== 1) {

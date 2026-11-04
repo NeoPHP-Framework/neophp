@@ -1,7 +1,7 @@
 # Translation
 
-The Translation package (`src/packages/Translation`) translates the application messages from YAML and XLIFF 1.2 files without any dependency (no `intl` needed).
-It supports parameters, ICU-lite plurals and selects, fallback locales, locale detection (route, query, session, cookie, `Accept-Language`), view helpers, a controller trait, and translates the validation and security messages.
+The Translation package (`src/packages/Translation`) translates the application messages from YAML and XLIFF 1.2 files without requiring the `intl` extension.
+It supports parameters, ICU-lite plurals and selects, fallback locales, locale detection (route, query, session, cookie, `Accept-Language`), localized language names (with `intl`), view helpers, a controller trait, and translates the validation and security messages.
 
 ## Summary
 
@@ -144,9 +144,7 @@ XLIFF 1.2 (the key is the `resname` attribute, or the `source` when there is non
 
 An empty message (`""` or an empty `<target>`) is considered untranslated: the fallback locales are tried, then the key is returned.
 
-Priority, from the lowest: the files added with `addResource()` and the files of the NeoPHP packages, then the application files of `translations/`.
-
-The `translations/` directory of a NeoPHP package installed with Composer (`extra.neophp.translations`, see the Package documentation) is loaded automatically when the package is enabled: `translations/billing.fr.yaml` of the package gives the domain `billing`, and the same key in `translations/billing.fr.yaml` of the project replaces it. The framework ships no translation file. A bundle can register its own files or messages in a provider:
+Priority, from the lowest: the files added with `addResource()`, then the application files of `translations/`. The framework ships no translation file. A bundle can register its own files or messages in a provider:
 
 ```php
 $translator->addResource(__DIR__ . '/../Resources/translations/shop.fr.yaml');
@@ -291,18 +289,15 @@ The login error is translated when the login fails: it is stored in the session 
 
 | Command | Description |
 |---|---|
-| `translation:generate [--locale=fr]... [--domain=] [--format=yaml\|xliff] [--dry-run] [--clean] [--package=]` | extracts the keys and adds the missing ones to the files |
+| `translation:generate [--locale=fr]... [--domain=] [--format=yaml\|xliff] [--dry-run] [--clean]` | extracts the keys and adds the missing ones to the files |
 | `translation:debug [locale] [--domain=] [--only-missing] [--only-unused]` | table of the keys with their state per locale |
 | `translation:lint` | checks that every file can be parsed and that every message has a valid syntax (exit code 1 on error) |
 
 `translation:generate` scans `extract.paths` for literal keys: `translate('key')` and `'key'|trans` in Twig, `$this->translate('key')` in PHP templates, `->translate('key')` and `translate('key')` in PHP code; the domain is read from the third argument of `translate()` (second of `trans()`) or a named `domain:` argument when it is a literal. For each locale (all enabled ones by default) and domain, the missing keys are added to `translations/{domain}.{locale}.{ext}` (created when needed): the value is the key for the default locale and `""` for the others. Existing translations are kept, an existing file keeps its format and `--clean` removes the keys that are not found in the code (only in the domains found in the code). `--dry-run` lists the changes without writing.
 
-`--package=billing` scans `templates/` and `src/` of the NeoPHP package instead and writes its `translations/` directory: use it while developing a package. The templates of a package overridden in `templates/packages/<name>/` of the project are scanned like the other templates of the project.
-
 ```bash
 php bin/neo translation:generate --dry-run
 php bin/neo translation:generate --locale=fr --format=xliff
-php bin/neo translation:generate --package=billing
 php bin/neo translation:debug fr --only-missing
 php bin/neo translation:lint
 ```
@@ -323,6 +318,7 @@ The catalogue of each locale is compiled into `var/cache/translation/{locale}.ph
 | `getDefaultLocale()`, `getLocales()`, `getDefaultDomain()` | configuration |
 | `getFallbackLocales(string $locale): array` | `fr_CA` → `['fr', 'en']` |
 | `matchLocale(string $locale): ?string` | enabled locale matching a locale or a language, or `null` |
+| `getLanguageName(string $locale, ?string $displayLocale = null): string` | localized language name; uses the current locale when `$displayLocale` is omitted; requires `ext-intl` |
 | `getCatalogue(string $locale, ?string $domain = null): array` | flat messages of a locale and a domain |
 | `getDomains(?string $locale = null): array` | known domains |
 | `addResource(string $file, ?string $locale = null, ?string $domain = null)` | adds a file (bundles) |
@@ -331,6 +327,16 @@ The catalogue of each locale is compiled into `var/cache/translation/{locale}.ph
 | `loadFile(string $file): array` | flat messages of a file |
 | `getFormatter(): MessageFormatter` | message formatter (`format()`, `validate()`) |
 | `clearCache()` | removes the compiled catalogues |
+
+`getLanguageName()` requires the PHP `intl` extension. `$displayLocale` controls the language used to display the name; when omitted, the current translation locale is used:
+
+```php
+$translator->getLanguageName('en', 'fr'); // anglais
+$translator->getLanguageName('en_US', 'fr'); // anglais
+$translator->getLanguageName('en'); // English when the current locale is en
+```
+
+Calling `getLanguageName()` without `ext-intl`, or with an invalid locale, throws a `TranslationException`.
 
 Other classes: `TranslationManager` (implementation), `Locale\LocaleDetector` (`detect()`, `fromHeader()`), `Loader\YamlLoader`, `Loader\XliffLoader`, `Dumper\YamlDumper`, `Dumper\XliffDumper`, `Extractor\TranslationExtractor`, `Formatter\MessageFormatter`, `Formatter\PluralRules`. Errors throw `NeoPHP\Package\Translation\Exception\TranslationException`.
 
@@ -351,12 +357,13 @@ $trace?->getMessages(TranslationTrace::STATE_MISSING);
 ## Limitations
 
 - ICU-lite: `plural` (with `offset`), `select` and `number` (no number or date styles, no `selectordinal`, no apostrophe quoting)
+- The localized language names returned by `getLanguageName()` require the optional PHP `intl` extension; translations and ICU-lite formatting do not
 - the extractor only finds literal keys (not `translate($key)`)
 - the file cache relies on modification times (one second resolution)
 
 ## Changelog
 
-- v2.1.0 — Translations of the NeoPHP packages loaded automatically (overridden by the project), `translation:generate --package`.
+- v2.11.0 — `TranslationManagerInterface::getLanguageName()` returns the localized name of a language, using the current locale or an explicitly provided display locale; requires the optional `intl` extension.
 - v2.0.0 — `TranslationManager` is the `final` entry point of the module, declared with `#[Package]`; `TranslationManagerInterface` replaces `Contract\TranslatorInterface`; `Contract\AbstractTranslator` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; `LocaleDetector` moves to `Locale\LocaleDetector`; the internal classes are marked `@internal`.
 - v1.31.3 — `translation:generate` indents the YAML files with 4 spaces, like the other YAML files of the framework.
 - v1.25.3 — profiler integration: `TranslationProfiler` toolbar item and panel, opt-in `TranslationTrace` on the translator (defined / fallback / missing messages with counts, parameters and results), locale detection source, loaded catalogues, `AbstractTranslator::setTrace()` / `getTrace()` / `getLoadedCatalogues()`.
