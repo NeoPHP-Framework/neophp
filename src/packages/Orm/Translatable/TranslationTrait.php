@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NeoPHP\Package\Orm\Translatable;
+
 use NeoPHP\Package\Orm\Contract\TranslatableInterface;
 use NeoPHP\Package\Orm\Exception\MappingException;
 use NeoPHP\Package\Orm\Mapping as ORM;
