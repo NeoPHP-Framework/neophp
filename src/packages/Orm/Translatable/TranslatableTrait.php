@@ -8,6 +8,9 @@ use NeoPHP\Package\Orm\Contract\TranslationInterface;
 use NeoPHP\Package\Orm\Exception\OrmException;
 use NeoPHP\Package\Orm\Metadata\MetadataFactory;
 
+/**
+ * @phpstan-ignore trait.unused
+ */
 trait TranslatableTrait
 {
     private ?CollectionInterface $translations = null;

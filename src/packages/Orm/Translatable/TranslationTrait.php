@@ -6,6 +6,9 @@ use NeoPHP\Package\Orm\Exception\MappingException;
 use NeoPHP\Package\Orm\Mapping as ORM;
 use NeoPHP\Package\Orm\Metadata\MetadataFactory;
 
+/**
+ * @phpstan-ignore trait.unused
+ */
 trait TranslationTrait
 {
     #[ORM\Column(length: 40)]
