@@ -7,6 +7,8 @@ namespace NeoPHP\Package\Orm\Metadata;
 use BackedEnum;
 use NeoPHP\Component\Kernel\Discovery\ClassFinder;
 use NeoPHP\Package\Orm\Contract\ProxyInterface;
+use NeoPHP\Package\Orm\Contract\TranslatableInterface;
+use NeoPHP\Package\Orm\Contract\TranslationInterface;
 use NeoPHP\Package\Orm\Exception\MappingException;
 use NeoPHP\Package\Orm\Mapping\Column;
 use NeoPHP\Package\Orm\Mapping\Entity;
@@ -150,9 +152,12 @@ class MetadataFactory
         $metadata->table = $entity->table ?? $this->naming->classToTableName($class);
         $metadata->repository = $entity->repository;
 
-        foreach ($this->collectProperties($metadata->reflection) as $property) {
+        $properties = $this->collectProperties($metadata->reflection);
+        foreach ($properties as $property) {
             $this->loadProperty($metadata, $property);
         }
+
+        $this->loadTranslationMapping($metadata, $properties);
 
         if ($metadata->identifier === '') {
             throw new MappingException('The entity "{class}" has no identifier: add #[ORM\Id] on a property.', 0, null, ['class' => $class]);
@@ -171,6 +176,10 @@ class MetadataFactory
             $index->name = $inherited ? null : $index->name;
             $columns = array_map(fn (string $column): string => $metadata->hasField($column) || $metadata->hasAssociation($column) ? $metadata->getColumnName($column) : $column, $index->columns);
             $metadata->indexes[] = ['name' => $index->name, 'columns' => $columns, 'unique' => $index->unique];
+        }
+
+        if ($metadata->reflection->implementsInterface(TranslationInterface::class)) {
+            $this->addTranslationIndex($metadata);
         }
 
         return $metadata;
@@ -254,6 +263,117 @@ class MetadataFactory
         }
 
         return $properties;
+    }
+
+    protected function loadTranslationMapping(ClassMetadata $metadata, array $properties): void
+    {
+        $class = $metadata->name;
+
+        if ($metadata->reflection->implementsInterface(TranslatableInterface::class)) {
+            $this->mapTranslationAssociation(
+                $metadata,
+                $properties,
+                TranslatableInterface::TRANSLATIONS_FIELD,
+                TranslationInterface::class,
+                'TranslatableTrait',
+                new OneToMany(
+                    $class::getTranslationEntityClass(),
+                    mappedBy: TranslationInterface::TRANSLATABLE_FIELD,
+                    cascade: ['persist', 'remove'],
+                    orphanRemoval: true,
+                ),
+            );
+        }
+
+        if ($metadata->reflection->implementsInterface(TranslationInterface::class)) {
+            $this->mapTranslationAssociation(
+                $metadata,
+                $properties,
+                TranslationInterface::TRANSLATABLE_FIELD,
+                TranslatableInterface::class,
+                'TranslationTrait',
+                new ManyToOne(
+                    $class::getTranslatableEntityClass(),
+                    inversedBy: TranslatableInterface::TRANSLATIONS_FIELD,
+                    nullable: false,
+                    onDelete: 'CASCADE',
+                ),
+            );
+        }
+    }
+
+    protected function mapTranslationAssociation(
+        ClassMetadata $metadata,
+        array $properties,
+        string $field,
+        string $interface,
+        string $trait,
+        OneToMany|ManyToOne $attribute,
+    ): void {
+        if ($metadata->hasAssociation($field)) {
+            return;
+        }
+
+        if (!isset($properties[$field])) {
+            throw new MappingException(
+                'The entity "{class}" has no "${field}" property: use the NeoPHP\Package\Orm\Translatable\{trait} trait.',
+                0,
+                null,
+                [
+                    'class' => $metadata->name,
+                    'field' => $field,
+                    'trait' => $trait,
+                ]
+            );
+        }
+
+        if (!is_subclass_of($attribute->target, $interface)) {
+            throw new MappingException(
+                'The class "{target}" used by "{class}::${field}" does not exist or does not implement {interface}.',
+                0,
+                null,
+                [
+                    'class' => $metadata->name,
+                    'field' => $field,
+                    'target' => $attribute->target,
+                    'interface' => $interface,
+                ]
+            );
+        }
+
+        $metadata->associations[$field] = $this->buildAssociation($metadata, $field, $attribute);
+        $metadata->addProperty($field, $properties[$field]);
+    }
+
+    protected function addTranslationIndex(ClassMetadata $metadata): void
+    {
+        if (!$metadata->hasField(TranslationInterface::LOCALE_FIELD)) {
+            throw new MappingException(
+                'The translation entity "{class}" has no mapped "$locale" field: use the NeoPHP\Package\Orm\Translatable\TranslationTrait trait.',
+                0,
+                null,
+                [
+                    'class' => $metadata->name
+                ]
+            );
+        }
+
+        $columns = [
+            $metadata->getColumnName(TranslationInterface::TRANSLATABLE_FIELD),
+            $metadata->getColumnName(TranslationInterface::LOCALE_FIELD),
+        ];
+
+        foreach ($metadata->indexes as $index) {
+            if ($index['unique'] && $index['columns'] === $columns) {
+                return;
+            }
+        }
+
+        $metadata->indexes[] = [
+            'name' => null,
+            'columns' => $columns,
+            'unique' => true
+        ];
     }
 
     protected function loadProperty(ClassMetadata $metadata, ReflectionProperty $property): void
