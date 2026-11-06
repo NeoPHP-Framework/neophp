@@ -29,6 +29,8 @@ use NeoPHP\Package\Security\SecurityManagerInterface;
 use NeoPHP\Package\Security\Signature\UserTokenSigner;
 use NeoPHP\Package\Security\Token\TokenStorage;
 use NeoPHP\Package\Security\Trace\SecurityTrace;
+use NeoPHP\Package\Security\TwoFactor\Totp;
+use NeoPHP\Package\Security\TwoFactor\TwoFactorManager;
 use NeoPHP\Package\Security\Voter\AuthenticatedVoter;
 use NeoPHP\Package\Security\Voter\RoleVoter;
 
@@ -137,6 +139,14 @@ class SecurityProvider extends AbstractProvider
             );
         });
 
+        $container->singleton(Totp::class, static fn (): Totp => new Totp());
+
+        $container->singleton(TwoFactorManager::class, static function (ContainerManagerInterface $container): TwoFactorManager {
+            $options = $container->get(self::CONFIG_ID)['two_factor'];
+
+            return new TwoFactorManager($container->get(HttpUtils::class), $container->get(Totp::class), $options !== null, (array) $options);
+        });
+
 
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
@@ -167,6 +177,7 @@ class SecurityProvider extends AbstractProvider
             'secret' => (string) $secret,
             'api_tokens' => (array) ($config['api_tokens'] ?? []),
             'jwt' => (array) ($config['jwt'] ?? []),
+            'two_factor' => isset($config['two_factor']) ? (array) $config['two_factor'] : null,
         ];
     }
 
