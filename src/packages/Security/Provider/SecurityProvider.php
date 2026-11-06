@@ -8,8 +8,10 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Csrf\CsrfManagerInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\Module\ModuleSources;
+use NeoPHP\Package\Security\ApiToken\ApiTokenManager;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
 use NeoPHP\Package\Security\Authorization\AccessDecisionManager;
 use NeoPHP\Package\Security\Authorization\AccessMap;
@@ -113,6 +115,14 @@ class SecurityProvider extends AbstractProvider
 
         $container->singleton(UserTokenSigner::class, static fn (ContainerManagerInterface $container): UserTokenSigner => new UserTokenSigner($container->get(self::CONFIG_ID)['secret']));
 
+        $container->singleton(ApiTokenManager::class, static function (ContainerManagerInterface $container): ApiTokenManager {
+            $options = $container->get(self::CONFIG_ID)['api_tokens'];
+            $connection = $container->get(DatabaseManagerInterface::class)->connection(isset($options['connection']) ? (string) $options['connection'] : null);
+
+            return new ApiTokenManager($connection, (string) ($options['table'] ?? ApiTokenManager::DEFAULT_TABLE));
+        });
+
+
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
     }
@@ -140,6 +150,7 @@ class SecurityProvider extends AbstractProvider
             'voters' => array_values(array_map('strval', (array) ($config['voters'] ?? []))),
             'throttling_path' => $cache . DIRECTORY_SEPARATOR . self::CACHE_DIRECTORY . DIRECTORY_SEPARATOR . 'throttling',
             'secret' => (string) $secret,
+            'api_tokens' => (array) ($config['api_tokens'] ?? []),
         ];
     }
 
