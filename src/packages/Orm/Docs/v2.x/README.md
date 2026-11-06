@@ -762,6 +762,7 @@ When the Web Profiler is enabled, the `Helper/WebProfiler/OrmProfiler` element a
 
 ## Changelog
 
+- v2.13.0 — `SqlQueryBuilder` throws an `OrmException` for an `INSERT`, `UPDATE` or `DELETE` query without a table.
 - v2.10.0 — ORM: translatable entities (`Contract\TranslatableInterface` / `TranslationInterface`, `Translatable\TranslatableTrait` / `TranslationTrait`): `translations` / `translatable` relations and unique `(translatable, locale)` index mapped automatically, `translate()` with the current and fallback locales of the Translation package, `getOrCreateTranslation()`
 - v2.9.1 — The migrations create the new indexes of a table before dropping the old ones: an index needed by a foreign key can be replaced by a composite index starting with its column on MySQL.
 - v2.8.0 — `Helper/Doctor/MigrationCheck`: `neo doctor` reports the migrations not executed (see the Doctor documentation).

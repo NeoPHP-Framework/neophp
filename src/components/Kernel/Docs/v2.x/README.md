@@ -17,6 +17,8 @@ It also dispatches the kernel events and ships shared tools used by other module
 - [Resource cache](#resource-cache)
 - [Composer packages](#composer-packages)
 - [Clearing the cache](#clearing-the-cache)
+- [Fatal errors](#fatal-errors)
+- [Maintenance mode](#maintenance-mode)
 - [Exceptions](#exceptions)
 - [Changelog](#changelog)
 
@@ -411,12 +413,31 @@ php bin/neo cc --env=prod -v
 
 `cache:clear` (alias `cc`) removes every file of `var/cache/` (routes, Twig templates, discoveries...) except `.gitkeep`, and resets OPcache. `-v` lists the removed files. Run it on every deployment in production.
 
+## Fatal errors
+
+`run()` registers a shutdown function: a PHP fatal error (out of memory, parse error...) is written in the `framework` logger channel and answered with the 500 error page, or the JSON error when the client asks for JSON. Nothing can be displayed when the response has already started. Only `run()` registers it: `handle()` alone does not.
+
+## Maintenance mode
+
+```bash
+php bin/neo down
+php bin/neo down --retry=300 --message="Back in 5 minutes" --allow=203.0.113.10 --allow=10.0.0.0/8
+php bin/neo up
+```
+
+`down` writes `var/maintenance.json`: every request gets a 503 response with `Retry-After`, before the session and the security. The file is local: run the command on each server. `--allow` accepts IPs and CIDR ranges and can be repeated; the IP follows `trusted_proxies`. The health endpoint of the Doctor process keeps working.
+
+The page is `templates/maintenance.html` when this file exists, a simple page otherwise. A client that asks for JSON gets `{"error": {"status": 503, "message": "..."}}`.
+
+The state is available in PHP with `NeoPHP\Component\Kernel\Maintenance\MaintenanceMode`: `isEnabled()`, `enable()`, `disable()`, `read()`.
+
 ## Exceptions
 
 `NeoPHP\Component\Kernel\Exception\KernelException` extends `FrameworkException`. It is thrown for an invalid module or provider, an invalid `config/config.php`, a required module that is disabled, a dependency cycle, a container used before `boot()`, a cache file that cannot be written, or an unknown timezone in `framework.app.timezone`.
 
 ## Changelog
 
+- v2.13.0 — Fatal errors logged and answered with the error page by `run()`; maintenance mode (`down`, `up`, `Maintenance\MaintenanceMode`, `Helper/Event/MaintenanceListener`).
 - v2.8.0 — `Helper/Doctor/PhpCheck` and `Helper/Doctor/ApplicationCheck`: PHP and application checks of `neo doctor` (see the Doctor documentation).
 - v2.2.0 — `framework.app.timezone` (`APP_TIMEZONE`) sets the default PHP timezone when the kernel boots.
 - v2.1.0 — NeoPHP packages: `InstalledPackages` and `ModuleSources`, the commands, listeners, view helpers and templates of the modules installed with Composer are discovered.
