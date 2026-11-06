@@ -37,6 +37,8 @@ class Request
 
     protected static array $trustedHostPatterns = [];
 
+    protected static bool $headerMethodOverride = true;
+
     public function __construct(
         array $query = [],
         array $request = [],
@@ -117,6 +119,11 @@ class Request
     public static function setTrustedProxies(array $proxies): void
     {
         self::$trustedProxies = array_values(array_filter(array_map(static fn (mixed $proxy): string => trim((string) $proxy), $proxies), static fn (string $proxy): bool => $proxy !== ''));
+    }
+
+    public static function setHeaderMethodOverride(bool $enabled): void
+    {
+        self::$headerMethodOverride = $enabled;
     }
 
     public static function getTrustedProxies(): array
@@ -223,7 +230,7 @@ class Request
         $method = $this->getRealMethod();
 
         if ($method === 'POST') {
-            $override = strtoupper((string) ($this->headers->get('X-HTTP-Method-Override') ?? $this->request->get('_method', '')));
+            $override = strtoupper((string) ((self::$headerMethodOverride ? $this->headers->get('X-HTTP-Method-Override') : null) ?? $this->request->get('_method', '')));
 
             if ($override !== '' && in_array($override, ['PUT', 'PATCH', 'DELETE'], true)) {
                 $method = $override;

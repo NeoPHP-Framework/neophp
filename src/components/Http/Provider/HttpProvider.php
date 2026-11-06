@@ -20,6 +20,8 @@ class HttpProvider extends AbstractProvider
 
     public const TRUSTED_HOSTS_KEY = 'framework.app.trusted_hosts';
 
+    public const HEADER_METHOD_OVERRIDE_KEY = 'framework.app.http_method_override_header';
+
     public function register(ContainerManagerInterface $container): void
     {
         $container->singleton(HttpManagerInterface::class, HttpManager::class);
@@ -36,6 +38,7 @@ class HttpProvider extends AbstractProvider
 
         Request::setTrustedProxies($this->toList($config->get(self::TRUSTED_PROXIES_KEY, [])));
         Request::setTrustedHosts($this->toList($config->get(self::TRUSTED_HOSTS_KEY, [])));
+        Request::setHeaderMethodOverride(filter_var($config->get(self::HEADER_METHOD_OVERRIDE_KEY, true), FILTER_VALIDATE_BOOLEAN));
     }
 
     protected function toList(mixed $value): array
