@@ -19,6 +19,8 @@ final class TailwindManager implements TailwindManagerInterface
 
     public const IMPORT = '@import "tailwindcss";';
 
+    public const CHECKSUM_FILE = 'sha256sums.txt';
+
     protected string $rootPath;
 
     protected string $sourcePath;
@@ -29,12 +31,15 @@ final class TailwindManager implements TailwindManagerInterface
 
     protected ?string $binary = null;
 
+    protected bool $verifyChecksum = true;
+
     public function __construct(string $rootPath, array $config = [], ?string $sourcePath = null)
     {
         $this->rootPath = rtrim(str_replace('\\', '/', $rootPath), '/');
         $this->sourcePath = rtrim(str_replace('\\', '/', $sourcePath ?? $this->rootPath . '/assets'), '/');
         $this->version = self::normalizeVersion((string) ($config['version'] ?? self::DEFAULT_VERSION));
         $this->binary = isset($config['binary']) && is_string($config['binary']) && $config['binary'] !== '' ? $config['binary'] : null;
+        $this->verifyChecksum = filter_var($config['verify_checksum'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
         if (isset($config['input']) && is_string($config['input']) && $config['input'] !== '') {
             $this->setInput($config['input']);
@@ -123,6 +128,11 @@ final class TailwindManager implements TailwindManagerInterface
 
         $url = $this->getDownloadUrl($version);
         [$content, $resolved] = $this->download($url);
+
+        if ($this->verifyChecksum) {
+            $this->assertChecksum($content, $resolved ?? $version);
+        }
+
         $this->makeDirectory(dirname($binary));
         $temporary = $binary . '.' . uniqid('', true) . '.tmp';
 
@@ -134,6 +144,11 @@ final class TailwindManager implements TailwindManagerInterface
 
         @chmod($binary, 0755);
         $installed = $resolved ?? self::normalizeVersion($version ?? $this->version);
+
+        if ($installed !== self::DEFAULT_VERSION) {
+            $this->version = $installed;
+        }
+
         file_put_contents($this->directory() . '/VERSION', $installed . "\n");
 
         return [$binary, $installed, true];
@@ -258,6 +273,26 @@ final class TailwindManager implements TailwindManagerInterface
         }
 
         return [$content, $version];
+    }
+
+    protected function assertChecksum(string $content, ?string $version): void
+    {
+        $platform = $this->getPlatform();
+        [$checksums] = $this->download(dirname($this->getDownloadUrl($version)) . '/' . self::CHECKSUM_FILE);
+
+        foreach (preg_split('/\R/', $checksums) ?: [] as $line) {
+            if (preg_match('#^([a-f0-9]{64})\s+\*?(?:\./)?(\S+)$#i', trim($line), $matches) !== 1 || $matches[2] !== $platform) {
+                continue;
+            }
+
+            if (!hash_equals(strtolower($matches[1]), hash('sha256', $content))) {
+                throw new TailwindException('The checksum of the Tailwind CLI "{platform}" is invalid: the download is corrupted or was modified.', 0, null, ['platform' => $platform]);
+            }
+
+            return;
+        }
+
+        throw new TailwindException('No checksum found for the Tailwind CLI "{platform}": set "verify_checksum: false" in {config} to skip this check.', 0, null, ['platform' => $platform, 'config' => self::CONFIG_FILE]);
     }
 
     protected function directory(): string
