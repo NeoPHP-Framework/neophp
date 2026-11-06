@@ -7,7 +7,7 @@ namespace NeoPHP\Package\Security\RememberMe;
 use NeoPHP\Component\Database\Contract\ConnectionInterface;
 use NeoPHP\Package\Security\Exception\SecurityException;
 
-class DatabaseTokenProvider implements TokenProviderInterface
+class DatabaseTokenProvider implements RotatableTokenProviderInterface
 {
     public const DEFAULT_TABLE = 'remember_me_tokens';
 
@@ -65,6 +65,13 @@ class DatabaseTokenProvider implements TokenProviderInterface
     {
         $this->ensureTable();
         $this->connection->update($this->table, ['last_used_at' => $lastUsed], ['series' => $series]);
+    }
+
+    public function rotateToken(string $series, string $currentHash, string $newHash, int $lastUsed): bool
+    {
+        $this->ensureTable();
+
+        return $this->connection->update($this->table, ['token_hash' => $newHash, 'last_used_at' => $lastUsed], ['series' => $series, 'token_hash' => $currentHash]) === 1;
     }
 
     public function deleteToken(string $series): void
