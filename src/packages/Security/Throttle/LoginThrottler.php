@@ -7,6 +7,7 @@ namespace NeoPHP\Package\Security\Throttle;
 use NeoPHP\Component\Http\Request\Request;
 use NeoPHP\Package\Security\Exception\SecurityException;
 use NeoPHP\Package\Security\Exception\TooManyLoginAttemptsException;
+use NeoPHP\Component\Cache\Contract\CacheInterface;
 
 class LoginThrottler
 {
@@ -14,7 +15,11 @@ class LoginThrottler
 
     public const GC_DIVISOR = 100;
 
-    public function __construct(protected string $directory, protected int $maxAttempts = 5, protected int $interval = 60)
+    public const CACHE_PREFIX = 'login_throttling.';
+
+    public const LOCK_TIMEOUT = 1.0;
+
+    public function __construct(protected string $directory, protected int $maxAttempts = 5, protected int $interval = 60, protected int $maxAccountAttempts = 0, protected ?CacheInterface $cache = null)
     {
         if ($maxAttempts < 1 || $interval < 1) {
             throw new SecurityException('The login throttling "max_attempts" and "interval" options must be positive integers.');
@@ -34,8 +39,13 @@ class LoginThrottler
     public function consume(Request $request, string $identifier): void
     {
         $retryAfter = 0;
+        $limits = [[$this->userKey($request, $identifier), $this->maxAttempts], [$this->ipKey($request), $this->maxAttempts * self::IP_FACTOR]];
 
-        foreach ([[$this->userKey($request, $identifier), $this->maxAttempts], [$this->ipKey($request), $this->maxAttempts * self::IP_FACTOR]] as [$key, $limit]) {
+        if ($this->maxAccountAttempts > 0) {
+            $limits[] = [$this->accountKey($identifier), $this->maxAccountAttempts];
+        }
+
+        foreach ($limits as [$key, $limit]) {
             $this->update($key, function (array $attempts) use ($limit, &$retryAfter): array {
                 if (count($attempts) >= $limit) {
                     $retryAfter = max($retryAfter, $attempts[count($attempts) - $limit] + $this->interval - time());
@@ -74,21 +84,36 @@ class LoginThrottler
 
     public function reset(Request $request, string $identifier): void
     {
-        $file = $this->file($this->userKey($request, $identifier));
+        $key = $this->userKey($request, $identifier);
+        $file = $this->file($key);
 
-        if (is_file($file)) {
+        if ($this->cache !== null) {
+            $this->cache->delete(self::CACHE_PREFIX . $key);
+        } elseif (is_file($file)) {
             @unlink($file);
         }
 
-        $this->update($this->ipKey($request), static function (array $attempts): array {
+        $removeLast = static function (array $attempts): array {
             array_pop($attempts);
 
             return $attempts;
-        });
+        };
+
+        $this->update($this->ipKey($request), $removeLast);
+
+        if ($this->maxAccountAttempts > 0) {
+            $this->update($this->accountKey($identifier), $removeLast);
+        }
     }
 
     protected function update(string $key, callable $callback): void
     {
+        if ($this->cache !== null) {
+            $this->updateCache($this->cache, $key, $callback);
+
+            return;
+        }
+
         if (!is_dir($this->directory) && !@mkdir($this->directory, 0775, true) && !is_dir($this->directory)) {
             throw new SecurityException('Unable to create the login throttling directory "{directory}".', 0, null, ['directory' => $this->directory]);
         }
@@ -119,6 +144,27 @@ class LoginThrottler
         }
     }
 
+    protected function updateCache(CacheInterface $cache, string $key, callable $callback): void
+    {
+        $id = self::CACHE_PREFIX . $key;
+        $adapter = $cache->getAdapter();
+        $locked = $adapter->lock($id, self::LOCK_TIMEOUT);
+
+        try {
+            $attempts = $callback($this->prune($cache->get($id)));
+
+            if ($attempts === []) {
+                $cache->delete($id);
+            } else {
+                $cache->set($id, array_values($attempts), $this->interval);
+            }
+        } finally {
+            if ($locked) {
+                $adapter->unlock($id);
+            }
+        }
+    }
+
     protected function prune(mixed $attempts): array
     {
         $limit = time() - $this->interval;
@@ -129,6 +175,11 @@ class LoginThrottler
     protected function userKey(Request $request, string $identifier): string
     {
         return 'user_' . hash('sha256', ($request->getClientIp() ?? '') . '|' . strtolower($identifier));
+    }
+
+    protected function accountKey(string $identifier): string
+    {
+        return 'account_' . hash('sha256', strtolower($identifier));
     }
 
     protected function ipKey(Request $request): string
