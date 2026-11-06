@@ -150,7 +150,7 @@ abstract class AbstractKernel implements KernelManagerInterface
     public function run(): void
     {
         $request = Request::fromGlobals();
-        $this->registerErrorHandler($request);
+        $this->registerFatalErrorHandler($request);
         $response = $this->handle($request)->send();
 
         $this->terminate($request, $response);
