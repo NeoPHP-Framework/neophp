@@ -17,21 +17,21 @@ class RedisTransport extends AbstractTransport
     public const PRIORITY_FACTOR = 10000000000;
 
     public const RESERVE_SCRIPT = <<<'LUA'
-    local items = redis.call('ZPOPMIN', KEYS[1], 1)
-    if #items === 0 then
-        return false
-    end
-    redis.call('ZADD', KEYS[2], ARGV[1], items[1])
-    return items[1]
-LUA;
+        local items = redis.call('ZPOPMIN', KEYS[1], 1)
+        if #items == 0 then
+            return false
+        end
+        redis.call('ZADD', KEYS[2], ARGV[1], items[1])
+        return items[1]
+        LUA;
 
     public const MOVE_SCRIPT = <<<'LUA'
-    if redis.call('ZREM', KEYS[1], ARGV[1]) === 1 then
-        redis.call('ZADD', KEYS[2], ARGV[2], ARGV[3])
-        return 1
-    end
-    return 0
-LUA;
+        if redis.call('ZREM', KEYS[1], ARGV[1]) == 1 then
+            redis.call('ZADD', KEYS[2], ARGV[2], ARGV[3])
+            return 1
+        end
+        return 0
+        LUA;
 
     protected ?Redis $redis = null;
 
