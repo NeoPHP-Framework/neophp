@@ -94,9 +94,9 @@ class PostController extends AbstractController
 
 ```json
 {
-  "items": [{"id": 12, "title": "..."}],
-  "pagination": {"total": 42, "page": 2, "limit": 10, "pages": 5},
-  "links": {"self": "/api/posts?page=2&limit=10", "first": "/api/posts?page=1&limit=10", "prev": "/api/posts?page=1&limit=10", "next": "/api/posts?page=3&limit=10", "last": "/api/posts?page=5&limit=10"}
+    "items": [{"id": 12, "title": "..."}],
+    "pagination": {"total": 42, "page": 2, "limit": 10, "pages": 5},
+    "links": {"self": "/api/posts?page=2&limit=10", "first": "/api/posts?page=1&limit=10", "prev": "/api/posts?page=1&limit=10", "next": "/api/posts?page=3&limit=10", "last": "/api/posts?page=5&limit=10"}
 }
 ```
 
@@ -108,56 +108,56 @@ with the `Link`, `X-Total-Count` and `X-RateLimit-*` headers. An invalid body re
 
 ```yaml
 cors:
-  enabled: false
-  defaults:
-    allow_origin: []
-    allow_methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-    allow_headers: [Content-Type, Authorization, X-Requested-With]
-    expose_headers: [Link, X-Total-Count, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
-    allow_credentials: false
-    max_age: 3600
-  paths:
-    '^/api': ~
+    enabled: false
+    defaults:
+        allow_origin: []
+        allow_methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        allow_headers: [Content-Type, Authorization, X-Requested-With]
+        expose_headers: [Link, X-Total-Count, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+        allow_credentials: false
+        max_age: 3600
+    paths:
+        '^/api': ~
 
 rate_limiter:
-  cache_pool: null
-  headers: true
-  limiters:
-    api:
-      policy: sliding_window
-      limit: 100
-      interval: '1 minute'
-    login:
-      policy: fixed_window
-      limit: 5
-      interval: '15 minutes'
-    uploads:
-      policy: token_bucket
-      limit: 10
-      rate: { amount: 1, interval: '30 seconds' }
+    cache_pool: null
+    headers: true
+    limiters:
+        api:
+            policy: sliding_window
+            limit: 100
+            interval: '1 minute'
+        login:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        uploads:
+            policy: token_bucket
+            limit: 10
+            rate: { amount: 1, interval: '30 seconds' }
 
 pagination:
-  page_parameter: page
-  limit_parameter: limit
-  default_limit: 20
-  max_limit: 100
-  absolute_links: false
+    page_parameter: page
+    limit_parameter: limit
+    default_limit: 20
+    max_limit: 100
+    absolute_links: false
 
 problem_details:
-  enabled: true
-  paths: ['^/api']
-  json_requests: true
-  type_base_uri: null
+    enabled: true
+    paths: ['^/api']
+    json_requests: true
+    type_base_uri: null
 
 openapi:
-  title: '%env(APP_NAME)%'
-  version: '1.0.0'
-  description: null
-  servers: []
-  paths: ['^/api']
-  route:
-    enabled: false
-    path: /api/doc
+    title: '%env(APP_NAME)%'
+    version: '1.0.0'
+    description: null
+    servers: []
+    paths: ['^/api']
+    route:
+        enabled: false
+        path: /api/doc
 ```
 
 Without the file, every feature keeps the framework behaviour: CORS disabled, no limiter, problem details disabled (errors keep the `{"error": ...}` JSON format), OpenAPI routes disabled.
@@ -172,12 +172,12 @@ With `cors.enabled: true`, the requests whose path matches a key of `cors.paths`
 
 ```yaml
 cors:
-  enabled: true
-  defaults:
-    allow_origin: ['https://app.example.com', '#^https://[a-z0-9-]+\.example\.com$#']
-  paths:
-    '^/api/public': { allow_origin: ['*'], max_age: 86400 }
-    '^/api': ~
+    enabled: true
+    defaults:
+        allow_origin: ['https://app.example.com', '#^https://[a-z0-9-]+\.example\.com$#']
+    paths:
+        '^/api/public': { allow_origin: ['*'], max_age: 86400 }
+        '^/api': ~
 ```
 
 | Option | Default | Description |
@@ -216,6 +216,8 @@ Parameters: `allowOrigin`, `allowMethods`, `allowHeaders`, `exposeHeaders`, `all
 ## Rate limiting
 
 A limiter is defined under `rate_limiter.limiters` and identified by its name; each client key has its own counter, stored in a cache pool (`cache_pool`, default: the default pool of `config/framework/cache.yaml`).
+
+The counter is locked while tokens are consumed, so that concurrent requests cannot exceed the limit. The lock is the one of the cache adapter: `filesystem` and `apcu` lock on one server, `database` locks across the servers and `array` has no lock. After `AbstractLimiter::LOCK_TIMEOUT` (1 second), the request continues without the lock.
 
 | Policy | Options | Behaviour |
 |---|---|---|
@@ -348,15 +350,15 @@ With `problem_details.enabled: true`, the uncaught exceptions of API requests ar
 
 ```json
 {
-  "type": "about:blank",
-  "title": "Unprocessable Content",
-  "status": 422,
-  "detail": "The data is not valid: 2 violation(s).",
-  "instance": "/api/posts",
-  "violations": [
-    {"propertyPath": "title", "title": "This value should not be blank.", "template": "This value should not be blank."},
-    {"propertyPath": "email", "title": "This value is not a valid email address.", "template": "This value is not a valid email address.", "parameters": {"value": "\"x\""}}
-  ]
+    "type": "about:blank",
+    "title": "Unprocessable Content",
+    "status": 422,
+    "detail": "The data is not valid: 2 violation(s).",
+    "instance": "/api/posts",
+    "violations": [
+        {"propertyPath": "title", "title": "This value should not be blank.", "template": "This value should not be blank."},
+        {"propertyPath": "email", "title": "This value is not a valid email address.", "template": "This value is not a valid email address.", "parameters": {"value": "\"x\""}}
+    ]
 }
 ```
 
@@ -458,9 +460,9 @@ They are public: protect them with an `access_control` rule of the security conf
 
 ```yaml
 api_doc:
-  path: /internal/api
-  controller: NeoPHP\Component\Api\Controller\OpenApiController::html
-  methods: [GET]
+    path: /internal/api
+    controller: NeoPHP\Component\Api\Controller\OpenApiController::html
+    methods: [GET]
 ```
 
 ## Controllers
@@ -558,6 +560,7 @@ $page = $this->api->paginator()->paginate($query, $request);
 
 ## Changelog
 
+- v2.12.0 — The rate limiters lock their counter while they consume tokens: concurrent requests can no longer exceed the limit.
 - v2.0.0 — `ApiManager` is the `final` entry point of the module, declared with `#[Component]`; new `ApiManagerInterface`; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.30.0 — CORS: `allow_credentials: true` combined with `allow_origin: '*'` is refused (it reflected any origin with credentials); `RateLimiterListener.php` renamed `RateLimitListener.php` to match its class (PSR-4 autoload).
 - v1.24.0 — Api component: CORS (`cors` configuration, preflight answered before routing, headers on error responses, `#[Cors]`, `CorsMiddleware`), rate limiter (fixed window, sliding window, token bucket and no limit policies stored in a cache pool, `RateLimiterFactory`, `#[RateLimit]` with ip / user / route / header / attribute / query / custom keys, `X-RateLimit-*` and `Retry-After` headers), pagination (array, iterable and ORM query builder adapters, `Page` with links, `Link` and `X-Total-Count` headers, `PageRequest` / `#[MapPagination]` arguments), RFC 7807 problem details (`application/problem+json` with violations, `ProblemDetailsProviderInterface`), OpenAPI 3.1 generation (routes, DTO schemas from the Serializer metadata and the Validator constraints, `#[OA\Operation]`, `#[OA\Response]`, `#[OA\Tag]`, `#[OA\Parameter]`, `#[OA\Property]`, `#[OA\Schema]`), `openapi:dump`, `/api/doc` and `/api/doc.json` routes, `ApiController` trait (`paginate()`, `jsonPage()`, `rateLimit()`, `createRateLimiter()`, `problemJson()`).

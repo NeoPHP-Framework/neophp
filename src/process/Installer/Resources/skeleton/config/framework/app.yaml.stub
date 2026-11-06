@@ -16,6 +16,8 @@ timezone: '%env(APP_TIMEZONE)%'
 trusted_proxies: '%env(TRUSTED_PROXIES)%'
 # Accepted host names, e.g. example.com,*.example.com (empty = any host, set it in production)
 trusted_hosts: '%env(TRUSTED_HOSTS)%'
+# true = a POST can change its method with the X-HTTP-Method-Override header (the _method field of the forms always works)
+http_method_override_header: false
 
 # Security headers added to every response (pages, errors, API) that does not set them itself
 security_headers:

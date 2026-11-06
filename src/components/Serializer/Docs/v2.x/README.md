@@ -105,6 +105,7 @@ max_depth: 10
 enable_max_depth: true
 skip_null_values: false
 allow_extra_attributes: true
+strict_associations: false
 name_converter: null
 normalizers: []
 ```
@@ -118,6 +119,7 @@ normalizers: []
 | `enable_max_depth` | `true` | reads the `#[MaxDepth]` attributes |
 | `skip_null_values` | `false` | omits `null` values when normalizing |
 | `allow_extra_attributes` | `true` | `false` throws an `ExtraAttributesException` on unknown input keys |
+| `strict_associations` | `false` | `true`: a relation of an entity is written only with a setter, a public property, a constructor parameter or an explicit group; `neo install` enables it in new projects |
 | `name_converter` | `null` | `snake_case`, `camel_case`, `null` or a class implementing `NameConverterInterface` |
 | `normalizers` | `[]` | extra normalizers: `[App\Serializer\MoneyNormalizer]` or `[{ class: App\Serializer\MoneyNormalizer, priority: 10 }]` |
 | `default_context` | `[]` | any [context option](#context-options) applied to every call |
@@ -379,6 +381,7 @@ Deserializing into an entity:
 
 - `object_to_populate` updates a managed entity (call `flush()` afterwards);
 - a relation given as an identifier (`"author": 3`) or as `{"id": 3}` is loaded with `find()` of the ORM; an array without identifier creates a new entity;
+- with `strict_associations: true`, a relation without a setter, a public property or a constructor parameter is written only when the `groups` of the context allow it (`'*'` does not count); otherwise its key is treated as an unknown key;
 - a to-many relation takes a list of identifiers or objects: the collection is updated in place (elements removed, added);
 - an unknown identifier throws a `NotNormalizableValueException` (422): `The Category "999" at "category" does not exist.`
 
@@ -560,6 +563,7 @@ Exceptions (`NeoPHP\Component\Serializer\Exception\*`, all extend `SerializerExc
 
 ## Changelog
 
+- v2.12.0 — `strict_associations` option: the relations of an entity without a setter are no longer written from the input unless an explicit group allows them.
 - v2.1.0 — The normalizers of the NeoPHP packages are discovered.
 - v2.0.0 — `SerializerManager` is the `final` entry point of the module, declared with `#[Component]`; `SerializerManagerInterface` replaces `Contract\SerializerInterface`; `Contract\AbstractSerializer` is merged into the manager; the internal classes are marked `@internal`.
 - v1.23.0 — Serializer component: JSON / XML / CSV / YAML encoders, object, date, enum, `JsonSerializable`, array and ORM entity normalizers, attributes `#[Groups]`, `#[SerializedName]`, `#[Ignore]`, `#[MaxDepth]`, `#[Context]`, `#[Type]`, name converters, circular reference and max depth handling, `#[MapRequestPayload]` / `#[MapQueryString]` controller arguments with validation (400 / 415 / 422), custom normalizers (`#[AsNormalizer]` or configuration), `serialize()` / `deserialize()` in controllers, `json()` with a serializer context, `serializer:debug`.

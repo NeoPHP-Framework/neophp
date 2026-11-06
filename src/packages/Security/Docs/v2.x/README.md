@@ -94,6 +94,8 @@ firewalls:
         login_throttling:
             max_attempts: 5
             interval: 60
+            max_account_attempts: 25
+            cache_pool: ~
 
 role_hierarchy:
     ROLE_ADMIN: [ROLE_USER]
@@ -237,7 +239,7 @@ The first firewall whose `pattern` (regular expression, plus optional `host`, `m
 | `access_token` | see [Access tokens](#access-tokens) |
 | `custom_authenticators` | list of classes implementing `AuthenticatorInterface` |
 | `remember_me` | `{ lifetime: 604800, name: REMEMBERME, parameter: _remember_me, always: false, path: /, domain: ~, secure: auto, samesite: Lax }`: `parameter` is the checkbox of the login form, `always` sets the cookie on every login; `storage: database` makes the cookies revocable per device, see [Remember me](#remember-me) |
-| `login_throttling` | `{ max_attempts: 5, interval: 60 }`: attempts per IP + identifier (and 5 × more per IP) during `interval` seconds, stored in `var/cache/security/throttling/` (empty files deleted, expired files removed by `LoginThrottler::gc()`, called on 1% of the attempts); the IP is `Request::getClientIp()`: behind a reverse proxy, set `trusted_proxies` (see the Http documentation) or every visitor shares the IP of the proxy |
+| `login_throttling` | `{ max_attempts: 5, interval: 60, max_account_attempts: 0, cache_pool: ~ }`: attempts per IP + identifier (and 5 × more per IP) during `interval` seconds, stored in `var/cache/security/throttling/` (empty files deleted, expired files removed by `LoginThrottler::gc()`, called on 1% of the attempts); `max_account_attempts` limits the attempts per identifier from every IP (`0`: disabled; it can temporarily block a targeted account), `cache_pool` stores the counters in a cache pool shared by the servers; the IP is `Request::getClientIp()`: behind a reverse proxy, set `trusted_proxies` (see the Http documentation) or every visitor shares the IP of the proxy |
 | `logout` | see [Logout](#logout) |
 | `user_checker` | class implementing `UserCheckerInterface` |
 | `entry_point` | `form_login`, `http_basic`, `access_token` or a class implementing `EntryPointInterface` |
@@ -349,6 +351,8 @@ remember_me:
 | `database` | random series + secret; only the SHA-256 hash of the secret is stored in `remember_me_tokens` (created automatically, ignored by `make:migration`) | per device, at logout, or all the devices; a password change also invalidates them |
 
 `storage` can also be the class of a service implementing `NeoPHP\Package\Security\RememberMe\TokenProviderInterface` (Redis, API...).
+
+With `storage: database`, the secret of the cookie changes each time it logs the user in. The previous cookie stays valid for 60 seconds (`RememberMeHandler::ROTATION_GRACE`) for the parallel requests of a page; after that, its use is treated as a theft and every remember-me token of the user is deleted. A custom provider gets this rotation by implementing `NeoPHP\Package\Security\RememberMe\RotatableTokenProviderInterface`.
 
 With `storage: database`, a "connected devices" page:
 
@@ -688,6 +692,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v2.12.0 — The database remember-me tokens rotate at each use and a stolen cookie is detected (`RotatableTokenProviderInterface`); `login_throttling` gets `max_account_attempts` and `cache_pool`.
 - v2.1.0 — The voters of the NeoPHP packages are discovered.
 - v2.0.0 — `SecurityManager` is the `final` entry point of the module, declared with `#[Package]`; `SecurityManagerInterface` replaces `Contract\SecurityInterface`; `Contract\AbstractSecurity` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
 - v1.31.0 — remember-me `storage: database` (`DatabaseTokenProvider`, `TokenProviderInterface`, revocation per device with `getRememberMeTokens()`, `revokeRememberMeToken()`, `revokeAllRememberMeTokens()`); the redirections (login, logout, target path) contain the sub-directory of the application; logout `methods` option (405 on other methods), `logout_form()` view helper; the generated `security.yaml` protects the logout with CSRF and POST.

@@ -28,7 +28,7 @@ class EntityNormalizer extends ObjectNormalizer
 
     protected array $entities = [];
 
-    public function __construct(protected Closure $ormFactory, MetadataFactory $metadataFactory = new MetadataFactory(), ?NameConverterInterface $nameConverter = null)
+    public function __construct(protected Closure $ormFactory, MetadataFactory $metadataFactory = new MetadataFactory(), ?NameConverterInterface $nameConverter = null, protected bool $strictAssociations = false)
     {
         parent::__construct($metadataFactory, $nameConverter);
     }
@@ -132,6 +132,11 @@ class EntityNormalizer extends ObjectNormalizer
     protected function isWritable(ClassMetadata $metadata, PropertyMetadata $property): bool
     {
         return $property->isWritable() || (!$property->ignored && $this->association($metadata->class, $property->name) !== null);
+    }
+
+    protected function canWrite(PropertyMetadata $property, ?array $groups): bool
+    {
+        return !$this->strictAssociations || $property->isWritable() || ($groups !== null && !in_array('*', $groups, true));
     }
 
     protected function writeValue(object $object, ClassMetadata $metadata, PropertyMetadata $property, mixed $value, ?string $format, array $context, ?array $groups): void

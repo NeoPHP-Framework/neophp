@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace NeoPHP\Package\Security\Firewall;
 
+use NeoPHP\Component\Cache\CacheManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Database\DatabaseManagerInterface;
 use NeoPHP\Package\Orm\OrmManagerInterface;
@@ -106,7 +107,8 @@ class FirewallFactory
 
         if (isset($config['login_throttling']) && $config['login_throttling'] !== false) {
             $options = is_array($config['login_throttling']) ? $config['login_throttling'] : [];
-            $throttler = new LoginThrottler($this->throttlePath . DIRECTORY_SEPARATOR . $name, (int) ($options['max_attempts'] ?? 5), (int) ($options['interval'] ?? 60));
+            $pool = isset($options['cache_pool']) ? $this->container->get(CacheManagerInterface::class)->pool((string) $options['cache_pool']) : null;
+            $throttler = new LoginThrottler($this->throttlePath . DIRECTORY_SEPARATOR . $name, (int) ($options['max_attempts'] ?? 5), (int) ($options['interval'] ?? 60), (int) ($options['max_account_attempts'] ?? 0), $pool);
         }
 
         if ($provider === null && $authenticators !== [] && !($config['stateless'] ?? false)) {

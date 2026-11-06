@@ -137,7 +137,7 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
         $map = [];
 
         foreach ($metadata->properties as $name => $property) {
-            if ($this->isWritable($metadata, $property) && $this->isAllowed($property, $context, $groups)) {
+            if ($this->isWritable($metadata, $property) && $this->isAllowed($property, $context, $groups) && $this->canWrite($property, $groups)) {
                 $map[$this->serializedName($property)] = $property;
             }
         }
@@ -206,6 +206,11 @@ class ObjectNormalizer implements NormalizerInterface, DenormalizerInterface, Se
     protected function isWritable(ClassMetadata $metadata, PropertyMetadata $property): bool
     {
         return $property->isWritable();
+    }
+
+    protected function canWrite(PropertyMetadata $property, ?array $groups): bool
+    {
+        return true;
     }
 
     protected function isAllowed(PropertyMetadata $property, array $context, ?array $groups): bool

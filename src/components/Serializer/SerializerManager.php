@@ -174,7 +174,7 @@ final class SerializerManager implements SerializerManagerInterface
         $serializer->addNormalizer(new ObjectNormalizer($metadata, $nameConverter), self::PRIORITY_OBJECT);
 
         if ($orm !== null) {
-            $serializer->addNormalizer(new EntityNormalizer($orm, $metadata, $nameConverter), self::PRIORITY_ENTITY);
+            $serializer->addNormalizer(new EntityNormalizer($orm, $metadata, $nameConverter, (bool) ($config['strict_associations'] ?? false)), self::PRIORITY_ENTITY);
         }
 
         $serializer->addNormalizer(new ArrayDenormalizer(), self::PRIORITY_ARRAY);
