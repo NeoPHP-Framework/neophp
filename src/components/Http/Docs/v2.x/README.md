@@ -73,7 +73,7 @@ public function search(Request $request): Response
 | `Request::fromGlobals()` | a request built from the PHP globals |
 | `Request::create($uri, $method, $parameters, $server, $content)` | a request built by hand (tests, sub-requests) |
 | `new Request($query, $request, $attributes, $cookies, $files, $server, $content)` | a request |
-| `getMethod()` | HTTP method; a POST can send `_method` or `X-HTTP-Method-Override` with `PUT`, `PATCH` or `DELETE` |
+| `getMethod()` | HTTP method; a POST can send `_method` or `X-HTTP-Method-Override` with `PUT`, `PATCH` or `DELETE`; `http_method_override_header: false` ignores the header |
 | `getRealMethod()`, `setMethod($method)`, `isMethod($method)` | real method, override, comparison |
 | `getPath()`, `getQueryString()`, `getUri()` | URL parts; `getPath()` is relative to the application (without the sub-directory) |
 | `getBasePath()`, `getRequestPath()` | sub-directory of the application (`/app`, `''` at the root of the domain) and full path of the URL |
@@ -132,16 +132,18 @@ Behind Nginx, a load balancer, Cloudflare or a PaaS, PHP sees the IP of the prox
 # config/framework/app.yaml
 trusted_proxies: '%env(TRUSTED_PROXIES)%'   # e.g. TRUSTED_PROXIES=127.0.0.1,10.0.0.0/8
 trusted_hosts: '%env(TRUSTED_HOSTS)%'       # e.g. TRUSTED_HOSTS=example.com,*.example.com
+http_method_override_header: false          # true by default, false in the new projects
 ```
 
 | Option | Values |
 |---|---|
 | `trusted_proxies` | list or comma separated string of IPs and CIDR ranges (`127.0.0.1`, `10.0.0.0/8`, `::1`); `REMOTE_ADDR` trusts the machine that sends the request (only when the application cannot be reached without the proxy) |
 | `trusted_hosts` | list or comma separated string of host names (`example.com`, `*.example.com`) or regular expressions (`^(www\.)?example\.com$`); any other `Host` is refused with a 400 error. Empty: every host is accepted |
+| `http_method_override_header` | `true`: a POST can change its method with the `X-HTTP-Method-Override` header; `false` ignores this header. The `_method` field of the forms always works |
 
 The headers of a request that does not come from a trusted proxy are ignored: a client cannot fake its IP or the HTTPS scheme. Without `trusted_hosts`, a forged `Host` header can end up in the absolute URLs generated during the request (password reset emails): set it in production.
 
-The same can be done in PHP with `Request::setTrustedProxies(['10.0.0.0/8'])` and `Request::setTrustedHosts(['example.com'])`.
+The same can be done in PHP with `Request::setTrustedProxies(['10.0.0.0/8'])`, `Request::setTrustedHosts(['example.com'])` and `Request::setHeaderMethodOverride(false)`.
 
 ## Bags
 
@@ -346,6 +348,7 @@ Errors are rendered as HTML, or as JSON when the request sends `Accept: applicat
 
 ## Changelog
 
+- v2.12.0 — `http_method_override_header` option and `Request::setHeaderMethodOverride()`: the `X-HTTP-Method-Override` header can be ignored; the `_method` field of the forms always works.
 - v2.5.0 — `StreamedResponse` (body written by a callback while it is sent, `flushOutput()`) and `BinaryFileResponse` (files sent by chunks, content type, UTF-8 download names, `ETag` / `Last-Modified` and `304`, single byte ranges with `206` / `416`, `deleteFileAfterSend()`); `HttpManagerInterface::stream()` / `file()`; `streamResponse()` / `fileResponse()` controller helpers; reason phrases of `412` and `416`.
 - v2.0.1 — Bugfix: `JsonResponse` keeps the `Content-Type` given in `$headers`; the regular expressions of `trusted_hosts` keep their upper-case escapes (`\D`, `\W`...), only the host names are lower-cased.
 - v2.0.0 — `HttpManager` is the `final` entry point of the module, declared with `#[Component]`; `HttpManagerInterface` replaces `Contract\HttpInterface`; `Contract\AbstractHttp` is merged into the manager; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.

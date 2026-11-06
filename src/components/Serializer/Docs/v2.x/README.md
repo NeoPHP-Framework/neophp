@@ -381,6 +381,7 @@ Deserializing into an entity:
 
 - `object_to_populate` updates a managed entity (call `flush()` afterwards);
 - a relation given as an identifier (`"author": 3`) or as `{"id": 3}` is loaded with `find()` of the ORM; an array without identifier creates a new entity;
+- with `strict_associations: true`, a relation without a setter, a public property or a constructor parameter is written only when the `groups` of the context allow it (`'*'` does not count); otherwise its key is treated as an unknown key;
 - a to-many relation takes a list of identifiers or objects: the collection is updated in place (elements removed, added);
 - an unknown identifier throws a `NotNormalizableValueException` (422): `The Category "999" at "category" does not exist.`
 
