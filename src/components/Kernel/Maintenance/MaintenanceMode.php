@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NeoPHP\Component\Kernel\Maintenance;
 
 use NeoPHP\Component\Kernel\Exception\KernelException;
