@@ -23,6 +23,7 @@ use NeoPHP\Package\Security\Firewall\FirewallFactory;
 use NeoPHP\Package\Security\Firewall\FirewallMap;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
+use NeoPHP\Package\Security\Jwt\JwtManager;
 use NeoPHP\Package\Security\SecurityManager;
 use NeoPHP\Package\Security\SecurityManagerInterface;
 use NeoPHP\Package\Security\Signature\UserTokenSigner;
@@ -122,6 +123,20 @@ class SecurityProvider extends AbstractProvider
             return new ApiTokenManager($connection, (string) ($options['table'] ?? ApiTokenManager::DEFAULT_TABLE));
         });
 
+        $container->singleton(JwtManager::class, static function (ContainerManagerInterface $container): JwtManager {
+            $config = $container->get(self::CONFIG_ID);
+            $options = $config['jwt'];
+
+            return new JwtManager(
+                (string) ($options['secret'] ?? $config['secret']),
+                (string) ($options['algorithm'] ?? 'HS256'),
+                (int) ($options['lifetime'] ?? JwtManager::DEFAULT_LIFETIME),
+                isset($options['issuer']) ? (string) $options['issuer'] : null,
+                isset($options['audience']) ? (string) $options['audience'] : null,
+                (int) ($options['leeway'] ?? 0),
+            );
+        });
+
 
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
@@ -151,6 +166,7 @@ class SecurityProvider extends AbstractProvider
             'throttling_path' => $cache . DIRECTORY_SEPARATOR . self::CACHE_DIRECTORY . DIRECTORY_SEPARATOR . 'throttling',
             'secret' => (string) $secret,
             'api_tokens' => (array) ($config['api_tokens'] ?? []),
+            'jwt' => (array) ($config['jwt'] ?? []),
         ];
     }
 
