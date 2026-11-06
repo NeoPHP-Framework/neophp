@@ -30,6 +30,7 @@ class RememberMeHandler
     ];
 
     public const PERSISTENT_PREFIX = 'p';
+    public const ROTATION_GRACE = 60;
 
     protected array $options;
 
@@ -155,6 +156,12 @@ class RememberMeHandler
             return false;
         }
 
+        if ($this->provider instanceof RotatableTokenProviderInterface) {
+            $this->rotate($cookie);
+
+            return true;
+        }
+
         $this->provider?->touchToken((string) $cookie['series'], time());
 
         return true;
@@ -170,7 +177,18 @@ class RememberMeHandler
 
         $token = $this->provider->loadToken($series);
 
-        if ($token === null || !hash_equals($token->tokenHash, hash('sha256', $secret))) {
+        if ($token === null) {
+            return null;
+        }
+
+        $current = hash_equals($token->tokenHash, hash('sha256', $secret));
+        $previous = !$current && time() - $token->lastUsedAt <= self::ROTATION_GRACE && hash_equals($token->tokenHash, hash('sha256', $this->nextSecret($secret)));
+
+        if (!$current && !$previous) {
+            if ($this->provider instanceof RotatableTokenProviderInterface) {
+                $this->provider->deleteUserTokens($token->class, $token->identifier);
+            }
+
             return null;
         }
 
@@ -181,7 +199,26 @@ class RememberMeHandler
             'series' => $token->series,
             'class' => $token->class,
             'fingerprint' => $token->fingerprint,
+            'secret' => $secret,
+            'rotate' => $current,
         ];
+    }
+
+    protected function rotate(array $cookie): void
+    {
+        $series = (string) $cookie['series'];
+        $secret = $this->nextSecret((string) $cookie['secret']);
+
+        if ($cookie['rotate'] && $this->provider instanceof RotatableTokenProviderInterface) {
+            $this->provider->rotateToken($series, hash('sha256', (string) $cookie['secret']), hash('sha256', $secret), time());
+        }
+
+        $this->http->getCookies()->set((string) $this->options['name'], self::PERSISTENT_PREFIX . ':' . $series . ':' . $secret, $this->cookieOptions() + ['lifetime' => max(1, (int) $cookie['expires'] - time())]);
+    }
+
+    protected function nextSecret(string $secret): string
+    {
+        return self::encode(hash_hmac('sha256', $secret, $this->secret, true));
     }
 
     protected function fingerprint(UserInterface $user): string

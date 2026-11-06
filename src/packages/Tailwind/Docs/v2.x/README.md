@@ -60,7 +60,8 @@ php bin/neo tailwind:run --minify
 
 - downloads the CLI of the operating system (Windows, macOS, Linux, x64 / arm64, musl) from the GitHub releases into `var/tailwind/tailwindcss` (`.exe` on Windows) and writes the installed version in `var/tailwind/VERSION`; `--force` downloads it again
 - creates `assets/<input>` with `@import "tailwindcss";`, or adds this import at the top of an existing file
-- saves the file name in `config/packages/tailwind.yaml`
+- checks the SHA-256 checksum of the download with `sha256sums.txt` of the release
+- saves the file name and the installed version in `config/packages/tailwind.yaml`
 
 `input` is relative to `assets/` (default: the configured `input`, else `css/app.css`).
 
@@ -111,13 +112,15 @@ The compiled file replaces the source of the asset through `AssetManagerInterfac
 input: css/app.css
 version: latest
 binary: ~
+verify_checksum: true
 ```
 
 | Key | Description |
 |---|---|
 | `input` | Tailwind CSS file, relative to `assets/` |
-| `version` | version downloaded by `tailwind:install` (`latest` or e.g. `4.1.13`) |
+| `version` | version downloaded by `tailwind:install` (`latest` or e.g. `4.1.13`); `tailwind:install` replaces `latest` by the installed version |
 | `binary` | path of an existing Tailwind CLI (absolute or relative to the project): nothing is downloaded |
+| `verify_checksum` | `true` by default; `false` skips the checksum check, for a release without `sha256sums.txt` |
 
 ## TailwindManagerInterface
 
@@ -157,14 +160,14 @@ class CssBuilder
 | `isInstalled(): bool` / `getInstalledVersion(): ?string` | installation state |
 | `getPlatform(): string` | the release file name of the CLI (e.g. `tailwindcss-linux-x64`) |
 | `getDownloadUrl(?string $version = null): string` | URL of the CLI release |
-| `install(?string $version = null, bool $force = false): array` | downloads the CLI |
+| `install(?string $version = null, bool $force = false): array` | downloads the CLI and checks its checksum |
 | `getSourceFile(string $input): string` / `getOutputFile(string $input): string` | source (`assets/`) and compiled (`var/tailwind/`) paths |
 | `initSource(string $input): string` | creates the file or adds the import |
 | `getCommand(string $input, bool $watch = false, bool $minify = false): array` | the CLI command line |
 | `run(string $input, bool $watch = false, bool $minify = false): int` | runs the CLI, returns its exit code |
 | `saveConfig(): string` | writes `config/packages/tailwind.yaml` |
 
-Constants: `TailwindManagerInterface::DEFAULT_INPUT` (`css/app.css`), `DEFAULT_VERSION` (`latest`); `TailwindManager::RELEASES_URL`, `DIRECTORY` (`var/tailwind`), `CONFIG_FILE`, `IMPORT` (`@import "tailwindcss";`).
+Constants: `TailwindManagerInterface::DEFAULT_INPUT` (`css/app.css`), `DEFAULT_VERSION` (`latest`); `TailwindManager::RELEASES_URL`, `DIRECTORY` (`var/tailwind`), `CONFIG_FILE`, `IMPORT` (`@import "tailwindcss";`), `CHECKSUM_FILE` (`sha256sums.txt`).
 
 Errors throw `NeoPHP\Package\Tailwind\Exception\TailwindException` (extends `FrameworkException`).
 
@@ -176,5 +179,6 @@ Errors throw `NeoPHP\Package\Tailwind\Exception\TailwindException` (extends `Fra
 
 ## Changelog
 
+- v2.12.0 — `tailwind:install` checks the checksum of the download (`verify_checksum`) and saves the installed version instead of `latest`.
 - v2.0.0 — `TailwindManager` is the `final` entry point of the module, declared with `#[Package]`; `TailwindManagerInterface` replaces `Contract\TailwindInterface`; `Contract\AbstractTailwind` is merged into the manager; the internal classes are marked `@internal`.
 - v1.18.0 — Tailwind package: `tailwind:install` downloads the Tailwind CSS v4 standalone CLI and prepares the CSS file, `tailwind:run [--watch] [--minify]` compiles it into `var/tailwind/` and publishes it with the assets, `config/packages/tailwind.yaml`.

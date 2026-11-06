@@ -12,6 +12,8 @@ use NeoPHP\Component\Cache\Contract\CacheInterface;
 
 abstract class AbstractLimiter implements LimiterInterface
 {
+    public const LOCK_TIMEOUT = 1.0;
+
     public function __construct(
         protected string $id,
         protected int $limit,
@@ -42,6 +44,20 @@ abstract class AbstractLimiter implements LimiterInterface
     public function getLimit(): int
     {
         return $this->limit;
+    }
+
+    protected function synchronized(callable $callback): RateLimit
+    {
+        $adapter = $this->storage->getAdapter();
+        $locked = $adapter->lock($this->id, self::LOCK_TIMEOUT);
+
+        try {
+            return $callback();
+        } finally {
+            if ($locked) {
+                $adapter->unlock($this->id);
+            }
+        }
     }
 
     protected function now(): float

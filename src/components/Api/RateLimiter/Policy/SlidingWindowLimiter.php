@@ -12,6 +12,12 @@ class SlidingWindowLimiter extends AbstractLimiter
     public function consume(int $tokens = 1): RateLimit
     {
         $this->assertTokens($tokens);
+
+        return $this->synchronized(fn (): RateLimit => $this->attempt($tokens));
+    }
+
+    protected function attempt(int $tokens): RateLimit
+    {
         $now = $this->now();
         $state = $this->load() ?? ['start' => $now, 'hits' => 0, 'previous' => 0];
         $elapsed = $now - (float) $state['start'];

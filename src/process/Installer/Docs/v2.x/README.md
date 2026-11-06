@@ -231,6 +231,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.12.0 — New projects get `strict_associations: true` in `config/framework/serializer.yaml`, `http_method_override_header: false` in `config/framework/app.yaml` and `max_account_attempts: 25` in `config/packages/security.yaml`.
 - v2.9.0 — `config/packages/qr_code.yaml` is generated.
 - v2.7.0 — `config/packages/notifier.yaml` is generated; `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` are added to `.env`.
 - v2.6.0 — `config/packages/image.yaml` is generated (presets `thumbnail` and `medium`), `/public/media/cache/` is added to `.gitignore`.

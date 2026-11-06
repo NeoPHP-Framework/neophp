@@ -43,6 +43,10 @@ firewalls:
             # Attempts per IP + identifier during interval seconds (5 x more per IP)
             max_attempts: 5
             interval: 60
+            # Attempts per identifier from every IP during interval seconds (0 = disabled)
+            max_account_attempts: 25
+            # Cache pool shared by the servers, ~ = local files
+            # cache_pool: shared
 
 role_hierarchy:
     ROLE_ADMIN: [ ROLE_USER ]

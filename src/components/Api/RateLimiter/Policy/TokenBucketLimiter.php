@@ -33,6 +33,12 @@ class TokenBucketLimiter extends AbstractLimiter
     public function consume(int $tokens = 1): RateLimit
     {
         $this->assertTokens($tokens);
+
+        return $this->synchronized(fn (): RateLimit => $this->attempt($tokens));
+    }
+
+    protected function attempt(int $tokens): RateLimit
+    {
         $now = $this->now();
         $rate = $this->amount / $this->interval;
         $state = $this->load() ?? ['tokens' => (float) $this->limit, 'time' => $now];
