@@ -23,6 +23,7 @@ use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
 use NeoPHP\Package\Security\SecurityManager;
 use NeoPHP\Package\Security\SecurityManagerInterface;
+use NeoPHP\Package\Security\Signature\UserTokenSigner;
 use NeoPHP\Package\Security\Token\TokenStorage;
 use NeoPHP\Package\Security\Trace\SecurityTrace;
 use NeoPHP\Package\Security\Voter\AuthenticatedVoter;
@@ -109,6 +110,8 @@ class SecurityProvider extends AbstractProvider
                 $config['enabled'],
             );
         });
+
+        $container->singleton(UserTokenSigner::class, static fn (ContainerManagerInterface $container): UserTokenSigner => new UserTokenSigner($container->get(self::CONFIG_ID)['secret']));
 
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
