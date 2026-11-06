@@ -13,6 +13,8 @@ enable_max_depth: true
 skip_null_values: false
 # false = unknown input keys throw an ExtraAttributesException
 allow_extra_attributes: true
+# true = a relation of an entity is critten only with a setter or an explicit group
+strict_associations: true
 # snake_case (createdAt <-> created_at), camel_case, null or a NameConverterInterface class
 name_converter: null
 # Extra normalizers, e.g. [App\Serializer\MoneyNormalizer] or [{ class: App\Serializer\MoneyNormalizer, priority: 10 }]
