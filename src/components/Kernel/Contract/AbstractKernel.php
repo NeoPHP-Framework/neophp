@@ -42,6 +42,10 @@ abstract class AbstractKernel implements KernelManagerInterface
 
     public const MODULES_FILE = 'config.php';
 
+    public const FATAL_ERRORS = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR];
+
+    public const RESERVED_MEMORY = 32768;
+
     protected string $rootPath;
 
     protected string $environment;
@@ -55,6 +59,8 @@ abstract class AbstractKernel implements KernelManagerInterface
     protected ?array $modules = null;
 
     protected array $disabledNamespaces = [];
+
+    protected ?string $reservedMemory = null;
 
     public function __construct(?string $environment = null, ?bool $debug = null, ?string $rootPath = null)
     {
@@ -144,6 +150,7 @@ abstract class AbstractKernel implements KernelManagerInterface
     public function run(): void
     {
         $request = Request::fromGlobals();
+        $this->registerFatalErrorHandler($request);
         $response = $this->handle($request)->send();
 
         $this->terminate($request, $response);
@@ -405,6 +412,49 @@ abstract class AbstractKernel implements KernelManagerInterface
 
             throw new ErrorException($message, 0, $severity, $file, $line);
         });
+    }
+
+    protected function registerFatalErrorHandler(Request $request): void
+    {
+        $this->reservedMemory = str_repeat(' ', self::RESERVED_MEMORY);
+
+        register_shutdown_function(function () use ($request): void {
+            $this->handleFatalError($request);
+        });
+    }
+
+    protected function handleFatalError(Request $request): void
+    {
+        $this->reservedMemory = null;
+
+        $error = error_get_last();
+
+        if ($error === null || !in_array($error['type'], self::FATAL_ERRORS, true)) {
+            return;
+        }
+
+        $exception = new ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+
+        try {
+            $this->logException($exception, $request, 500);
+
+            if (headers_sent()) {
+                return;
+            }
+
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            $manager = new ExceptionManager($this->debug);
+            $json = $request->wantsJson() || $request->isJson();
+
+            http_response_code(500);
+            header('Content-Type: ' . ($json ? 'application/json' : 'text/html; charset=UTF-8'));
+
+            echo $json ? (string) json_encode($manager->renderJson($exception)) : $manager->render($exception);
+        } catch (Throwable) {
+        }
     }
 
     protected function loadEnvironment(): void

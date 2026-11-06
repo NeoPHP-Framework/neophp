@@ -401,6 +401,7 @@ The locale is detected from the route `{_locale}`, `?lang=`, the session, a cook
 | `php bin/neo serve` | development server |
 | `php bin/neo list` | every command |
 | `php bin/neo doctor` | checks the project (PHP, extensions, directories, secrets, database, migrations, services) and tells what to fix |
+| `php bin/neo down` / `php bin/neo up` | enables or disables the maintenance mode |
 | `php bin/neo route:list` | routes |
 | `php bin/neo make:entity` (also `make:form`, `make:command`, `make:user`, `make:auth`, `make:voter`, `make:email`) | code generators (they ask the missing values) |
 | `php bin/neo make:migration` / `migration:migrate` | database migrations |

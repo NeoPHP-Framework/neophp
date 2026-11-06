@@ -19,6 +19,13 @@ trusted_hosts: '%env(TRUSTED_HOSTS)%'
 # true = a POST can change its method with the X-HTTP-Method-Override header (the _method field of the forms always works)
 http_method_override_header: false
 
+# Health endpoint for the load balancers: 200 {"status":"ok"} or 503 {"status":"error"}
+health:
+    enabled: false
+    path: /health
+    # Names of the doctor checks to run, [ ] = all of them
+    checks: [ database ]
+
 # Security headers added to every response (pages, errors, API) that does not set them itself
 security_headers:
     enabled: true

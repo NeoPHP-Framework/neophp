@@ -372,7 +372,7 @@ class FilesystemTransport extends AbstractTransport implements SetupableTranspor
 
     protected function ensureDirectory(string $directory): void
     {
-        if (!is_dir($directory) && !@mkdir($directory, 0777, true) && !is_dir($directory)) {
+        if (!is_dir($directory) && !@mkdir($directory, 0775, true) && !is_dir($directory)) {
             throw new TransportException('Unable to create the queue directory "{directory}".', 0, null, ['directory' => $directory]);
         }
     }

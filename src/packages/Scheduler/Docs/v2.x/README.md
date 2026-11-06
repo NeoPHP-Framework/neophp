@@ -284,6 +284,7 @@ All in `NeoPHP\Package\Scheduler\Exception\`, extending `SchedulerException` (it
 
 ## Changelog
 
+- v2.13.0 — The created directories use the `0775` permissions.
 - v2.1.0 — The tasks and schedule providers of the NeoPHP packages are discovered.
 - v2.0.0 — `SchedulerManager` is the `final` entry point of the module, declared with `#[Package]`; new `SchedulerManagerInterface`; `Scheduler` is renamed `SchedulerManager`; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Schedule` moves to `Schedule\Schedule`; `Task` moves to `Schedule\Task`; the internal classes are marked `@internal`.
 - v1.37.0 — Scheduler package: `CronExpression` (lists, ranges, steps, names, aliases, `@every`, timezones, next / previous dates), tasks from `#[AsScheduledTask]` classes and commands, `config/packages/scheduler.yaml` and `ScheduleProviderInterface` with a fluent `Schedule`, frequencies, `when()` / `skip()` / `between()`, overlap locks, run history, `schedule:run`, `schedule:list`, `schedule:work`, `schedule:test`, `schedule:next` commands, Scheduler panel of the WebProfiler.

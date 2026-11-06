@@ -16,6 +16,23 @@ class RedisTransport extends AbstractTransport
 {
     public const PRIORITY_FACTOR = 10000000000;
 
+    public const RESERVE_SCRIPT = <<<'LUA'
+        local items = redis.call('ZPOPMIN', KEYS[1], 1)
+        if #items == 0 then
+            return false
+        end
+        redis.call('ZADD', KEYS[2], ARGV[1], items[1])
+        return items[1]
+        LUA;
+
+    public const MOVE_SCRIPT = <<<'LUA'
+        if redis.call('ZREM', KEYS[1], ARGV[1]) == 1 then
+            redis.call('ZADD', KEYS[2], ARGV[2], ARGV[3])
+            return 1
+        end
+        return 0
+        LUA;
+
     protected ?Redis $redis = null;
 
     public function __construct(string $name, MessageSerializer $serializer, protected array $connection = [], array $options = [])
@@ -55,22 +72,27 @@ class RedisTransport extends AbstractTransport
             $this->migrate($queue, $now);
 
             while (count($envelopes) < $limit) {
-                $popped = $redis->zPopMin($this->key('ready', $queue), 1);
+                $reserved = $this->key('reserved', $queue);
+                $popped = $redis->eval(self::RESERVE_SCRIPT, [$this->key('ready', $queue), $reserved, (string) $now], 2);
 
-                if (!is_array($popped) || $popped === []) {
+                if (!is_string($popped)) {
                     break;
                 }
 
-                $record = json_decode((string) array_key_first($popped), true);
+                $record = json_decode($popped, true);
 
                 if (!is_array($record)) {
+                    $redis->zRem($reserved, $popped);
                     continue;
                 }
 
                 $record['attempts'] = (int) ($record['attempts'] ?? 0) + 1;
                 $record['reserved_at'] = $now;
                 $payload = $this->encode($record);
-                $redis->zAdd($this->key('reserved', $queue), $now, $payload);
+                $redis->multi();
+                $redis->zRem($reserved, $popped);
+                $redis->zAdd($reserved, $now, $payload);
+                $redis->exec();
                 $envelopes[] = $this->fromRecord($record)->setMeta('redis_payload', $payload);
             }
 
@@ -93,22 +115,32 @@ class RedisTransport extends AbstractTransport
 
     public function release(Envelope $envelope, int $delay = 0, ?string $error = null): void
     {
-        $this->ack($envelope);
         $record = $this->toRecord($envelope);
         $record['reserved_at'] = null;
         $record['available_at'] = time() + max(0, $delay);
         $record['last_error'] = $error !== null ? $this->excerpt($error) : $envelope->getLastError();
-        $this->redis()->zAdd($this->key('delayed', $envelope->getQueue()), $record['available_at'], $this->encode($record));
+        $payload = $this->encode($record);
+        $redis = $this->redis();
+
+        $redis->multi();
+        $this->ack($envelope);
+        $redis->zAdd($this->key('delayed', $envelope->getQueue()), $record['available_at'], $payload);
+        $redis->exec();
     }
 
     public function reject(Envelope $envelope, string $error): void
     {
-        $this->ack($envelope);
         $record = $this->toRecord($envelope);
         $record['reserved_at'] = null;
         $record['failed_at'] = time();
         $record['last_error'] = $this->excerpt($error);
-        $this->redis()->hSet($this->key('failed'), (string) $record['id'], $this->encode($record));
+        $payload = $this->encode($record);
+        $redis = $this->redis();
+
+        $redis->multi();
+        $this->ack($envelope);
+        $redis->hSet($this->key('failed'), (string) $record['id'], $payload);
+        $redis->exec();
     }
 
     public function count(?string $queue = null): array
@@ -210,16 +242,15 @@ class RedisTransport extends AbstractTransport
             $payloads = $redis->zRangeByScore($key, '-inf', (string) $limit, ['limit' => [0, 100]]);
 
             foreach (is_array($payloads) ? $payloads : [] as $payload) {
-                if ((int) $redis->zRem($key, (string) $payload) !== 1) {
+                $record = json_decode((string) $payload, true);
+
+                if (!is_array($record)) {
+                    $redis->zRem($key, (string) $payload);
                     continue;
                 }
 
-                $record = json_decode((string) $payload, true);
-
-                if (is_array($record)) {
-                    $record['reserved_at'] = null;
-                    $redis->zAdd($this->key('ready', $queue), $this->score($record), $this->encode($record));
-                }
+                $record['reserved_at'] = null;
+                $redis->eval(self::MOVE_SCRIPT, [$key, $this->key('ready', $queue), (string) $payload, sprintf('%.0F', $this->score($record)), $this->encode($record)], 2);
             }
         }
     }
