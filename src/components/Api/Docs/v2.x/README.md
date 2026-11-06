@@ -94,9 +94,9 @@ class PostController extends AbstractController
 
 ```json
 {
-  "items": [{"id": 12, "title": "..."}],
-  "pagination": {"total": 42, "page": 2, "limit": 10, "pages": 5},
-  "links": {"self": "/api/posts?page=2&limit=10", "first": "/api/posts?page=1&limit=10", "prev": "/api/posts?page=1&limit=10", "next": "/api/posts?page=3&limit=10", "last": "/api/posts?page=5&limit=10"}
+    "items": [{"id": 12, "title": "..."}],
+    "pagination": {"total": 42, "page": 2, "limit": 10, "pages": 5},
+    "links": {"self": "/api/posts?page=2&limit=10", "first": "/api/posts?page=1&limit=10", "prev": "/api/posts?page=1&limit=10", "next": "/api/posts?page=3&limit=10", "last": "/api/posts?page=5&limit=10"}
 }
 ```
 
@@ -108,56 +108,56 @@ with the `Link`, `X-Total-Count` and `X-RateLimit-*` headers. An invalid body re
 
 ```yaml
 cors:
-  enabled: false
-  defaults:
-    allow_origin: []
-    allow_methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-    allow_headers: [Content-Type, Authorization, X-Requested-With]
-    expose_headers: [Link, X-Total-Count, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
-    allow_credentials: false
-    max_age: 3600
-  paths:
-    '^/api': ~
+    enabled: false
+    defaults:
+        allow_origin: []
+        allow_methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        allow_headers: [Content-Type, Authorization, X-Requested-With]
+        expose_headers: [Link, X-Total-Count, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+        allow_credentials: false
+        max_age: 3600
+    paths:
+        '^/api': ~
 
 rate_limiter:
-  cache_pool: null
-  headers: true
-  limiters:
-    api:
-      policy: sliding_window
-      limit: 100
-      interval: '1 minute'
-    login:
-      policy: fixed_window
-      limit: 5
-      interval: '15 minutes'
-    uploads:
-      policy: token_bucket
-      limit: 10
-      rate: { amount: 1, interval: '30 seconds' }
+    cache_pool: null
+    headers: true
+    limiters:
+        api:
+            policy: sliding_window
+            limit: 100
+            interval: '1 minute'
+        login:
+            policy: fixed_window
+            limit: 5
+            interval: '15 minutes'
+        uploads:
+            policy: token_bucket
+            limit: 10
+            rate: { amount: 1, interval: '30 seconds' }
 
 pagination:
-  page_parameter: page
-  limit_parameter: limit
-  default_limit: 20
-  max_limit: 100
-  absolute_links: false
+    page_parameter: page
+    limit_parameter: limit
+    default_limit: 20
+    max_limit: 100
+    absolute_links: false
 
 problem_details:
-  enabled: true
-  paths: ['^/api']
-  json_requests: true
-  type_base_uri: null
+    enabled: true
+    paths: ['^/api']
+    json_requests: true
+    type_base_uri: null
 
 openapi:
-  title: '%env(APP_NAME)%'
-  version: '1.0.0'
-  description: null
-  servers: []
-  paths: ['^/api']
-  route:
-    enabled: false
-    path: /api/doc
+    title: '%env(APP_NAME)%'
+    version: '1.0.0'
+    description: null
+    servers: []
+    paths: ['^/api']
+    route:
+        enabled: false
+        path: /api/doc
 ```
 
 Without the file, every feature keeps the framework behaviour: CORS disabled, no limiter, problem details disabled (errors keep the `{"error": ...}` JSON format), OpenAPI routes disabled.
@@ -172,12 +172,12 @@ With `cors.enabled: true`, the requests whose path matches a key of `cors.paths`
 
 ```yaml
 cors:
-  enabled: true
-  defaults:
-    allow_origin: ['https://app.example.com', '#^https://[a-z0-9-]+\.example\.com$#']
-  paths:
-    '^/api/public': { allow_origin: ['*'], max_age: 86400 }
-    '^/api': ~
+    enabled: true
+    defaults:
+        allow_origin: ['https://app.example.com', '#^https://[a-z0-9-]+\.example\.com$#']
+    paths:
+        '^/api/public': { allow_origin: ['*'], max_age: 86400 }
+        '^/api': ~
 ```
 
 | Option | Default | Description |
@@ -348,15 +348,15 @@ With `problem_details.enabled: true`, the uncaught exceptions of API requests ar
 
 ```json
 {
-  "type": "about:blank",
-  "title": "Unprocessable Content",
-  "status": 422,
-  "detail": "The data is not valid: 2 violation(s).",
-  "instance": "/api/posts",
-  "violations": [
-    {"propertyPath": "title", "title": "This value should not be blank.", "template": "This value should not be blank."},
-    {"propertyPath": "email", "title": "This value is not a valid email address.", "template": "This value is not a valid email address.", "parameters": {"value": "\"x\""}}
-  ]
+    "type": "about:blank",
+    "title": "Unprocessable Content",
+    "status": 422,
+    "detail": "The data is not valid: 2 violation(s).",
+    "instance": "/api/posts",
+    "violations": [
+        {"propertyPath": "title", "title": "This value should not be blank.", "template": "This value should not be blank."},
+        {"propertyPath": "email", "title": "This value is not a valid email address.", "template": "This value is not a valid email address.", "parameters": {"value": "\"x\""}}
+    ]
 }
 ```
 
@@ -458,9 +458,9 @@ They are public: protect them with an `access_control` rule of the security conf
 
 ```yaml
 api_doc:
-  path: /internal/api
-  controller: NeoPHP\Component\Api\Controller\OpenApiController::html
-  methods: [GET]
+    path: /internal/api
+    controller: NeoPHP\Component\Api\Controller\OpenApiController::html
+    methods: [GET]
 ```
 
 ## Controllers
