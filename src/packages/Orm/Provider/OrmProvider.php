@@ -39,6 +39,7 @@ class OrmProvider extends AbstractProvider
     public const FRAMEWORK_TABLES = [
         'cache_items',
         'remember_me_tokens',
+        'api_tokens',
         'neo_queue_jobs',
         'neo_queue_failed',
         'neo_notifications',

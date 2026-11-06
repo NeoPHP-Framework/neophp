@@ -15,6 +15,12 @@ It is enabled when `config/packages/security.yaml` defines at least one firewall
 - [Logout](#logout)
 - [Remember me](#remember-me)
 - [Access tokens](#access-tokens)
+- [API tokens](#api-tokens)
+- [JWT](#jwt)
+- [Password reset](#password-reset)
+- [Email verification](#email-verification)
+- [Two-factor authentication](#two-factor-authentication)
+- [OAuth login](#oauth-login)
 - [Custom authenticators](#custom-authenticators)
 - [Tokens](#tokens)
 - [Authorization](#authorization)
@@ -422,6 +428,160 @@ class ApiTokenHandler implements AccessTokenHandlerInterface
 
 The handler returns a user identifier (loaded by the provider) or a user.
 
+## API tokens
+
+Personal tokens for an API: only their SHA-256 hash is stored in the `api_tokens` table (created automatically, ignored by `make:migration`).
+
+```yaml
+api_tokens:
+    connection: ~
+    table: api_tokens
+
+firewalls:
+    api:
+        pattern: ^/api
+        stateless: true
+        provider: users
+        access_token:
+            token_handler: NeoPHP\Package\Security\ApiToken\ApiTokenHandler
+```
+
+```php
+use NeoPHP\Package\Security\ApiToken\ApiTokenManager;
+
+$token = $tokens->create($user, 'CI', ['posts:read'], 86400 * 30); // displayed once
+$tokens->findUserTokens($user);
+$tokens->revoke($selector);
+$tokens->revokeAll($user);
+```
+
+`ApiTokenHandler::getCurrent()` returns the record of the current token and `hasScope('posts:read')` checks a scope. The scopes are not enforced automatically: check them in the controllers.
+
+## JWT
+
+```yaml
+jwt:
+    secret: ~           # APP_SECRET by default, at least 32 characters
+    algorithm: HS256    # HS256, HS384 or HS512
+    lifetime: 3600
+    issuer: ~
+    audience: ~
+    leeway: 0
+
+firewalls:
+    api:
+        pattern: ^/api
+        stateless: true
+        provider: users
+        access_token:
+            token_handler: NeoPHP\Package\Security\Jwt\JwtTokenHandler
+```
+
+`JwtManager::create($user, ['role' => 'admin'])` creates a token and `decode($token)` returns its claims. The algorithm of the header must be the configured one, `exp` is required and the `sub` claim is the user identifier. A JWT cannot be revoked before its expiration: keep `lifetime` short.
+
+## Password reset
+
+`UserTokenSigner` creates a signed token without a database table. It contains the password hash in its signature, so it stops working as soon as the password changes: it can be used once.
+
+```php
+use NeoPHP\Package\Security\Signature\UserTokenSigner;
+
+// 1. The user gives an email: always display the same message, whether the account exists or not
+$token = $signer->create($user, UserTokenSigner::PURPOSE_RESET_PASSWORD, 3600);
+$url = $this->generateUrl('reset_password', ['token' => $token], true);
+
+// 2. The user opens the link and sends the new password
+$identifier = $signer->getIdentifier($token);
+$user = $identifier !== null ? $users->findOneBy(['email' => $identifier]) : null;
+
+if ($user === null || !$signer->isValid($user, $token, UserTokenSigner::PURPOSE_RESET_PASSWORD)) {
+    throw $this->createNotFoundException();
+}
+
+$user->setPassword($hasher->hashPassword($user, $newPassword));
+$this->getOrm()->flush();
+```
+
+The user must implement `PasswordAuthenticatedUserInterface`. Send the link with the Mailer, and protect the form with a rate limiter.
+
+## Email verification
+
+```php
+$token = $signer->create($user, UserTokenSigner::PURPOSE_VERIFY_EMAIL, 86400, $user->getEmail());
+
+if ($signer->isValid($user, $token, UserTokenSigner::PURPOSE_VERIFY_EMAIL, $user->getEmail())) {
+    $user->setEmailVerified(true);
+}
+```
+
+The last argument invalidates the token when the email changes. To refuse the login of a user who has not verified the address, implement `EmailVerifiedUserInterface` and set `user_checker: NeoPHP\Package\Security\User\EmailVerifiedUserChecker` on the firewall.
+
+## Two-factor authentication
+
+```yaml
+two_factor:
+    path: /2fa          # page of the code, created by the application
+    window: 1           # time steps of 30 seconds accepted around the current one
+    max_attempts: 5     # the session is closed after these failures
+```
+
+The user implements `TwoFactorUserInterface`: `getTotpSecret()` returns `null` while it is disabled. After a login, except `$security->login()` and the stateless firewalls, every request is redirected to `path` (403 in JSON) until the code is verified.
+
+```php
+use NeoPHP\Package\Security\TwoFactor\Totp;
+use NeoPHP\Package\Security\TwoFactor\TwoFactorManager;
+
+// Enrollment
+$secret = $totp->generateSecret();
+$uri = $totp->getUri($secret, $user->getEmail(), 'My application'); // display it with qr_code($uri)
+$codes = $totp->generateBackupCodes();                              // displayed once, store hashBackupCode($code)
+
+// Page of the code
+if ($twoFactor->verify($user, $code)) {
+    return $this->redirect('/');
+}
+
+$hash = $twoFactor->verifyBackupCode($user, $code); // remove this hash from the user
+```
+
+Store the TOTP secret encrypted if possible. The check that refuses a code used twice is stored in the session: another session can reuse a code during its validity.
+
+## OAuth login
+
+```yaml
+oauth:
+    resolver: App\Security\OAuthUserResolver
+    prefix: /oauth
+    default_target_path: /
+    failure_path: /login
+    providers:
+        google: { client_id: '%env(GOOGLE_CLIENT_ID)%', client_secret: '%env(GOOGLE_CLIENT_SECRET)%' }
+        github: { client_id: '%env(GITHUB_CLIENT_ID)%', client_secret: '%env(GITHUB_CLIENT_SECRET)%' }
+        company:
+            client_id: '%env(OIDC_CLIENT_ID)%'
+            client_secret: '%env(OIDC_CLIENT_SECRET)%'
+            authorize_url: https://id.example.com/authorize
+            token_url: https://id.example.com/token
+            userinfo_url: https://id.example.com/userinfo
+
+firewalls:
+    main:
+        custom_authenticators:
+            - NeoPHP\Package\Security\Authenticator\OAuthAuthenticator
+```
+
+`google` and `github` are ready; any other name is an OpenID Connect provider with its three URLs (`scopes` and `id_field` are optional). The callback to declare at the provider is `/oauth/{provider}/callback`. The login uses a `state` and PKCE. Set `trusted_hosts`: the callback URL is built from the host of the request.
+
+```php
+#[Route('/oauth/{provider}', name: 'oauth_connect')]
+public function connect(string $provider, OAuthManager $oauth): Response
+{
+    return $oauth->redirect($provider);
+}
+```
+
+The resolver implements `OAuthUserResolverInterface` and returns the user of the application. Link an existing account by email only when `$user->emailVerified` is `true`, otherwise a foreign account could take it over. GitHub does not send `email_verified` and can hide the email.
+
 ## Custom authenticators
 
 A custom authenticator extends `AbstractAuthenticator` and is listed in `custom_authenticators`:
@@ -692,6 +852,7 @@ $trace?->getDecisions();
 
 ## Changelog
 
+- v2.14.0 — Accounts: signed user tokens for the password reset and the email verification (`UserTokenSigner`, `EmailVerifiedUserChecker`), API tokens (`ApiTokenManager`, `ApiTokenHandler`), JWT (`JwtManager`, `JwtTokenHandler`), TOTP two-factor authentication with backup codes (`TwoFactorManager`), OAuth login for Google, GitHub and OpenID Connect (`OAuthManager`, `OAuthAuthenticator`).
 - v2.12.0 — The database remember-me tokens rotate at each use and a stolen cookie is detected (`RotatableTokenProviderInterface`); `login_throttling` gets `max_account_attempts` and `cache_pool`.
 - v2.1.0 — The voters of the NeoPHP packages are discovered.
 - v2.0.0 — `SecurityManager` is the `final` entry point of the module, declared with `#[Package]`; `SecurityManagerInterface` replaces `Contract\SecurityInterface`; `Contract\AbstractSecurity` is merged into the manager; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Helper/Listener` is renamed `Helper/Event`; the internal classes are marked `@internal`.
