@@ -175,7 +175,7 @@ final class ContainerManager implements ContainerManagerInterface
                 $attributes = $property->getAttributes(Inject::class);
 
                 if ($attributes !== []) {
-                    /** @var Inject $attributes */
+                    /** @var Inject $instance */
                     $instance = $attributes[0]->newInstance();
                     $property->setValue($object, $this->injectedValue($instance, $property));
                 }

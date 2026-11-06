@@ -1,0 +1,114 @@
+name: Tests
+
+on:
+    pull_request:
+    push:
+        branches:
+            - dev
+            - main
+            - 'v[0-9]+.x'
+
+permissions:
+    contents: read
+
+concurrency:
+    group: tests-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    phpunit:
+        name: PHPUnit (PHP ${{ matrix.php }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                php: ['8.2', '8.3', '8.4', '8.5']
+        services:
+            mysql:
+                image: mysql:8.4
+                env:
+                    MYSQL_ROOT_PASSWORD: neophp
+                    MYSQL_DATABASE: neophp_test
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h 127.0.0.1 -pneophp"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+            postgres:
+                image: postgres:17
+                env:
+                    POSTGRES_PASSWORD: neophp
+                    POSTGRES_DB: neophp_test
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd="pg_isready -U postgres"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+            redis:
+                image: redis:7
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd="redis-cli ping"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=10
+        env:
+            TEST_MYSQL_URL: mysql://root:neophp@127.0.0.1:3306/neophp_test
+            TEST_PGSQL_URL: pgsql://postgres:neophp@127.0.0.1:5432/neophp_test
+            TEST_REDIS_URL: redis://127.0.0.1:6379
+        steps:
+            - uses: actions/checkout@v4
+            
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: ctype, json, mbstring, tokenizer, pdo_sqlite, pdo_mysql, pdo_pgsql, redis, dom, fileinfo, intl
+                  coverage: none
+                  tools: composer:v2
+            
+            - name: Cache Composer packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.composer/cache/files
+                  key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+                  restore-keys: composer-${{ matrix.php }}-
+            
+            - name: Validate composer.json
+              run: composer validate --strict --no-check-lock
+            
+            - name: Install dependencies
+              run: composer update --no-interaction --no-progress --prefer-dist
+            
+            - name: Run PHPUnit
+              run: vendor/bin/phpunit
+    
+    coverage:
+        name: Coverage
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: ctype, json, mbstring, tokenizer, pdo_sqlite, dom, fileinfo, intl
+                  coverage: pcov
+                  tools: composer:v2
+            
+            - name: Cache Composer packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.composer/cache/files
+                  key: composer-coverage-${{ hashFiles('composer.json') }}
+                  restore-keys: composer-coverage-
+            
+            - name: Install dependencies
+              run: composer update --no-interaction --no-progress --prefer-dist
+            
+            - name: Run PHPUnit with coverage
+              run: vendor/bin/phpunit --coverage-text

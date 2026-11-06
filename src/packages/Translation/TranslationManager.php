@@ -454,15 +454,27 @@ final class TranslationManager implements TranslationManagerInterface
         }
 
         $locale = $normalizedLocale;
+        $language = explode('_', $locale)[0];
 
-        $displayLocale = $displayLocale === null
-            ? $this->locale
-            : (self::normalizeLocale($displayLocale) ?? throw new TranslationException(
-                'The display locale "{locale}" is invalid.',
-                0,
-                null,
-                ['locale' => $displayLocale]
-            ));
+        if (\Locale::getDisplayLanguage($language, 'en') === $language) {
+            throw new TranslationException('The language of the locale "{locale}" is unknown.', 0, null, [
+                'locale' => $locale,
+            ]);
+        }
+
+        if ($displayLocale === null) {
+            $displayLocale = $this->locale;
+        } else {
+            $normalizedDisplayLocale = self::normalizeLocale($displayLocale);
+
+            if ($normalizedDisplayLocale === null || !in_array(explode('_', $normalizedDisplayLocale)[0], \ResourceBundle::getLocales('') ?: [], true)) {
+                throw new TranslationException('The display locale "{locale}" is invalid.', 0, null, [
+                    'locale' => $displayLocale,
+                ]);
+            }
+
+            $displayLocale = $normalizedDisplayLocale;
+        }
 
         $name = \Locale::getDisplayLanguage($locale, $displayLocale);
 

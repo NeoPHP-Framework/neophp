@@ -4,8 +4,9 @@
 
 | Version | Security fixes |
 |---|---|
-| latest `v1.x` release | yes |
-| older `v1.x` releases | no: upgrade to the latest `v1.x` (no breaking change inside v1) |
+| latest `v2.x` release | yes |
+| older `v2.x` releases | no: upgrade to the latest `v2.x` (no breaking change inside v2) |
+| `v1.x` | no: upgrade to NeoPHP 2 with `UPGRADE-2.0.md` |
 
 ## Reporting a vulnerability
 
@@ -17,7 +18,7 @@ Report it privately through GitHub: **Security** tab of the repository, then **R
 - the steps or the code to reproduce the problem;
 - the impact you expect (data exposed, code execution, access bypass...).
 
-You will get an answer within 7 days. The fix is released on the latest `v1.x` version, then the advisory is published with credit to the reporter (unless you prefer to stay anonymous).
+You will get an answer within 7 days. The fix is released on the latest `v2.x` version, then the advisory is published with credit to the reporter (unless you prefer to stay anonymous).
 
 ## Good practices for applications
 
