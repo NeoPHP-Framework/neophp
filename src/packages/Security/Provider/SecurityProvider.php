@@ -9,6 +9,7 @@ use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Csrf\CsrfManagerInterface;
 use NeoPHP\Component\Database\DatabaseManagerInterface;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\Module\ModuleSources;
 use NeoPHP\Package\Security\ApiToken\ApiTokenManager;
@@ -24,6 +25,7 @@ use NeoPHP\Package\Security\Firewall\FirewallMap;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
 use NeoPHP\Package\Security\Jwt\JwtManager;
+use NeoPHP\Package\Security\OAuth\OAuthManager;
 use NeoPHP\Package\Security\SecurityManager;
 use NeoPHP\Package\Security\SecurityManagerInterface;
 use NeoPHP\Package\Security\Signature\UserTokenSigner;
@@ -147,6 +149,7 @@ class SecurityProvider extends AbstractProvider
             return new TwoFactorManager($container->get(HttpUtils::class), $container->get(Totp::class), $options !== null, (array) $options);
         });
 
+        $container->singleton(OAuthManager::class, static fn (ContainerManagerInterface $container): OAuthManager => new OAuthManager($container->get(HttpUtils::class), $container->get(HttpClientManagerInterface::class), $container->get(self::CONFIG_ID)['oauth']));
 
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
@@ -178,6 +181,7 @@ class SecurityProvider extends AbstractProvider
             'api_tokens' => (array) ($config['api_tokens'] ?? []),
             'jwt' => (array) ($config['jwt'] ?? []),
             'two_factor' => isset($config['two_factor']) ? (array) $config['two_factor'] : null,
+            'oauth' => (array) ($config['oauth'] ?? []),
         ];
     }
 
