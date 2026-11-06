@@ -231,6 +231,7 @@ foreach ($report as $path => $status) {
 
 ## Changelog
 
+- v2.14.0 — `config/packages/security.yaml` shows the optional `jwt`, `two_factor` and `oauth` options.
 - v2.13.0 — The `health` options are written in `config/framework/app.yaml`, disabled by default.
 - v2.12.0 — New projects get `strict_associations: true` in `config/framework/serializer.yaml`, `http_method_override_header: false` in `config/framework/app.yaml` and `max_account_attempts: 25` in `config/packages/security.yaml`.
 - v2.9.0 — `config/packages/qr_code.yaml` is generated.

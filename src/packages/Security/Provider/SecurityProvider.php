@@ -8,8 +8,11 @@ use NeoPHP\Component\Config\ConfigManagerInterface;
 use NeoPHP\Component\Container\ContainerManagerInterface;
 use NeoPHP\Component\Container\Contract\AbstractProvider;
 use NeoPHP\Component\Csrf\CsrfManagerInterface;
+use NeoPHP\Component\Database\DatabaseManagerInterface;
+use NeoPHP\Component\HttpClient\HttpClientManagerInterface;
 use NeoPHP\Component\Kernel\Cache\ResourceCache;
 use NeoPHP\Component\Kernel\Module\ModuleSources;
+use NeoPHP\Package\Security\ApiToken\ApiTokenManager;
 use NeoPHP\Package\Security\Authentication\AuthenticationManager;
 use NeoPHP\Package\Security\Authorization\AccessDecisionManager;
 use NeoPHP\Package\Security\Authorization\AccessMap;
@@ -21,10 +24,15 @@ use NeoPHP\Package\Security\Firewall\FirewallFactory;
 use NeoPHP\Package\Security\Firewall\FirewallMap;
 use NeoPHP\Package\Security\Firewall\HttpUtils;
 use NeoPHP\Package\Security\Hasher\UserPasswordHasher;
+use NeoPHP\Package\Security\Jwt\JwtManager;
+use NeoPHP\Package\Security\OAuth\OAuthManager;
 use NeoPHP\Package\Security\SecurityManager;
 use NeoPHP\Package\Security\SecurityManagerInterface;
+use NeoPHP\Package\Security\Signature\UserTokenSigner;
 use NeoPHP\Package\Security\Token\TokenStorage;
 use NeoPHP\Package\Security\Trace\SecurityTrace;
+use NeoPHP\Package\Security\TwoFactor\Totp;
+use NeoPHP\Package\Security\TwoFactor\TwoFactorManager;
 use NeoPHP\Package\Security\Voter\AuthenticatedVoter;
 use NeoPHP\Package\Security\Voter\RoleVoter;
 
@@ -110,6 +118,39 @@ class SecurityProvider extends AbstractProvider
             );
         });
 
+        $container->singleton(UserTokenSigner::class, static fn (ContainerManagerInterface $container): UserTokenSigner => new UserTokenSigner($container->get(self::CONFIG_ID)['secret']));
+
+        $container->singleton(ApiTokenManager::class, static function (ContainerManagerInterface $container): ApiTokenManager {
+            $options = $container->get(self::CONFIG_ID)['api_tokens'];
+            $connection = $container->get(DatabaseManagerInterface::class)->connection(isset($options['connection']) ? (string) $options['connection'] : null);
+
+            return new ApiTokenManager($connection, (string) ($options['table'] ?? ApiTokenManager::DEFAULT_TABLE));
+        });
+
+        $container->singleton(JwtManager::class, static function (ContainerManagerInterface $container): JwtManager {
+            $config = $container->get(self::CONFIG_ID);
+            $options = $config['jwt'];
+
+            return new JwtManager(
+                (string) ($options['secret'] ?? $config['secret']),
+                (string) ($options['algorithm'] ?? 'HS256'),
+                (int) ($options['lifetime'] ?? JwtManager::DEFAULT_LIFETIME),
+                isset($options['issuer']) ? (string) $options['issuer'] : null,
+                isset($options['audience']) ? (string) $options['audience'] : null,
+                (int) ($options['leeway'] ?? 0),
+            );
+        });
+
+        $container->singleton(Totp::class, static fn (): Totp => new Totp());
+
+        $container->singleton(TwoFactorManager::class, static function (ContainerManagerInterface $container): TwoFactorManager {
+            $options = $container->get(self::CONFIG_ID)['two_factor'];
+
+            return new TwoFactorManager($container->get(HttpUtils::class), $container->get(Totp::class), $options !== null, (array) $options);
+        });
+
+        $container->singleton(OAuthManager::class, static fn (ContainerManagerInterface $container): OAuthManager => new OAuthManager($container->get(HttpUtils::class), $container->get(HttpClientManagerInterface::class), $container->get(self::CONFIG_ID)['oauth']));
+
         $container->alias(SecurityManager::class, SecurityManagerInterface::class);
         $container->alias('security', SecurityManagerInterface::class);
     }
@@ -137,6 +178,10 @@ class SecurityProvider extends AbstractProvider
             'voters' => array_values(array_map('strval', (array) ($config['voters'] ?? []))),
             'throttling_path' => $cache . DIRECTORY_SEPARATOR . self::CACHE_DIRECTORY . DIRECTORY_SEPARATOR . 'throttling',
             'secret' => (string) $secret,
+            'api_tokens' => (array) ($config['api_tokens'] ?? []),
+            'jwt' => (array) ($config['jwt'] ?? []),
+            'two_factor' => isset($config['two_factor']) ? (array) $config['two_factor'] : null,
+            'oauth' => (array) ($config['oauth'] ?? []),
         ];
     }
 

@@ -48,6 +48,16 @@ firewalls:
             # Cache pool shared by the servers, ~ = local files
             # cache_pool: shared
 
+# Optional features, see the Security documentation:
+# jwt:
+#     lifetime: 3600
+# two_factor:
+#     path: /2fa
+# oauth:
+#     resolver: App\Security\OAuthUserResolver
+#     providers:
+#         google: { client_id: '%env(GOOGLE_CLIENT_ID)%', client_secret: '%env(GOOGLE_CLIENT_SECRET)%' }
+
 role_hierarchy:
     ROLE_ADMIN: [ ROLE_USER ]
 
