@@ -373,7 +373,9 @@ class SqlQueryBuilder
             throw new OrmException('The INSERT query has no values: call values() or setValue().');
         }
 
-        return 'INSERT INTO ' . $this->quote((string) $this->from['table'])
+        $from = $this->requireFrom();
+
+        return 'INSERT INTO ' . $this->quote((string) $from['table'])
             . ' (' . implode(', ', array_map(fn (string $column): string => $this->quote($column), array_keys($this->values))) . ')'
             . ' VALUES (' . implode(', ', $this->values) . ')';
     }
@@ -390,12 +392,21 @@ class SqlQueryBuilder
             $set[] = $this->quote($column) . ' = ' . $expression;
         }
 
-        return 'UPDATE ' . $this->table((string) $this->from['table'], $this->from['alias']) . ' SET ' . implode(', ', $set) . ($this->where !== null ? ' WHERE ' . $this->where : '');
+        $from = $this->requireFrom();
+
+        return 'UPDATE ' . $this->table((string) $from['table'], $from['alias']) . ' SET ' . implode(', ', $set) . ($this->where !== null ? ' WHERE ' . $this->where : '');
     }
 
     protected function getDeleteSql(): string
     {
-        return 'DELETE FROM ' . $this->table((string) $this->from['table'], $this->from['alias']) . ($this->where !== null ? ' WHERE ' . $this->where : '');
+        $from = $this->requireFrom();
+
+        return 'DELETE FROM ' . $this->table((string) $from['table'], $from['alias']) . ($this->where !== null ? ' WHERE ' . $this->where : '');
+    }
+
+    protected function requireFrom(): array
+    {
+        return $this->from ?? throw new OrmException('The query has no table: call insert(), update() or delete() with a table.');
     }
 
     protected function table(string $table, ?string $alias): string

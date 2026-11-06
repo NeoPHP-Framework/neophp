@@ -16,6 +16,7 @@ Each enabled module brings its own checks, and the application can add its own.
 - [Checks of the framework](#checks-of-the-framework)
 - [Writing a check](#writing-a-check)
 - [In production and in CI](#in-production-and-in-ci)
+- [Health endpoint](#health-endpoint)
 - [DoctorManagerInterface](#doctormanagerinterface)
 - [Changelog](#changelog)
 
@@ -204,6 +205,27 @@ php bin/neo doctor --env=prod --strict || exit 1
 php bin/neo doctor --format=json > doctor.json
 ```
 
+## Health endpoint
+
+For a load balancer or Kubernetes, enable the route in `config/framework/app.yaml`:
+
+```yaml
+health:
+    enabled: true
+    path: /health
+    checks: [ database ]
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `enabled` | `false` | registers the route |
+| `path` | `/health` | path of the route |
+| `checks` | `[ ]` | names of the checks to run, all of them when empty |
+
+`GET /health` answers `200 {"status":"ok"}`, or `503 {"status":"error"}` when a check reports an error or an unknown check is configured. The details are never shown: use `php bin/neo doctor`. Warnings do not fail the endpoint, and the route keeps working during the maintenance mode.
+
+Keep `checks` short: the checks and their discovery run at each call. When `access_control` protects every path, add a public rule for this path.
+
 ## DoctorManagerInterface
 
 | Method | Description |
@@ -225,5 +247,6 @@ The manager is also available with the `doctor` container id.
 
 ## Changelog
 
+- v2.13.0 — Health endpoint: `health` options of `config/framework/app.yaml`, `Controller\HealthController`, `Helper/Event/HealthListener`.
 - v2.9.0 — `QR codes` check of the QrCode package.
 - v2.8.0 — Doctor process: `php bin/neo doctor` (`--check`, `--format=json`, `--strict`, exit code), `DoctorManager` and `DoctorManagerInterface`, `Contract\CheckInterface`, `Model\CheckResult` and `Model\DoctorReport`, checks discovered in the `Helper/Doctor/` folder of the enabled modules and in the application: PHP, application, database, mailer, uploads, images, Mercure, notifications, migrations and queue.

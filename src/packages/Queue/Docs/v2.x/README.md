@@ -304,12 +304,13 @@ All in `NeoPHP\Package\Queue\Exception\`, extending `QueueException` (itself a `
 ## Limitations
 
 - At-least-once delivery: a worker killed during a handler, or a handler running longer than `retry_after`, leads to a second delivery. Handlers should be idempotent.
-- The filesystem transport is for a single server (local disk); the redis transport ignores the priority between delayed messages until they are ready and requires Redis 5 (`ZPOPMIN`).
+- The filesystem transport is for a single server (local disk); the redis transport ignores the priority between delayed messages until they are ready and requires Redis 5 (`ZPOPMIN`) with `EVAL`: a message is moved between its states in one atomic step, so a worker killed in the middle does not lose it.
 - The `sync` transport has no retry and no failed storage.
 - With `auto_setup: true`, the profiler panel may create the queue tables on its first display.
 
 ## Changelog
 
+- v2.13.0 — The redis transport moves the messages between their states atomically; the created directories use the `0775` permissions.
 - v2.8.0 — `Helper/Doctor/QueueCheck`: `neo doctor` checks the transports and reports the failed messages (see the Doctor documentation).
 - v2.1.0 — The handlers of the NeoPHP packages are discovered.
 - v2.0.0 — `QueueManager` is the `final` entry point of the module, declared with `#[Package]`; `QueueManagerInterface` replaces `Contract\QueueInterface`; `Helper/Profiler` is renamed `Helper/WebProfiler`; `Envelope` moves to `Message\Envelope`; the internal classes are marked `@internal`.
